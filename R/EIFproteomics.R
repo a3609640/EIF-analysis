@@ -31,7 +31,7 @@ library(TSclust) # cluster time series
 library(tseries) # bootstrap
 
 
-
+### retrieve proteomics data
 
 EIF.proteomics <- read.csv(file.path("project-data", 
                                      "proteomics.csv"), 
