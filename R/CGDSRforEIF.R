@@ -216,7 +216,8 @@ plot.EIF.pan.tcga <- function(EIF){
   mean <- within(df2[df2$EIFgene == m,], # TCGAstudy is one column in df2
                  TCGAstudy <- reorder(TCGAstudy, log2(RNAseq), median))
   a <- levels(mean$TCGAstudy)
-  colors <- ifelse(a == "hnsc_tcga_pan_can_atlas_2018" | a == "cesc_tcga_pan_can_atlas_2018", "red", "black")
+  colors <- ifelse(a == "hnsc_tcga_pan_can_atlas_2018"
+                   | a == "cesc_tcga_pan_can_atlas_2018", "red", "black")
   print(
     ggplot(mean,
            aes(x        = TCGAstudy,
@@ -401,7 +402,8 @@ plot.EIF.score.all.tcga <- function(x) {
 #  EIF.score.tcga.all.tumors <- EIF.score.tcga.all.tumors[EIF.score.tcga.all.tumors$EIFgene == x,]
 #  mean <- within(EIF.score.tcga.all.tumors, TCGAstudy <- reorder(TCGAstudy, log2(x), median))
   y <- paste0(x, "score")
-  median <- within(EIF.score.tcga.all.tumors[EIF.score.tcga.all.tumors$EIFgene == y,], # TCGAstudy is one column in df2
+  median <- within(EIF.score.tcga.all.tumors[
+    EIF.score.tcga.all.tumors$EIFgene == y,], # TCGAstudy is one column in df2
                  TCGAstudy <- reorder(TCGAstudy, log2(Score), median))
   print(
     ggplot(median,
@@ -513,21 +515,6 @@ plot.EIFandScore.all.tumors <- function (){
   grid.arrange(p1, p2, ncol=2)
 }
 plot.EIFandScore.all.tumors()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -648,7 +635,8 @@ plot.mutations.RNAseq("TP53.mutations", "EIF4A1")
 sapply(c("TP53.mutations"),
        function(x) mapply(plot.mutations.RNAseq,
                           x,
-                          c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1","TP53")))
+                          c("EIF4A1","EIF4E","EIF4G1",
+                            "EIF4EBP1","RPS6KB1","TP53")))
 # or
 sapply(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1"),
        function(y) mapply(plot.mutations.RNAseq,
@@ -768,7 +756,8 @@ plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
 # use all combinations of geneCNV and RNAseq
 sapply(c("MYC.CNV","TP53.CNV","PTEN.CNV"),
        function(x)
-         mapply(plot.CNV.RNAseq, x, c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","RPS6KB1")))
+         mapply(plot.CNV.RNAseq, x, c("EIF4A1","EIF4E","EIF4G1",
+                                      "EIF4EBP1","RPS6KB1")))
 # or
 sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
        function(y)
@@ -858,7 +847,8 @@ sapply(mutation.list, plot.km.mut.skcm)
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data from SKCM  ##
 ####################################################################
 plot.km.EIF.skcm <- function(EIF) {
-  mycancerstudy <- getCancerStudies(mycgds)[198, 1]        # "esca_tcga"
+  mycancerstudy <- getCancerStudies(mycgds)[
+    grep("^skcm_tcga$", getCancerStudies(mycgds)$cancer_study_id), 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "hnsc_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
