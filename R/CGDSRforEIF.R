@@ -1,6 +1,7 @@
 # the following script generates the plot and statistics
 # for EIF expression and mutations data from TCGA provisional dataset.
 # install.packages("cgdsr")
+
 library(car)
 library(cgdsr)
 library(cowplot)
@@ -15,6 +16,9 @@ library(reshape2)
 library(stringr)
 library(survival)
 library(survMisc)
+library(survminer)
+library(tidyr)
+
 
 # Create CGDS object
 # mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
@@ -997,7 +1001,9 @@ plot.km.all.pro.tcga <- function(EIF) {
                  "CASE_ID")]
   }
 # three datasets donot have OS data and cause bugs remove them
-  bug.data.set <- names(tcga.study.list) %in% c("meso_tcga", "pcpg_tcga", "ucs_tcga")
+  bug.data.set <- names(tcga.study.list) %in% c("meso_tcga", 
+                                                "pcpg_tcga", 
+                                                "ucs_tcga")
   tcga.study.list <- tcga.study.list[!bug.data.set]
   all.tcga.clinic.data <- lapply(tcga.study.list, tcga.clinic.data)
   all.tcga.clinic.data <- melt(all.tcga.clinic.data)
@@ -1091,7 +1097,7 @@ plot.km.all.pan.tcga <- function(EIF) {
   pan.tcga.geneticprofile <- lapply(pan.tcga.study.list,
                                     geneticprofile)
   pan.caselist.RNAseq <- function(x) {
-    pan.tcga.caselist[[x]][grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
+    pan.tcga.caselist[[x]][grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna", 
                                 pan.tcga.caselist[[x]]$case_list_id), ][1, 1]
   } # pancancer group does not contain OS data
   pan.geneticprofile.RNAseq <- function(x) {
@@ -1128,8 +1134,8 @@ plot.km.all.pan.tcga <- function(EIF) {
                      "EIFgene",
                      "RNAseq",
                      "TCGAstudy")
-  all.pan.tcga.EIF.RNAseq <- data.frame(df1)
-  all.pan.tcga.EIF.RNAseq$TCGAstudy <- as.factor(all.pan.tcga.EIF.RNAseq$TCGAstudy)
+  all.tcga.EIF.RNAseq <- data.frame(df1)
+  all.tcga.EIF.RNAseq$TCGAstudy <- as.factor(all.tcga.EIF.RNAseq$TCGAstudy)
   message("RNAseq data retrieved")
   ##### retrieve clinic data from all tcga groups #####
   tcga.clinic.data <- function(x) {
@@ -1152,14 +1158,15 @@ plot.km.all.pan.tcga <- function(EIF) {
                    "OS_STATUS",
                    "CASE_ID")]
   }
-
   pro.tcga.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
   # "pro.tcga.study.list" contains all the tcga provisional cancer studies
   pro.tcga.study.list <- pro.tcga.studies$cancer_study_id
   names(pro.tcga.study.list) <- pro.tcga.study.list
   # three datasets donot have OS data and cause bugs remove them
-  bug.data.set <- names(pro.tcga.study.list) %in% c("meso_tcga", "pcpg_tcga", "ucs_tcga")
+  bug.data.set <- names(pro.tcga.study.list) %in% c("meso_tcga", 
+                                                    "pcpg_tcga", 
+                                                    "ucs_tcga")
   pro.tcga.study.list <- pro.tcga.study.list[!bug.data.set]
   all.tcga.clinic.data <- lapply(pro.tcga.study.list, tcga.clinic.data)
   all.tcga.clinic.data <- melt(all.tcga.clinic.data)
@@ -1178,13 +1185,14 @@ plot.km.all.pan.tcga <- function(EIF) {
   df <- join_all(list(all.tcga.clinic.data[c("OS_MONTHS",
                                              "OS_STATUS",
                                              "case.id")],
-                      all.pan.tcga.EIF.RNAseq[c("case.id",
+                      all.tcga.EIF.RNAseq[c("case.id",
                                              "RNAseq",
                                              "TCGAstudy")]),
                  by   = "case.id",
                  type = "full")
   df <- na.omit(df)
   message("clinical and RNAseq data combined")
+  number <- round(nrow(df)/5)
   df$Group[df$RNAseq < quantile(df$RNAseq, prob = 0.2)] = "Bottom 20%"
   df$Group[df$RNAseq > quantile(df$RNAseq, prob = 0.8)] = "Top 20%"
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
@@ -1196,45 +1204,40 @@ plot.km.all.pan.tcga <- function(EIF) {
   black.bold.12pt <- element_text(face   = "bold",
                                   size   = 12,
                                   colour = "black")
-  p <- autoplot(km,
-             xlab = "Months",
-             ylab = "Survival Probability",
-             main = paste("Kaplan-Meier plot", EIF, 
-                          "RNA expression in all TCGA pancancer groups"),
-             xlim = c(0, 300)) +
-#      scale_fill_discrete(name="Experimental\nCondition",
-#                          breaks=c("Top 20%", "Bottom 20%"),
-#                          labels=c("Top 20%, n = 1931", "Bottom 20%, n = 1931"))+
-    theme(axis.title           = black.bold.12pt,
-          axis.text            = black.bold.12pt,
-          axis.line.x          = element_line(color  = "black"),
-          axis.line.y          = element_line(color  = "black"),
-          panel.grid           = element_blank(),
-          strip.text           = black.bold.12pt,
-          legend.text          = black.bold.12pt ,
-          legend.title         = black.bold.12pt ,
-          legend.justification = c(1,1)) +
-    guides(fill = FALSE) +
-    scale_color_manual(values = c("red", "blue"),
-                       name   = paste(EIF, "mRNA expression"),
-                       breaks = c("Bottom 20%", "Top 20%"),
-                       labels = c("Bottom 20%, n = 1859",
-                                  "Top 20%, n = 1859")) +
-    geom_point(size = 0.25) +
-    annotate("text",
-             x     = 300,
-             y     = 0.85,
-             label = paste("log-rank test, p.val = ", p.val),
-             size  = 4.5,
-             hjust = 1,
-             fontface = "bold")
-
+  print(
+    ggplot2::autoplot(km,
+                      xlab = "Months",
+                      ylab = "Survival Probability",
+                      main = paste("Kaplan-Meier plot", EIF, "RNA expression"),
+                      xlim = c(0, 250)) +
+      theme(axis.title           = black.bold.12pt,
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.justification = c(1,1),
+            legend.position      = c(1,1))+
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+                         name   = paste(EIF, "mRNA expression"),
+                         breaks = c("Bottom 20%", "Top 20%"),
+                         labels = c(paste("Bottom 20%, n =", number),
+                                    paste("Top 20%, n =", number))) +
+      geom_point(size = 0.25) +
+      annotate("text",
+               x     = 250,
+               y     = 0.80,
+               label = paste("log-rank test, p.val = ", p.val),
+               size  = 4.5,
+               hjust = 1,
+               fontface = "bold"))
+  
   # rho = 1 the Gehan-Wilcoxon test
-#  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
-#  my_text <- "This text is at x=0.7 and y=0.8!"
-#  my_grob = grid.text(my_text, x=0.7,  y=0.8, gp=gpar(col="firebrick", fontsize=14, fontface="bold"))
-#  p + annotation_custom(my_grob)
-  print(p)
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
+  print(EIF)
   print(stats)
 }
 
