@@ -33,10 +33,10 @@ EIF.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","EIF4EBP2",
               "LLGL2","GUCA1B", "RPS5")
 names(EIF.gene) <- EIF.gene
 
+
 ####################################################################
 ## plot EIF RNASeq data from TCGA provisional cancer study groups ##
 ####################################################################
-
 plot.EIF.provisional.tcga <- function(EIF){
   # Get EIF RNAseq data from all TCGA study groups
   tcga.pan.studies <- getCancerStudies(mycgds)[
@@ -147,9 +147,10 @@ plot.EIF.provisional.tcga <- function(EIF){
 plot.EIF.provisional.tcga("GUCA1B")
 sapply(EIF.gene, plot.EIF.provisional.tcga)
 
-#############################################################
-## plot EIF RNASeq data from pan TCGA cancer study groups ##
-#############################################################
+
+############################################################
+## plot EIF RNASeq data from TCGA pan cancer study groups ##
+############################################################
 plot.EIF.pan.tcga <- function(EIF){
   # Get EIF RNAseq data from all TCGA study groups
   tcga.pan.studies <- getCancerStudies(mycgds)[
@@ -255,6 +256,7 @@ plot.EIF.pan.tcga <- function(EIF){
 }
 plot.EIF.pan.tcga("EIF4E")
 sapply(EIF.gene, plot.EIF.pan.tcga)
+
 
 ##########################################################
 ## plot RNAseq data of EIF complex in TCGA study groups ##
@@ -853,13 +855,14 @@ sapply(mutation.list, plot.km.mut.skcm)
 plot.km.EIF.skcm <- function(EIF) {
   mycancerstudy <- getCancerStudies(mycgds)[
     grep("^skcm_tcga$", getCancerStudies(mycgds)$cancer_study_id), 1]
-  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1]  # "hnsc_tcga_all"
+  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4,1]  # "hnsc_tcga_all"
+  mygeneticprofile <- getGeneticProfiles(mycgds,mycancerstudy)[4,1]
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
                                      EIF,
-                                     "skcm_tcga_rna_seq_v2_mrna",
-                                     "skcm_tcga_all")
+                                     mygeneticprofile,
+                                     mycaselist)
   skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
   skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
@@ -879,7 +882,7 @@ plot.km.EIF.skcm <- function(EIF) {
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
+    ggplot2::autoplot(km,
              xlab = "Months",
              ylab = "Survival Probability",
              main = paste("Kaplan-Meier plot",
@@ -1241,6 +1244,6 @@ plot.km.all.pan.tcga <- function(EIF) {
   print(stats)
 }
 
-plot.km.all.pan.tcga("EIF4E")
+plot.km.all.pan.tcga("EIF4EBP2")
 sapply(EIF.gene, plot.km.all.pan.tcga)
 
