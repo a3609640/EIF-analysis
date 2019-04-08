@@ -22,7 +22,7 @@ library(tidyr)
 
 # Create CGDS object
 # mycgds <- CGDS("http://www.cbioportal.org/public-portal/")
-mycgds = CGDS("http://www.cbioportal.org/")
+mycgds <- CGDS("http://www.cbioportal.org/")
 test(mycgds)
 # Get list of cancer studies at server
 getCancerStudies(mycgds)
@@ -259,6 +259,331 @@ plot.EIF.pan.tcga <- function(EIF){
 }
 plot.EIF.pan.tcga("EIF4E")
 sapply(EIF.gene, plot.EIF.pan.tcga)
+
+##############################################################################
+## Kaplan-Meier curve with EIF RNAseq data from all TCGA provisional groups ##
+##############################################################################
+plot.km.all.pro.tcga <- function(EIF) {
+  #  mycgds <- CGDS("http://www.cbioportal.org/")
+  #  test(mycgds)
+  caselist <- function(x) getCaseLists(mycgds, x)
+  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+  tcga.pro.studies <- getCancerStudies(mycgds)[
+    grep("(TCGA, Provisional)",
+      getCancerStudies(mycgds)$name), ]
+  tcga.study.list <- tcga.pro.studies$cancer_study_id
+  names(tcga.study.list) <- tcga.study.list
+  tcga.pro.caselist <- lapply(tcga.study.list,
+    caselist)
+  tcga.pro.geneticprofile <- lapply(tcga.study.list,
+    geneticprofile)
+  caselist.RNAseq <- function(x) {
+    tcga.pro.caselist[[x]][grep("tcga_rna_seq_v2_mrna",
+      tcga.pro.caselist[[x]]$case_list_id), ][1, 1]
+  }
+  geneticprofile.RNAseq <- function(x) {
+    tcga.pro.geneticprofile[[x]][
+      grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
+        tcga.pro.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
+  }
+  tcga.profiledata.RNAseq <- function(genename,
+    geneticprofile,
+    caselist) {
+    getProfileData(mycgds,
+      genename,
+      geneticprofile,
+      caselist)
+  }
+  tcga.gene.RNAseq <- function(x, y) {
+    tcga.profiledata.RNAseq(x,
+      geneticprofile.RNAseq(y),
+      caselist.RNAseq(y))
+  }
+  tcga.EIF.RNAseq <- function(y) {
+    tcga.gene.RNAseq(x = EIF, y)
+  }
+  ## test1 <- SCD.tcga.RNAseq(y = "skcm_tcga")
+  ## test ## try to keep patient ID in the rowname
+  test2 <- lapply(tcga.study.list, tcga.EIF.RNAseq)
+  for(x in 1:32)
+  {
+    test2[[x]]$case.id <- rownames(test2[[x]])
+    message("test2 = ", x)
+  }
+  df1 <- melt(test2)
+  colnames(df1) <- c("case.id",
+    "EIFgene",
+    "RNAseq",
+    "TCGAstudy")
+  all.tcga.EIF.RNAseq <- data.frame(df1)
+  all.tcga.EIF.RNAseq$TCGAstudy <- as.factor(all.tcga.EIF.RNAseq$TCGAstudy)
+  message("RNAseq data retrieved")
+  ##### retrieve clinic data from all tcga groups #####
+  tcga.clinic.data <- function(x) {
+    print(x)
+    url <- function(x){
+      url <- "http://www.cbioportal.org/webservice.do?cmd=getClinicalData&case_set_id="
+      url <- paste0(url, x, "_all")
+      return(url)
+    }
+    # testurl <- url("acc_tcga")
+    # tesereq <- GET(url("acc_tcga"))
+    req <- function(x) {GET(url(x))}
+    # req <- req("acc_tcga")
+    clinical_data <- function(x) {content(req(x),
+      type      = 'text/tab-separated-values',
+      col_names = T,
+      col_types = NULL)}
+    data <- clinical_data(x)
+    data <- data[c("OS_MONTHS",
+      "OS_STATUS",
+      "CASE_ID")]
+  }
+  # three datasets donot have OS data and cause bugs remove them
+  bug.data.set <- names(tcga.study.list) %in% c("meso_tcga", 
+    "pcpg_tcga", 
+    "ucs_tcga")
+  tcga.study.list <- tcga.study.list[!bug.data.set]
+  all.tcga.clinic.data <- lapply(tcga.study.list, tcga.clinic.data)
+  all.tcga.clinic.data <- melt(all.tcga.clinic.data)
+  all.tcga.clinic.data <- all.tcga.clinic.data[c("OS_STATUS",
+    "CASE_ID",
+    "value",
+    "L1")]
+  colnames(all.tcga.clinic.data) <- c("OS_STATUS",
+    "case.id",
+    "OS_MONTHS",
+    "TCGAstudy")
+  all.tcga.clinic.data$case.id <- str_replace_all(all.tcga.clinic.data$case.id,
+    '-',
+    '.')
+  message("clinical data retrieved")
+  df <- join_all(list(all.tcga.clinic.data[c("OS_MONTHS",
+    "OS_STATUS",
+    "case.id")],
+    all.tcga.EIF.RNAseq[c("case.id",
+      "RNAseq",
+      "TCGAstudy")]),
+    by   = "case.id",
+    type = "full")
+  df <- na.omit(df)
+  message("clinical and RNAseq data combined")
+  df$Group[df$RNAseq < quantile(df$RNAseq, prob = 0.2)] = "Bottom 20%"
+  df$Group[df$RNAseq > quantile(df$RNAseq, prob = 0.8)] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+  #  df <- na.omit(df)
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
+  black.bold.12pt <- element_text(face   = "bold",
+    size   = 12,
+    colour = "black")
+  print(
+    autoplot(km,
+      xlab = "Months",
+      ylab = "Survival Probability",
+      main = paste("Kaplan-Meier plot", EIF, 
+        "RNA expression in all TCGA provisional groups")) +
+      theme(axis.title           = black.bold.12pt,
+        axis.text            = black.bold.12pt,
+        axis.line.x          = element_line(color  = "black"),
+        axis.line.y          = element_line(color  = "black"),
+        panel.grid           = element_blank(),
+        strip.text           = black.bold.12pt,
+        legend.text          = black.bold.12pt ,
+        legend.title         = black.bold.12pt ,
+        legend.justification = c(1,1)) +
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+        name   = paste(EIF, "mRNA expression"),
+        breaks = c("Bottom 20%", "Top 20%"),
+        labels = c("Bottom 20%, n = 1859",
+          "Top 20%, n = 1859")) +
+      geom_point(size = 0.25) +
+      annotate("text",
+        x     = 300,
+        y     = 0.85,
+        label = paste("log-rank test, p.val = ", p.val),
+        size  = 4.5,
+        hjust = 1,
+        fontface = "bold")
+  )
+  # rho = 1 the Gehan-Wilcoxon test
+  #  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
+  print(EIF)
+  print(stats)
+}
+
+plot.km.all.pro.tcga("EIF4G1")
+sapply(EIF.gene, plot.km.all.pro.tcga)
+
+############################################################################
+## Kaplan-Meier curve with EIF RNAseq data from all TCGA pancancer groups ##
+############################################################################
+plot.km.all.pan.tcga <- function(EIF) {
+  #  mycgds <- CGDS("http://www.cbioportal.org/")
+  #  test(mycgds)
+  caselist <- function(x) getCaseLists(mycgds, x)
+  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+  pan.tcga.studies <- getCancerStudies(mycgds)[
+    grep("(TCGA, PanCancer Atlas)",
+      getCancerStudies(mycgds)$name), ]
+  pan.tcga.study.list <- pan.tcga.studies$cancer_study_id
+  names(pan.tcga.study.list) <- pan.tcga.study.list
+  pan.tcga.caselist <- lapply(pan.tcga.study.list,
+    caselist)
+  pan.tcga.geneticprofile <- lapply(pan.tcga.study.list,
+    geneticprofile)
+  pan.caselist.RNAseq <- function(x) {
+    pan.tcga.caselist[[x]][grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna", 
+      pan.tcga.caselist[[x]]$case_list_id), ][1, 1]
+  } # pancancer group does not contain OS data
+  pan.geneticprofile.RNAseq <- function(x) {
+    pan.tcga.geneticprofile[[x]][
+      grep("mRNA Expression, RSEM",
+        pan.tcga.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
+  }
+  tcga.profiledata.RNAseq <- function(genename,
+    geneticprofile,
+    caselist) {
+    getProfileData(mycgds,
+      genename,
+      geneticprofile,
+      caselist)
+  }
+  pan.tcga.gene.RNAseq <- function(x, y) {
+    tcga.profiledata.RNAseq(x,
+      pan.geneticprofile.RNAseq(y),
+      pan.caselist.RNAseq(y))
+  }
+  pan.tcga.EIF.RNAseq <- function(y) {
+    pan.tcga.gene.RNAseq(x = EIF, y)
+  }
+  ## test1 <- SCD.tcga.RNAseq(y = "skcm_tcga")
+  ## test ## try to keep patient ID in the rowname
+  test2 <- lapply(pan.tcga.study.list, pan.tcga.EIF.RNAseq)
+  for(x in 1:32)
+  {
+    test2[[x]]$case.id <- rownames(test2[[x]])
+    message("test2 = ", x)
+  }
+  df1 <- melt(test2)
+  colnames(df1) <- c("case.id",
+    "EIFgene",
+    "RNAseq",
+    "TCGAstudy")
+  all.tcga.EIF.RNAseq <- data.frame(df1)
+  all.tcga.EIF.RNAseq$TCGAstudy <- as.factor(all.tcga.EIF.RNAseq$TCGAstudy)
+  message("RNAseq data retrieved")
+  ##### retrieve clinic data from all tcga groups #####
+  tcga.clinic.data <- function(x) {
+    print(x)
+    url <- function(x){
+      url <- "http://www.cbioportal.org/webservice.do?cmd=getClinicalData&case_set_id="
+      url <- paste0(url, x, "_all")
+      return(url)
+    }
+    # testurl <- url("acc_tcga")
+    # tesereq <- GET(url("acc_tcga"))
+    req <- function(x) {GET(url(x))}
+    # req <- req("acc_tcga")
+    clinical_data <- function(x) {content(req(x),
+      type      = 'text/tab-separated-values',
+      col_names = T,
+      col_types = NULL)}
+    data <- clinical_data(x)
+    data <- data[c("OS_MONTHS",
+      "OS_STATUS",
+      "CASE_ID")]
+  }
+  pro.tcga.studies <- getCancerStudies(mycgds)[
+    grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
+  # "pro.tcga.study.list" contains all the tcga provisional cancer studies
+  pro.tcga.study.list <- pro.tcga.studies$cancer_study_id
+  names(pro.tcga.study.list) <- pro.tcga.study.list
+  # three datasets donot have OS data and cause bugs remove them
+  bug.data.set <- names(pro.tcga.study.list) %in% c("meso_tcga", 
+    "pcpg_tcga", 
+    "ucs_tcga")
+  pro.tcga.study.list <- pro.tcga.study.list[!bug.data.set]
+  all.tcga.clinic.data <- lapply(pro.tcga.study.list, tcga.clinic.data)
+  all.tcga.clinic.data <- melt(all.tcga.clinic.data)
+  all.tcga.clinic.data <- all.tcga.clinic.data[c("OS_STATUS",
+    "CASE_ID",
+    "value",
+    "L1")]
+  colnames(all.tcga.clinic.data) <- c("OS_STATUS",
+    "case.id",
+    "OS_MONTHS",
+    "TCGAstudy")
+  all.tcga.clinic.data$case.id <- str_replace_all(all.tcga.clinic.data$case.id,
+    '-',
+    '.')
+  message("clinical data retrieved")
+  df <- join_all(list(all.tcga.clinic.data[c("OS_MONTHS",
+    "OS_STATUS",
+    "case.id")],
+    all.tcga.EIF.RNAseq[c("case.id",
+      "RNAseq",
+      "TCGAstudy")]),
+    by   = "case.id",
+    type = "full")
+  df <- na.omit(df)
+  message("clinical and RNAseq data combined")
+  number <- round(nrow(df)/5)
+  df$Group[df$RNAseq < quantile(df$RNAseq, prob = 0.2)] = "Bottom 20%"
+  df$Group[df$RNAseq > quantile(df$RNAseq, prob = 0.8)] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+  #  df <- na.omit(df)
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
+  black.bold.12pt <- element_text(face   = "bold",
+    size   = 12,
+    colour = "black")
+  print(
+    ggplot2::autoplot(km,
+      xlab = "Months",
+      ylab = "Survival Probability",
+      main = paste("Kaplan-Meier plot", EIF, "RNA expression"),
+      xlim = c(0, 250)) +
+      theme(axis.title           = black.bold.12pt,
+        axis.text            = black.bold.12pt,
+        axis.line.x          = element_line(color  = "black"),
+        axis.line.y          = element_line(color  = "black"),
+        panel.grid           = element_blank(),
+        strip.text           = black.bold.12pt,
+        legend.text          = black.bold.12pt ,
+        legend.title         = black.bold.12pt ,
+        legend.justification = c(1,1),
+        legend.position      = c(1,1))+
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+        name   = paste(EIF, "mRNA expression"),
+        breaks = c("Bottom 20%", "Top 20%"),
+        labels = c(paste("Bottom 20%, n =", number),
+          paste("Top 20%, n =", number))) +
+      geom_point(size = 0.25) +
+      annotate("text",
+        x     = 250,
+        y     = 0.80,
+        label = paste("log-rank test, p.val = ", p.val),
+        size  = 4.5,
+        hjust = 1,
+        fontface = "bold"))
+  
+  # rho = 1 the Gehan-Wilcoxon test
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
+  print(EIF)
+  print(stats)
+}
+
+plot.km.all.pan.tcga("EIF4G1")
+sapply(EIF.gene, plot.km.all.pan.tcga)
+
+
 
 
 ##########################################################
@@ -923,326 +1248,4 @@ plot.km.EIF.skcm <- function(EIF) {
 plot.km.EIF.skcm("EIF4G1")
 sapply(EIF.gene, plot.km.EIF.skcm)
 
-##############################################################################
-## Kaplan-Meier curve with EIF RNAseq data from all TCGA provisional groups ##
-##############################################################################
-plot.km.all.pro.tcga <- function(EIF) {
-#  mycgds <- CGDS("http://www.cbioportal.org/")
-#  test(mycgds)
-  caselist <- function(x) getCaseLists(mycgds, x)
-  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
-  tcga.pro.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, Provisional)",
-         getCancerStudies(mycgds)$name), ]
-  tcga.study.list <- tcga.pro.studies$cancer_study_id
-  names(tcga.study.list) <- tcga.study.list
-  tcga.pro.caselist <- lapply(tcga.study.list,
-                              caselist)
-  tcga.pro.geneticprofile <- lapply(tcga.study.list,
-                                    geneticprofile)
-  caselist.RNAseq <- function(x) {
-    tcga.pro.caselist[[x]][grep("tcga_rna_seq_v2_mrna",
-                                tcga.pro.caselist[[x]]$case_list_id), ][1, 1]
-    }
-  geneticprofile.RNAseq <- function(x) {
-    tcga.pro.geneticprofile[[x]][
-      grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
-           tcga.pro.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
-    }
-  tcga.profiledata.RNAseq <- function(genename,
-                                      geneticprofile,
-                                      caselist) {
-    getProfileData(mycgds,
-                   genename,
-                   geneticprofile,
-                   caselist)
-    }
-  tcga.gene.RNAseq <- function(x, y) {
-    tcga.profiledata.RNAseq(x,
-                            geneticprofile.RNAseq(y),
-                            caselist.RNAseq(y))
-  }
-  tcga.EIF.RNAseq <- function(y) {
-    tcga.gene.RNAseq(x = EIF, y)
-    }
-## test1 <- SCD.tcga.RNAseq(y = "skcm_tcga")
-## test ## try to keep patient ID in the rowname
-  test2 <- lapply(tcga.study.list, tcga.EIF.RNAseq)
-  for(x in 1:32)
-    {
-    test2[[x]]$case.id <- rownames(test2[[x]])
-    message("test2 = ", x)
-    }
-  df1 <- melt(test2)
-  colnames(df1) <- c("case.id",
-                     "EIFgene",
-                     "RNAseq",
-                     "TCGAstudy")
-  all.tcga.EIF.RNAseq <- data.frame(df1)
-  all.tcga.EIF.RNAseq$TCGAstudy <- as.factor(all.tcga.EIF.RNAseq$TCGAstudy)
-  message("RNAseq data retrieved")
-  ##### retrieve clinic data from all tcga groups #####
-  tcga.clinic.data <- function(x) {
-    print(x)
-    url <- function(x){
-      url <- "http://www.cbioportal.org/webservice.do?cmd=getClinicalData&case_set_id="
-      url <- paste0(url, x, "_all")
-      return(url)
-      }
-# testurl <- url("acc_tcga")
-# tesereq <- GET(url("acc_tcga"))
-  req <- function(x) {GET(url(x))}
-# req <- req("acc_tcga")
-  clinical_data <- function(x) {content(req(x),
-                                        type      = 'text/tab-separated-values',
-                                        col_names = T,
-                                        col_types = NULL)}
-  data <- clinical_data(x)
-  data <- data[c("OS_MONTHS",
-                 "OS_STATUS",
-                 "CASE_ID")]
-  }
-# three datasets donot have OS data and cause bugs remove them
-  bug.data.set <- names(tcga.study.list) %in% c("meso_tcga", 
-                                                "pcpg_tcga", 
-                                                "ucs_tcga")
-  tcga.study.list <- tcga.study.list[!bug.data.set]
-  all.tcga.clinic.data <- lapply(tcga.study.list, tcga.clinic.data)
-  all.tcga.clinic.data <- melt(all.tcga.clinic.data)
-  all.tcga.clinic.data <- all.tcga.clinic.data[c("OS_STATUS",
-                                                 "CASE_ID",
-                                                 "value",
-                                                 "L1")]
-  colnames(all.tcga.clinic.data) <- c("OS_STATUS",
-                                      "case.id",
-                                      "OS_MONTHS",
-                                      "TCGAstudy")
-  all.tcga.clinic.data$case.id <- str_replace_all(all.tcga.clinic.data$case.id,
-                                                  '-',
-                                                  '.')
-  message("clinical data retrieved")
-  df <- join_all(list(all.tcga.clinic.data[c("OS_MONTHS",
-                                             "OS_STATUS",
-                                             "case.id")],
-                      all.tcga.EIF.RNAseq[c("case.id",
-                                             "RNAseq",
-                                             "TCGAstudy")]),
-                 by   = "case.id",
-                 type = "full")
-  df <- na.omit(df)
-  message("clinical and RNAseq data combined")
-  df$Group[df$RNAseq < quantile(df$RNAseq, prob = 0.2)] = "Bottom 20%"
-  df$Group[df$RNAseq > quantile(df$RNAseq, prob = 0.8)] = "Top 20%"
-  df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
-#  df <- na.omit(df)
-  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
-  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
-  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
-  p.val <- signif(p.val, 3)
-  black.bold.12pt <- element_text(face   = "bold",
-                                  size   = 12,
-                                  colour = "black")
-  print(
-    autoplot(km,
-             xlab = "Months",
-             ylab = "Survival Probability",
-             main = paste("Kaplan-Meier plot", EIF, 
-                          "RNA expression in all TCGA provisional groups")) +
-      theme(axis.title           = black.bold.12pt,
-            axis.text            = black.bold.12pt,
-            axis.line.x          = element_line(color  = "black"),
-            axis.line.y          = element_line(color  = "black"),
-            panel.grid           = element_blank(),
-            strip.text           = black.bold.12pt,
-            legend.text          = black.bold.12pt ,
-            legend.title         = black.bold.12pt ,
-            legend.justification = c(1,1)) +
-      guides(fill = FALSE) +
-      scale_color_manual(values = c("red", "blue"),
-                         name   = paste(EIF, "mRNA expression"),
-                         breaks = c("Bottom 20%", "Top 20%"),
-                         labels = c("Bottom 20%, n = 1859",
-                                    "Top 20%, n = 1859")) +
-      geom_point(size = 0.25) +
-      annotate("text",
-               x     = 300,
-               y     = 0.85,
-               label = paste("log-rank test, p.val = ", p.val),
-               size  = 4.5,
-               hjust = 1,
-               fontface = "bold")
-    )
-  # rho = 1 the Gehan-Wilcoxon test
-#  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
-  print(EIF)
-  print(stats)
-  }
-
-plot.km.all.pro.tcga("EIF4G1")
-sapply(EIF.gene, plot.km.all.pro.tcga)
-
-############################################################################
-## Kaplan-Meier curve with EIF RNAseq data from all TCGA pancancer groups ##
-############################################################################
-plot.km.all.pan.tcga <- function(EIF) {
-  #  mycgds <- CGDS("http://www.cbioportal.org/")
-  #  test(mycgds)
-  caselist <- function(x) getCaseLists(mycgds, x)
-  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
-  pan.tcga.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, PanCancer Atlas)",
-         getCancerStudies(mycgds)$name), ]
-  pan.tcga.study.list <- pan.tcga.studies$cancer_study_id
-  names(pan.tcga.study.list) <- pan.tcga.study.list
-  pan.tcga.caselist <- lapply(pan.tcga.study.list,
-                              caselist)
-  pan.tcga.geneticprofile <- lapply(pan.tcga.study.list,
-                                    geneticprofile)
-  pan.caselist.RNAseq <- function(x) {
-    pan.tcga.caselist[[x]][grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna", 
-                                pan.tcga.caselist[[x]]$case_list_id), ][1, 1]
-  } # pancancer group does not contain OS data
-  pan.geneticprofile.RNAseq <- function(x) {
-    pan.tcga.geneticprofile[[x]][
-      grep("mRNA Expression, RSEM",
-           pan.tcga.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
-  }
-  tcga.profiledata.RNAseq <- function(genename,
-                                      geneticprofile,
-                                      caselist) {
-    getProfileData(mycgds,
-                   genename,
-                   geneticprofile,
-                   caselist)
-  }
-  pan.tcga.gene.RNAseq <- function(x, y) {
-    tcga.profiledata.RNAseq(x,
-                            pan.geneticprofile.RNAseq(y),
-                            pan.caselist.RNAseq(y))
-  }
-  pan.tcga.EIF.RNAseq <- function(y) {
-    pan.tcga.gene.RNAseq(x = EIF, y)
-  }
-  ## test1 <- SCD.tcga.RNAseq(y = "skcm_tcga")
-  ## test ## try to keep patient ID in the rowname
-  test2 <- lapply(pan.tcga.study.list, pan.tcga.EIF.RNAseq)
-  for(x in 1:32)
-  {
-    test2[[x]]$case.id <- rownames(test2[[x]])
-    message("test2 = ", x)
-  }
-  df1 <- melt(test2)
-  colnames(df1) <- c("case.id",
-                     "EIFgene",
-                     "RNAseq",
-                     "TCGAstudy")
-  all.tcga.EIF.RNAseq <- data.frame(df1)
-  all.tcga.EIF.RNAseq$TCGAstudy <- as.factor(all.tcga.EIF.RNAseq$TCGAstudy)
-  message("RNAseq data retrieved")
-  ##### retrieve clinic data from all tcga groups #####
-  tcga.clinic.data <- function(x) {
-    print(x)
-    url <- function(x){
-      url <- "http://www.cbioportal.org/webservice.do?cmd=getClinicalData&case_set_id="
-      url <- paste0(url, x, "_all")
-      return(url)
-    }
-    # testurl <- url("acc_tcga")
-    # tesereq <- GET(url("acc_tcga"))
-    req <- function(x) {GET(url(x))}
-    # req <- req("acc_tcga")
-    clinical_data <- function(x) {content(req(x),
-                                          type      = 'text/tab-separated-values',
-                                          col_names = T,
-                                          col_types = NULL)}
-    data <- clinical_data(x)
-    data <- data[c("OS_MONTHS",
-                   "OS_STATUS",
-                   "CASE_ID")]
-  }
-  pro.tcga.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
-  # "pro.tcga.study.list" contains all the tcga provisional cancer studies
-  pro.tcga.study.list <- pro.tcga.studies$cancer_study_id
-  names(pro.tcga.study.list) <- pro.tcga.study.list
-  # three datasets donot have OS data and cause bugs remove them
-  bug.data.set <- names(pro.tcga.study.list) %in% c("meso_tcga", 
-                                                    "pcpg_tcga", 
-                                                    "ucs_tcga")
-  pro.tcga.study.list <- pro.tcga.study.list[!bug.data.set]
-  all.tcga.clinic.data <- lapply(pro.tcga.study.list, tcga.clinic.data)
-  all.tcga.clinic.data <- melt(all.tcga.clinic.data)
-  all.tcga.clinic.data <- all.tcga.clinic.data[c("OS_STATUS",
-                                                 "CASE_ID",
-                                                 "value",
-                                                 "L1")]
-  colnames(all.tcga.clinic.data) <- c("OS_STATUS",
-                                      "case.id",
-                                      "OS_MONTHS",
-                                      "TCGAstudy")
-  all.tcga.clinic.data$case.id <- str_replace_all(all.tcga.clinic.data$case.id,
-                                                  '-',
-                                                  '.')
-  message("clinical data retrieved")
-  df <- join_all(list(all.tcga.clinic.data[c("OS_MONTHS",
-                                             "OS_STATUS",
-                                             "case.id")],
-                      all.tcga.EIF.RNAseq[c("case.id",
-                                             "RNAseq",
-                                             "TCGAstudy")]),
-                 by   = "case.id",
-                 type = "full")
-  df <- na.omit(df)
-  message("clinical and RNAseq data combined")
-  number <- round(nrow(df)/5)
-  df$Group[df$RNAseq < quantile(df$RNAseq, prob = 0.2)] = "Bottom 20%"
-  df$Group[df$RNAseq > quantile(df$RNAseq, prob = 0.8)] = "Top 20%"
-  df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
-  #  df <- na.omit(df)
-  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
-  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
-  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
-  p.val <- signif(p.val, 3)
-  black.bold.12pt <- element_text(face   = "bold",
-                                  size   = 12,
-                                  colour = "black")
-  print(
-    ggplot2::autoplot(km,
-                      xlab = "Months",
-                      ylab = "Survival Probability",
-                      main = paste("Kaplan-Meier plot", EIF, "RNA expression"),
-                      xlim = c(0, 250)) +
-      theme(axis.title           = black.bold.12pt,
-            axis.text            = black.bold.12pt,
-            axis.line.x          = element_line(color  = "black"),
-            axis.line.y          = element_line(color  = "black"),
-            panel.grid           = element_blank(),
-            strip.text           = black.bold.12pt,
-            legend.text          = black.bold.12pt ,
-            legend.title         = black.bold.12pt ,
-            legend.justification = c(1,1),
-            legend.position      = c(1,1))+
-      guides(fill = FALSE) +
-      scale_color_manual(values = c("red", "blue"),
-                         name   = paste(EIF, "mRNA expression"),
-                         breaks = c("Bottom 20%", "Top 20%"),
-                         labels = c(paste("Bottom 20%, n =", number),
-                                    paste("Top 20%, n =", number))) +
-      geom_point(size = 0.25) +
-      annotate("text",
-               x     = 250,
-               y     = 0.80,
-               label = paste("log-rank test, p.val = ", p.val),
-               size  = 4.5,
-               hjust = 1,
-               fontface = "bold"))
-  
-  # rho = 1 the Gehan-Wilcoxon test
-  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
-  print(EIF)
-  print(stats)
-}
-
-plot.km.all.pan.tcga("EIF4G1")
-sapply(EIF.gene, plot.km.all.pan.tcga)
 
