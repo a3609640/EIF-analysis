@@ -213,6 +213,5 @@ plot.CPTAC <- function(status, data) {
   print(p1)
 }
 
-data <- TCGA_Breast_BI_Proteome_summary
 plot.CPTAC ("Peptide", TCGA_Breast_BI_Proteome_summary)
 plot.CPTAC ("Phosphoeptide", TCGA_Breast_BI_Phosphoproteome_summary)

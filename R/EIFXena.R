@@ -740,9 +740,10 @@ plot.EIF.PCA <- function () {
     )
 }
 
-####################################################################
-##  Kaplan-Meier curve with clinic and EIF RNASeq data all tumor  ##
-####################################################################
+#########################################################################
+##  Kaplan-Meier curve with clinic and EIF RNASeq data all tumor group ##
+#########################################################################
+
 plot.km.EIF.all.tumors <- function(EIF) {
   EIF.TCGA.GTEX <-
     read.csv(
@@ -827,9 +828,9 @@ plot.km.EIF.all.tumors <- function(EIF) {
   #  print(tst)
 }
 
-###################################################################################
-##  Kaplan-Meier curve with clinic and EIF RNASeq data in individual tumor group ##
-###################################################################################
+########################################################################
+##  Kaplan-Meier curve with clinic and EIF RNASeq in each tumor group ##
+########################################################################
 plot.km.EIF.each.tumor <- function(EIF, tumor) {
   EIF.TCGA.GTEX <-
     read.csv(
