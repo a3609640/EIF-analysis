@@ -40,10 +40,10 @@ names(EIF.gene) <- EIF.gene
 ####################################################################
 plot.EIF.provisional.tcga <- function(EIF){
   ### Get EIF RNAseq data from all TCGA study groups
-  tcga.pan.studies <- getCancerStudies(mycgds)[
+  tcga.pro.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
   ### "tcag_study_list" contains all the tcga cancer studies
-  tcga.study.list <- tcga.pan.studies$cancer_study_id
+  tcga.study.list <- tcga.pro.studies$cancer_study_id
   names(tcga.study.list) <- tcga.study.list
   caselist <- function(x) getCaseLists(mycgds, x)
   geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
@@ -51,30 +51,30 @@ plot.EIF.provisional.tcga <- function(EIF){
   ### because we named each elements in tcga.study.list,
   ### lappy will return a large list, each element (with a cancer study name)
   ### in that list is a data-table
-  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
-  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+  tcga.pro.caselist <- lapply(tcga.study.list, caselist)
+  tcga.pro.geneticprofile <- lapply(tcga.study.list, geneticprofile)
   ### for example, tcga.pro.caselist[[1]] shows the dataframe of caselist
   ### in laml study group.
   ### to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna,
   ### we use the following tcag_provisional_caselist[[1][8,1]
-  ### a <- tcga.pro.caselist[[1]][
-  ### grep("tcga_rna_seq_v2_mrna", tcga.pro.caselist[[1]]$case_list_id),
+  ### a <- tcga.pro.caselist[[1]][grep("tcga_rna_seq_v2_mrna",
+  ### tcga.pro.caselist[[1]]$case_list_id), 
   ### ][1,1]
   ### b <- tcga.pro.geneticprofile[[1]][
   ### grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
   ### tcga.pro.geneticprofile[[1]]$genetic_profile_name), ][1,1]
   ### how do we do this for all study groups from [[1]] to  [[32]]?
   caselist.RNAseq <- function(x) {
-    tcga.pan.caselist[[x]][
+    tcga.pro.caselist[[x]][
       grep("tcga_rna_seq_v2_mrna",
-           tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
+           tcga.pro.caselist[[x]]$case_list_id), ][1, 1]
   }
   geneticprofile.RNAseq <- function(x) {
-    tcga.pan.geneticprofile[[x]][
+    tcga.pro.geneticprofile[[x]][
   ### double backslash \\ suppress the special meaning of ( )
   ### in regular expression
       grep("tcga_rna_seq_v2_mrna",
-           tcga.pan.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
+           tcga.pro.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
   }
   ### test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
   ### caselist.RNAseq = caselist.RNAseq ('acc_tcga')
@@ -147,7 +147,7 @@ plot.EIF.provisional.tcga <- function(EIF){
                                        color  = "black"),
             legend.position = "none"))
 }
-plot.EIF.provisional.tcga("GUCA1B")
+plot.EIF.provisional.tcga("EIF4A1")
 sapply(EIF.gene, plot.EIF.provisional.tcga)
 
 
