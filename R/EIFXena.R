@@ -1,4 +1,4 @@
-## the following script perform PCA on RNA-Seq data of seven DNFA genes
+## the following script perform PCA on RNA-Seq data of seven EIF genes
 ## from SKCM amd GTEX dataset with R package "ggfortify".
 library(ggfortify)
 library(ggplot2)
@@ -12,77 +12,96 @@ library(survminer)
 
 ## read.csv will transform characters into factors
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
-  EIF.TCGA.GTEX <-
-    read.csv(
-      file.path("project-data", "EIFTCGAGTEX2.csv"),
-      header = TRUE,
-      sep = ","
-    )
-  EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:17])
-  colnames(EIF.TCGA.GTEX.RNAseq.long) <- c("sample",
-    "study",
-    "sample.type",
-    "primary.disease",
-    "variable",
-    "value")
-  EIF.TCGA.GTEX.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[EIF.TCGA.GTEX.RNAseq.long$value != 0, ]
+  EIF.TCGA.GTEX <- read_delim(
+                              "project-data/EIFTCGAGTEX3.csv", 
+                              "\t", 
+                              escape_double = FALSE, 
+                              trim_ws = TRUE
+                              )
+  EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:22])
+  colnames(EIF.TCGA.GTEX.RNAseq.long) <- c(
+                                           "sample",
+                                           "study",
+                                           "sample.type",
+                                           "primary.disease",
+                                           "variable",
+                                           "value"
+                                            )
+  EIF.TCGA.GTEX.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[
+    EIF.TCGA.GTEX.RNAseq.long$value != 0, ]
   EIF.TCGA.GTEX.RNAseq.long <- na.omit(EIF.TCGA.GTEX.RNAseq.long)
   tumor.type <- c(
-    "Metastatic",
-    "Primary Tumor",
-    "Recurrent Tumor",
-    "Solid Tissue Normal",
-    "Normal Tissue",
-    "Cell Line"
-  )
-  EIF.TCGA.GTEX.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[EIF.TCGA.GTEX.RNAseq.long$sample.type %in% tumor.type, ]
+                  "Metastatic",
+                  "Primary Tumor",
+                  "Recurrent Tumor",
+                  "Solid Tissue Normal",
+                  "Normal Tissue",
+                  "Cell Line"
+                  )
+  EIF.TCGA.GTEX.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[
+    EIF.TCGA.GTEX.RNAseq.long$sample.type %in% tumor.type, ]
   EIF.TCGA.GTEX.RNAseq.long <- droplevels(EIF.TCGA.GTEX.RNAseq.long)
-  EIF.TCGA.GTEX.RNAseq.long$sample.type <- factor(EIF.TCGA.GTEX.RNAseq.long$sample.type, levels = tumor.type)
+  EIF.TCGA.GTEX.RNAseq.long$sample.type <- factor(
+    EIF.TCGA.GTEX.RNAseq.long$sample.type, levels = tumor.type)
   return(EIF.TCGA.GTEX.RNAseq.long)
 }
 
 ##
 get.EIF.TCGA.RNAseq.long <- function () {
-  EIF.TCGA.GTEX <- read.csv(file.path("project-data",
-    "EIFTCGAGTEX.csv"),
-    header = TRUE,
-    sep = ",")
-  EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:10])
-  colnames(EIF.TCGA.GTEX.RNAseq.long) <- c("sample",
-    "study",
-    "sample.type",
-    "primary.disease",
-    "variable",
-    "value")
-  EIF.TCGA.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[EIF.TCGA.GTEX.RNAseq.long$study == 'TCGA', ]
-  EIF.TCGA.RNAseq.long <- EIF.TCGA.RNAseq.long[EIF.TCGA.RNAseq.long$value != 0, ]
+  EIF.TCGA.GTEX <- read_delim(
+                              "project-data/EIFTCGAGTEX3.csv", 
+                              "\t", 
+                              escape_double = FALSE, 
+                              trim_ws = TRUE
+                              )
+  EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:22])
+  colnames(EIF.TCGA.GTEX.RNAseq.long) <- c(
+                                           "sample",
+                                           "study",
+                                           "sample.type",
+                                           "primary.disease",
+                                           "variable",
+                                           "value"
+                                            )
+  EIF.TCGA.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[
+    EIF.TCGA.GTEX.RNAseq.long$study == 'TCGA', ]
+  EIF.TCGA.RNAseq.long <- EIF.TCGA.RNAseq.long[
+    EIF.TCGA.RNAseq.long$value != 0, ]
   tumor.type <- c(
-    "Metastatic",
-    "Primary Tumor",
-    "Recurrent Tumor",
-    "Normal Tissue",
-    "Solid Tissue Normal"
-  )
-  EIF.TCGA.RNAseq.long <- EIF.TCGA.RNAseq.long[EIF.TCGA.RNAseq.long$sample.type %in% tumor.type, ]
+                  "Metastatic",
+                  "Primary Tumor",
+                  "Recurrent Tumor",
+                  "Normal Tissue",
+                  "Solid Tissue Normal"
+                  )
+  EIF.TCGA.RNAseq.long <- EIF.TCGA.RNAseq.long[
+    EIF.TCGA.RNAseq.long$sample.type %in% tumor.type, ]
   EIF.TCGA.RNAseq.long <- droplevels(EIF.TCGA.RNAseq.long)
+  EIF.TCGA.RNAseq.long$sample.type <- factor(
+    EIF.TCGA.RNAseq.long$sample.type, 
+    levels = tumor.type)
   return(EIF.TCGA.RNAseq.long)
 }
 
 ##
 get.EIF.GTEX.RNAseq.long <- function () {
-  EIF.TCGA.GTEX <- read.csv(file.path("project-data",
+  EIF.TCGA.GTEX <- read.csv(file.path(
+    "project-data",
     "EIFTCGAGTEX.csv"),
     header = TRUE,
     sep = ",")
   EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:10])
-  colnames(EIF.TCGA.GTEX.RNAseq.long) <- c("sample",
+  colnames(EIF.TCGA.GTEX.RNAseq.long) <- c(
+    "sample",
     "study",
     "sample.type",
     "primary.disease",
     "variable",
     "value")
-  EIF.GTEX.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[EIF.TCGA.GTEX.RNAseq.long$study == 'GTEX', ]
-  EIF.GTEX.RNAseq.long <- EIF.GTEX.RNAseq.long[EIF.GTEX.RNAseq.long$value != 0, ]
+  EIF.GTEX.RNAseq.long <- EIF.TCGA.GTEX.RNAseq.long[
+    EIF.TCGA.GTEX.RNAseq.long$study == 'GTEX', ]
+  EIF.GTEX.RNAseq.long <- EIF.GTEX.RNAseq.long[
+    EIF.GTEX.RNAseq.long$value != 0, ]
   EIF.GTEX.RNAseq.long <- na.omit(EIF.GTEX.RNAseq.long)
   #  EIF.GTEX.RNAseq.long <- EIF.GTEX.RNAseq.long[EIF.GTEX.RNAseq.long$sample.type %in% tumor.type,]
   EIF.GTEX.RNAseq.long <- droplevels(EIF.GTEX.RNAseq.long)
@@ -245,16 +264,21 @@ get.EIF.GTEX.score.long <- function () {
 }
 
 ##
-plotEIF.TCGA.GTEX <-  function (x) {
+plotEIF.RNAseq.TCGA.GTEX <-  function (x) {
   name <- deparse(substitute(x))
-  metastatic.number <- nrow(x[x$sample.type == "Metastatic", ])
-  primary.tumor.number <- nrow(x[x$sample.type == "Primary Tumor", ])
-  recurrent.tumor.number <-
-    nrow(x[x$sample.type == "Recurrent Tumor", ])
+  gene.number <- nlevels(x$variable)
+  metastatic.number <- 
+    nrow(x[x$sample.type == "Metastatic", ])/gene.number
+  primary.tumor.number <- 
+    nrow(x[x$sample.type == "Primary Tumor", ])/gene.number
+  recurrent.tumor.number <- 
+    nrow(x[x$sample.type == "Recurrent Tumor", ])/gene.number
   solid.tissue.normal.number <-
-    nrow(x[x$sample.type == "Solid Tissue Normal", ])
-  cell.line.number <- nrow(x[x$sample.type == "Cell Line", ])
-  normal.tissue.number <- nrow(x[x$sample.type == "Normal Tissue", ])
+    nrow(x[x$sample.type == "Solid Tissue Normal", ])/gene.number
+  cell.line.number <- 
+    nrow(x[x$sample.type == "Cell Line", ])/gene.number
+  normal.tissue.number <- 
+    nrow(x[x$sample.type == "Normal Tissue", ])/gene.number
   black_bold_tahoma_12 <- element_text(
     color  = "black",
     face   = "bold",
@@ -289,18 +313,29 @@ plotEIF.TCGA.GTEX <-  function (x) {
     scale_x_discrete(
       labels =
         c(
-          "Metastatic"          = paste("Metastatic \n n= ",
-            metastatic.number),
-          "Primary Tumor"       = paste("Primary Tumor \n n= ",
-            primary.tumor.number),
-          "Recurrent Tumor"     = paste("Recurrent Tumor \n n= ",
-            recurrent.tumor.number),
-          "Solid Tissue Normal" = paste("Solid Tissue Normal \n n= ",
-            solid.tissue.normal.number),
-          "Normal Tissue"       = paste("Normal Tissue \n n= ",
-            normal.tissue.number),
-          "Cell Line"           = paste("Cell Line \n n= ",
-            cell.line.number)
+          "Metastatic"          = paste(
+                                        "Metastatic \n n= ",
+                                        metastatic.number
+                                        ),
+          "Primary Tumor"       = paste(
+                                        "Primary Tumor \n n= ",
+                                        primary.tumor.number
+                                        ),
+          "Recurrent Tumor"     = paste(
+                                        "Recurrent Tumor \n n= ",
+                                        recurrent.tumor.number
+                                        ),
+          "Solid Tissue Normal" = paste(
+                                        "Solid Tissue Normal \n n= ",
+                                        solid.tissue.normal.number
+                                        ),
+          "Normal Tissue"       = paste(
+                                        "Normal Tissue \n n= ",
+                                        normal.tissue.number
+                                        ),
+          "Cell Line"           = paste(
+                                        "Cell Line \n n= ",
+                                        cell.line.number)
         )
     ) +
     theme_bw() +
@@ -318,8 +353,8 @@ plotEIF.TCGA.GTEX <-  function (x) {
   p1 <- p1 + stat_compare_means(method = "anova")
   p2 <- ggplot(data = x,
     aes(x     = variable,
-      y     = value,
-      color = variable)) +
+        y     = value,
+        color = variable)) +
     facet_grid(~ sample.type,
       scales = "free",
       space  = "free") +
@@ -332,7 +367,7 @@ plotEIF.TCGA.GTEX <-  function (x) {
       position = position_dodge(width = .9)
     ) +
     labs(x = "sample type",
-      y = paste("log2(value)")) +
+         y = paste("log2(value)")) +
     theme_bw() +
     theme(
       plot.title      = black_bold_tahoma_12,
@@ -353,12 +388,15 @@ plotEIF.TCGA.GTEX <-  function (x) {
 ##
 plotEIF.RNAseq.TCGA <-  function (x) {
   name <- deparse(substitute(x))
-  metastatic.number <- nrow(x[x$sample.type == "Metastatic", ])
-  primary.tumor.number <- nrow(x[x$sample.type == "Primary Tumor", ])
+  gene.number <- nlevels(x$variable)
+  metastatic.number <- 
+    nrow(x[x$sample.type == "Metastatic", ])/gene.number
+  primary.tumor.number <- 
+    nrow(x[x$sample.type == "Primary Tumor", ])/gene.number
   recurrent.tumor.number <-
-    nrow(x[x$sample.type == "Recurrent Tumor", ])
+    nrow(x[x$sample.type == "Recurrent Tumor", ])/gene.number
   solid.tissue.normal.number <-
-    nrow(x[x$sample.type == "Solid Tissue Normal", ])
+    nrow(x[x$sample.type == "Solid Tissue Normal", ])/gene.number
   black_bold_tahoma_12 <- element_text(
     color  = "black",
     face   = "bold",
@@ -595,8 +633,11 @@ plotEIF.score.TCGA <-  function (x) {
 ##
 plotEIF.GTEX <-  function (x) {
   name <- deparse(substitute(x))
-  cell.line.number <- nrow(x[x$sample.type == "Cell Line", ])
-  normal.tissue.number <- nrow(x[x$sample.type == "Normal Tissue", ])
+  gene.number <- nlevels(x$variable)
+  cell.line.number <- 
+    nrow(x[x$sample.type == "Cell Line", ])/gene.number
+  normal.tissue.number <- 
+    nrow(x[x$sample.type == "Normal Tissue", ])/gene.number
   black_bold_tahoma_12 <- element_text(
     color  = "black",
     face   = "bold",
@@ -696,7 +737,6 @@ plot.EIF.PCA <- function () {
   df1 <- EIF.proteomics[, -1]
   df <- as.numeric(df)
   ggplot2::autoplot(prcomp(df1))
-  
   ggplot2::autoplot(
     prcomp(df),
     data                 = DNFA.TCGA.GTEX.skin,
@@ -743,7 +783,6 @@ plot.EIF.PCA <- function () {
 #########################################################################
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data all tumor group ##
 #########################################################################
-
 plot.km.EIF.all.tumors <- function(EIF) {
   EIF.TCGA.GTEX <-
     read.csv(
@@ -916,7 +955,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
 
 ####################################################
 ####################################################
-plotEIF.TCGA.GTEX (get.EIF.TCGA.GTEX.RNAseq.long())
+plotEIF.RNAseq.TCGA.GTEX (get.EIF.TCGA.GTEX.RNAseq.long())
 plotEIF.TCGA.GTEX (get.EIF.TCGA.GTEX.score.long())
 
 plotEIF.RNAseq.TCGA (get.EIF.TCGA.RNAseq.long())
@@ -931,31 +970,25 @@ lapply(get.disease.list(),
   plot.EIF.seq.each.tumor,
   x = get.EIF.TCGA.RNAseq.long())
 
-plot.EIF.seq.each.tumor (x = get.DNFA.TCGA.GTEX.RNAseq.long(),
+plot.EIF.seq.each.tumor (x = get.EIF.TCGA.GTEX.RNAseq.long(),
   y = "Skin Cutaneous Melanoma")
 lapply(get.disease.list(),
   plot.EIF.seq.each.tumor,
-  x = get.DNFA.TCGA.GTEX.RNAseq.long())
+  x = get.EIF.TCGA.GTEX.RNAseq.long())
 ####################################################
 ####################################################
-plot.km.EIF.all.tumors("SF3B5")
+plot.km.EIF.all.tumors("RPS6KB1")
 
 EIF.gene <- c(
   "EIF4A1",
   "EIF4E",
   "EIF4G1",
+  "EIF4G3",
   "EIF4EBP1",
   "RPS6KB1",
   "MYC",
-  "HIST2H2BE",
-  "HIST1H1B",
-  "HIST1H2AB",
-  "HIST1H1C",
-  "PPA2",
-  "ECHS1",
-  "LLGL2",
-  "SF3B5",
-  "RPS5"
+  "AKT",
+  "MTOR"
 )
 names(EIF.gene) <- EIF.gene
 sapply(EIF.gene, plot.km.EIF.all.tumors)
