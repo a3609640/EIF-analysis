@@ -6,18 +6,14 @@ library(ggpubr)
 library(ggsignif)
 library(gridExtra)
 library(reshape2)
+library(readr)
 library(survival)
 library(survMisc)
 library(survminer)
 
 ## read.csv will transform characters into factors
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
-  EIF.TCGA.GTEX <- read_delim(
-                              "project-data/EIFTCGAGTEX3.csv", 
-                              "\t", 
-                              escape_double = FALSE, 
-                              trim_ws = TRUE
-                              )
+  EIF.TCGA.GTEX <- read_csv("project-data/EIFTCGAGTEX3.csv")
   EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:22])
   colnames(EIF.TCGA.GTEX.RNAseq.long) <- c(
                                            "sample",
@@ -47,13 +43,8 @@ get.EIF.TCGA.GTEX.RNAseq.long <- function () {
 }
 
 ##
-get.EIF.TCGA.RNAseq.long <- function () {
-  EIF.TCGA.GTEX <- read_delim(
-                              "project-data/EIFTCGAGTEX3.csv", 
-                              "\t", 
-                              escape_double = FALSE, 
-                              trim_ws = TRUE
-                              )
+get.EIF.TCGA.RNAseq.long <- function (x) {
+  EIF.TCGA.GTEX <- read_csv("project-data/EIFTCGAGTEX3.csv")
   EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:22])
   colnames(EIF.TCGA.GTEX.RNAseq.long) <- c(
                                            "sample",
@@ -79,7 +70,10 @@ get.EIF.TCGA.RNAseq.long <- function () {
   EIF.TCGA.RNAseq.long <- droplevels(EIF.TCGA.RNAseq.long)
   EIF.TCGA.RNAseq.long$sample.type <- factor(
     EIF.TCGA.RNAseq.long$sample.type, 
-    levels = tumor.type)
+    levels = tumor.type
+    )
+  EIF.TCGA.RNAseq.long <- EIF.TCGA.RNAseq.long[
+    EIF.TCGA.RNAseq.long$variable %in% x, ]
   return(EIF.TCGA.RNAseq.long)
 }
 
@@ -295,12 +289,13 @@ plotEIF.RNAseq.TCGA.GTEX <-  function (x) {
   )
   p1 <- ggplot(data = x,
     aes(x     = sample.type,
-      y     = value,
-      color = sample.type)) +
+        y     = value,
+        color = sample.type)) +
     facet_grid(~ variable,
-      scales = "free",
-      space  = "free") +
-    facet_wrap(~ variable, ncol = 6) +
+               scales = "free",
+               space  = "free") +
+    facet_wrap(~ variable, 
+               ncol = 6) +
     geom_violin(trim = FALSE) +
     geom_boxplot(
       alpha    = .01,
@@ -309,7 +304,7 @@ plotEIF.RNAseq.TCGA.GTEX <-  function (x) {
       position = position_dodge(width = .9)
     ) +
     labs(x = "sample type",
-      y = paste("log2(TPM)")) +
+         y = paste("log2(TPM)")) +
     scale_x_discrete(
       labels =
         c(
@@ -388,15 +383,15 @@ plotEIF.RNAseq.TCGA.GTEX <-  function (x) {
 ##
 plotEIF.RNAseq.TCGA <-  function (x) {
   name <- deparse(substitute(x))
-  gene.number <- nlevels(x$variable)
+  y <- x[x$variable == "EIF4E", ]
   metastatic.number <- 
-    nrow(x[x$sample.type == "Metastatic", ])/gene.number
+    nrow(y[y$sample.type == "Metastatic", ])
   primary.tumor.number <- 
-    nrow(x[x$sample.type == "Primary Tumor", ])/gene.number
+    nrow(y[y$sample.type == "Primary Tumor", ])
   recurrent.tumor.number <-
-    nrow(x[x$sample.type == "Recurrent Tumor", ])/gene.number
+    nrow(y[y$sample.type == "Recurrent Tumor", ])
   solid.tissue.normal.number <-
-    nrow(x[x$sample.type == "Solid Tissue Normal", ])/gene.number
+    nrow(y[y$sample.type == "Solid Tissue Normal", ])
   black_bold_tahoma_12 <- element_text(
     color  = "black",
     face   = "bold",
@@ -413,11 +408,11 @@ plotEIF.RNAseq.TCGA <-  function (x) {
   )
   p1 <- ggplot(data = x,
     aes(x     = sample.type,
-      y     = value,
-      color = sample.type)) +
+        y     = value,
+        color = sample.type)) +
     facet_grid(~ variable,
-      scales = "free",
-      space  = "free") +
+               scales = "free",
+               space  = "free") +
     facet_wrap(~ variable, ncol = 6) +
     geom_violin(trim = FALSE) +
     geom_boxplot(
@@ -469,11 +464,11 @@ plotEIF.RNAseq.TCGA <-  function (x) {
   
   p2 <- ggplot(data = x,
     aes(x     = variable,
-      y     = value,
-      color = variable)) +
+        y     = value,
+        color = variable)) +
     facet_grid(~ sample.type,
-      scales = "free",
-      space  = "free") +
+               scales = "free",
+               space  = "free") +
     facet_wrap(~ sample.type, ncol = 6) +
     geom_violin(trim = FALSE) +
     geom_boxplot(
@@ -483,7 +478,7 @@ plotEIF.RNAseq.TCGA <-  function (x) {
       position = position_dodge(width = .9)
     ) +
     labs(x = "EIF complex",
-      y = paste("log2(RNA counts)")) +
+         y = paste("log2(RNA counts)")) +
     theme_bw() +
     theme(
       plot.title      = black_bold_tahoma_12,
@@ -784,15 +779,14 @@ plot.EIF.PCA <- function () {
 ##  Kaplan-Meier curve with clinic and EIF RNASeq data all tumor group ##
 #########################################################################
 plot.km.EIF.all.tumors <- function(EIF) {
-  EIF.TCGA.GTEX <-
-    read.csv(
-      file.path("project-data", "EIFTCGAGTEX2.csv"),
-      header = TRUE,
-      sep = ","
-    )
+  EIF.TCGA.GTEX <- read_csv(
+                            "project-data/EIFTCGAGTEX3.csv", 
+                            col_types = cols(OS      = col_number(), 
+                                             OS.time = col_number())
+                            )
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA', ]
   EIF.TCGA <-
-    EIF.TCGA[EIF.TCGA$X_sample_type != "Solid Tissue Normal",]
+    EIF.TCGA[EIF.TCGA$sample_type != "Solid Tissue Normal",]
   EIF.TCGA <- droplevels(EIF.TCGA)
   df <- na.omit(EIF.TCGA)
   number <- nrow(df)
@@ -958,7 +952,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
 plotEIF.RNAseq.TCGA.GTEX (get.EIF.TCGA.GTEX.RNAseq.long())
 plotEIF.TCGA.GTEX (get.EIF.TCGA.GTEX.score.long())
 
-plotEIF.RNAseq.TCGA (get.EIF.TCGA.RNAseq.long())
+plotEIF.RNAseq.TCGA (get.EIF.TCGA.RNAseq.long(EIF.gene))
 plotEIF.score.TCGA (get.EIF.TCGA.score.long())
 
 plot.EIF.seq.all.normal (get.EIF.GTEX.RNAseq.long())
@@ -978,20 +972,23 @@ lapply(get.disease.list(),
 ####################################################
 ####################################################
 plot.km.EIF.all.tumors("RPS6KB1")
-
+EIF <- "EIF4A1"
 EIF.gene <- c(
-  "EIF4A1",
-  "EIF4E",
-  "EIF4G1",
-  "EIF4G3",
-  "EIF4EBP1",
-  "RPS6KB1",
-  "MYC",
-  "AKT",
-  "MTOR"
-)
+              "EIF4A1",
+              "EIF4A2",
+              "EIF4A3",
+              "EIF4E",
+              "EIF4E2",
+              "EIF4E3",  
+              "EIF4G1",
+              "EIF4G2",
+              "EIF4G3",
+              "EIF4EBP1",
+              "EIF4EBP2",
+              "EIF4EBP3"
+              )
 names(EIF.gene) <- EIF.gene
-sapply(EIF.gene, plot.km.EIF.all.tumors)
+lapply(EIF.gene, plot.km.EIF.all.tumors)
 
 plot.km.EIF.each.tumor("EIF4EBP1", "Cervical & Endocervical Cancer")
 lapply(get.disease.list(),
