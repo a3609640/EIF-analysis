@@ -34,7 +34,6 @@ EIF.gene <- c("EIF4A1","EIF4E","EIF4G1",
               "LLGL2","GUCA1B", "RPS5")
 names(EIF.gene) <- EIF.gene
 
-
 ####################################################################
 ## plot EIF RNASeq data from TCGA provisional cancer study groups ##
 ####################################################################
@@ -77,8 +76,8 @@ plot.EIF.provisional.tcga <- function(EIF){
            tcga.pro.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
   }
   ### test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
-  ### caselist.RNAseq = caselist.RNAseq ('acc_tcga')
-  ### geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
+  ### caselist.RNAseq.1 = caselist.RNAseq ('acc_tcga')
+  ### geneticprofile.RNAseq.1 = geneticprofile.RNAseq ('acc_tcga')
   ### Wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x)
   ### within TCGA_ProfileData_RNAseq(x)
   tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
@@ -92,9 +91,9 @@ plot.EIF.provisional.tcga <- function(EIF){
                             geneticprofile.RNAseq(y),
                             caselist.RNAseq(y))
   }
+  ### EIF.tcga.RNAseq('SCD','acc_tcga')
   EIF.RNAseq.tcga.all <- function(x) {
-    test <- lapply(tcga.study.list,
-                   function(y) mapply(EIF.tcga.RNAseq, x, y))
+    test <- lapply(tcga.study.list, function(y) mapply(EIF.tcga.RNAseq, 'SCD', y))
     df2 <- melt(test)
     colnames(df2) <- c("RNAseq", "EIFgene", "TCGAstudy")
     df2 <- data.frame(df2)
@@ -380,7 +379,7 @@ plot.km.all.pro.tcga <- function(EIF) {
     size   = 12,
     colour = "black")
   print(
-    autoplot(km,
+    ggplot2::autoplot(km,
       xlab = "Months",
       ylab = "Survival Probability",
       main = paste("Kaplan-Meier plot", EIF, 
@@ -415,7 +414,7 @@ plot.km.all.pro.tcga <- function(EIF) {
   print(stats)
 }
 
-plot.km.all.pro.tcga("EIF4G1")
+plot.km.all.pro.tcga("LLGL2")
 sapply(EIF.gene, plot.km.all.pro.tcga)
 
 ############################################################################
@@ -544,7 +543,8 @@ plot.km.all.pan.tcga <- function(EIF) {
     size   = 12,
     colour = "black")
   print(
-    ggplot2::autoplot(km,
+    ggplot2::autoplot(
+      km,
       xlab = "Months",
       ylab = "Survival Probability",
       main = paste("Kaplan-Meier plot", EIF, "RNA expression"),
@@ -632,14 +632,19 @@ EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
 boxplot(log2(EIF.RNAseq.data), 
         main="EIF RNAseq data in Esophageal cancer")
 
-##########################################################
-tcga.pan.studies <- getCancerStudies(mycgds)[
-  grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
+
+##########################################################################
+## new function to retrieve RNA-seq and CNV data from all disease types ## 
+##########################################################################
+
+tcga.pan.studies <- getCancerStudies(mycgds)[grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name),]
 ### "tcag_study_list" contains all the tcga cancer studies
 tcga.study.list <- tcga.pan.studies$cancer_study_id
 names(tcga.study.list) <- tcga.study.list
-caselist <- function(x) getCaseLists(mycgds, x)
-geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+caselist <- function(x)
+  getCaseLists(mycgds, x)
+geneticprofile <- function(x)
+  getGeneticProfiles(mycgds, x)
 ### use lappy to pull out all the caselists within tcga.study.list
 ### because we named each elements in tcga.study.list,
 ### lappy will return a large list, each element (with a cancer study name)
@@ -658,26 +663,50 @@ tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
 ### tcga.pro.geneticprofile[[1]]$genetic_profile_name), ][1,1]
 ### how do we do this for all study groups from [[1]] to  [[32]]?
 caselist.RNAseq <- function(x) {
-  tcga.pan.caselist[[x]][
-    grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
-         tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
+  tcga.pan.caselist[[x]][grep("tcga_pan_can_atlas_2018_cnaseq",
+    tcga.pan.caselist[[x]]$case_list_id),][1, 1]
 }
 geneticprofile.RNAseq <- function(x) {
   tcga.pan.geneticprofile[[x]][
     # double backslash \\ suppress the special meaning of ( )
     # in regular expression
     grep("mRNA Expression, RSEM",
-         tcga.pan.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
+      tcga.pan.geneticprofile[[x]]$genetic_profile_name),][1, 1]
 }
-
-tcga.profiledata.RNAseq <- function(genename,
-                                    geneticprofile,
-                                    caselist) {
+# test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
+# caselist.RNAseq = caselist.RNAseq ('acc_tcga')
+# geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
+# Wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x)
+# within TCGA_ProfileData_RNAseq(x)
+tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
   getProfileData(mycgds,
                  genename,
                  geneticprofile,
                  caselist)
+  }
+
+DNFA.tcga.RNAseq <- function(x, y) {
+  tcga.profiledata.RNAseq(x, geneticprofile.RNAseq(y), caselist.RNAseq(y))
+  }
+
+DNFA.RNAseq.tcga.all <- function(x) {
+  test <- lapply(tcga.study.list,
+    function(y)
+      mapply(DNFA.tcga.RNAseq, x, y))
+  df2 <- melt(test)
+  colnames(df2) <- c("RNAseq", "DNFAgene", "TCGAstudy")
+  df2 <- data.frame(df2)
 }
+
+df2 <- DNFA.RNAseq.tcga.all(DNFA)
+df2$DNFAgene <- as.factor(df2$DNFAgene)
+df2$TCGAstudy <- as.factor(df2$TCGAstudy)
+df2 <- na.omit(df2)
+
+
+
+
+### TO do list, needs to add functions to retrieve CNA data
 
 get.EIF.RNAseq.tcga <- function(x) {
   EIF.gene <- c("EIF4E","EIF4G1","EIF4EBP2","RPS6KB1")
@@ -1037,9 +1066,26 @@ plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
                                     c("EIF4A1","EIF4E","EIF4G1",
                                       "EIF4EBP1","RPS6KB1","MYC",
                                       "TP53", "NRAS", "PTEN"),
-                                    "hnsc_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
-                                    "hnsc_tcga_pan_can_atlas_2018_all")
-  CNV.EIF.RNAseq <- cbind(CNV.data, EIF.RNAseq.data)
+                                    "skcm_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
+                                    "skcm_tcga_pan_can_atlas_2018_all")
+############################################################################
+  CNV <- getProfileData(mycgds,
+                        c("MYC", "TP53", "PTEN"),
+                        "skcm_tcga_pan_can_atlas_2018_gistic",
+                        "skcm_tcga_pan_can_atlas_2018_all")
+  v <- rownames(CNV)
+  colnames(CNV) <- paste0(colnames(CNV), '.CNV')
+  # change CNV column from numeric to factor
+  factor.CNV <- function(gene) {
+    CNV[, gene] <- as.factor(CNV[, gene])
+  }
+  # use sapply, input as a matrix, and output as a matrix too.
+  CNV <- sapply(colnames(CNV), factor.CNV)
+  CNV <- as.data.frame(CNV)
+  CNV2 <- cbind(Row.Names = v, CNV)
+  rownames(CNV) <- CNV2[ , 1]
+  ##########################################################################  
+  CNV.EIF.RNAseq <- cbind(CNV, EIF.RNAseq.data)
   # na.omit cannot eleminate NaN here!
   toBeRemoved <- which(CNV.EIF.RNAseq$TP53.CNV == "NaN")
   CNV.EIF.RNAseq <- CNV.EIF.RNAseq[-toBeRemoved,]
@@ -1144,10 +1190,11 @@ plot.km.mut.skcm <- function(ge) {
                                   size   = 12,
                                   colour = "black")
   print(
-    autoplot(km,
-             xlab = "Months",
-             ylab = "Survival Probability",
-             main = paste("Kaplan-Meier plot", ge)) +
+    ggplot2::autoplot(km,
+                      xlab = "Months",
+                      ylab = "Survival Probability",
+                      main = paste("Kaplan-Meier plot", ge)
+                      ) +
       theme(axis.title      = black.bold.12pt,
             axis.text       = black.bold.12pt,
             axis.line.x     = element_line(color  = "black"),
@@ -1156,11 +1203,13 @@ plot.km.mut.skcm <- function(ge) {
             strip.text      = black.bold.12pt,
             legend.text     = black.bold.12pt ,
             legend.title    = black.bold.12pt ,
-            legend.justification = c(1,1)) +
+            legend.justification = c(1,1)
+            ) +
       scale_fill_discrete(name = ge))
-  stats <- function(x) {
-    survdiff(SurvObj ~ df[[x]], data = df, rho = 1)
-    }
+  stats <- function(x) {survdiff(SurvObj ~ df[[x]], 
+                        data = df, 
+                        rho = 1)
+                        }
   print(ge)
   print(stats(ge))
   }

@@ -967,7 +967,7 @@ lapply(get.disease.list(),
 
 plot.EIF.seq.each.tumor (
   x = get.EIF.TCGA.GTEX.RNAseq.long(),
-  y = "Skin Cutaneous Melanoma")
+  y = "Breast Invasive Carcinoma")
 lapply(get.disease.list(),
   plot.EIF.seq.each.tumor,
   x = get.EIF.TCGA.GTEX.RNAseq.long())
