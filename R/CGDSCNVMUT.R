@@ -43,7 +43,7 @@ EIF.gene <- c(
 Onco.gene <- c("BRAF", "NRAS", "AKT1", "PTEN", "TP53","MYC")
 EIF.Onco <- c(EIF.gene, Onco.gene)
 # names(DNFA.gene ) <- DNFA.gene
-names(Onco.gene ) <- Onco.gene
+names(Onco.gene) <- Onco.gene
 Onco.mutations <- paste0(Onco.gene,".mutations")
 Onco.CNV <- paste0(Onco.gene,".CNV")
 ##############################################
@@ -223,13 +223,13 @@ sapply(Onco.mutations,
 plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
   EIF.RNAseq.data <- getProfileData(mycgds,
     EIF.Onco,
-    "cesc_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
-    "cesc_tcga_pan_can_atlas_2018_all")
+    "ov_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
+    "ov_tcga_pan_can_atlas_2018_all")
   getCNV <- function(x) {
     CNV <- getProfileData(mycgds,
       x,
-      "cesc_tcga_pan_can_atlas_2018_gistic",
-      "cesc_tcga_pan_can_atlas_2018_all")
+      "ov_tcga_pan_can_atlas_2018_gistic",
+      "ov_tcga_pan_can_atlas_2018_all")
     v <- rownames(CNV)
     colnames(CNV) <- paste0(colnames(CNV), '.CNV')
     # change CNV column from numeric to factor
@@ -257,10 +257,6 @@ plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
                color = CNV.DNFA.RNAseq[, geneCNV])) +
       geom_boxplot(alpha      = .01,
                    width      = .5) +
-      geom_dotplot(binaxis    = "y",
-                   binwidth   = .1,
-                   stackdir   = "center",
-                   fill       = NA) +
       scale_x_discrete(limits = c("-2", "-1", "0", "1", "2"), # skip NaN data
                        labels = c("Homdel", "Hetlos", "Diploid", "Gain", "Amp"),
                        drop   = FALSE) +
@@ -291,9 +287,9 @@ plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
 ### use all combinations of geneCNV and RNAseq
 sapply(Onco.CNV,
        function(x)
-         mapply(plot.CNV.RNAseq, x, c("EIF4E", "EIF4", "MYC", "EIF4A1","EIF4G1")))
+         mapply(plot.CNV.RNAseq, x, c("EIF4E", "EIF4EBP1", "MYC", "EIF4A1","EIF4G1")))
 ### or
-sapply(c("BRAF", "NRAS", "PTEN", "SCD", "FASN"),
+sapply(c("EIF4E","EIF4EBP1","EIF4A1","EIF4G1","MYC"),
        function(y)
          mapply(plot.CNV.RNAseq, Onco.CNV, y))
 ### statistic comparision of SCD expression

@@ -4,6 +4,7 @@ library(reshape2)
 library(data.table)
 library(ggplot2)
 library(ggpubr)
+library(ggsignif)
 
 BRCA_Proteome_sample <- read_delim(
   "Documents/translation/CPTAC/TCGA_Breast_BI_Phosphoproteome.sample.csv", 
@@ -17,14 +18,12 @@ BRCA_Proteome_summary <- read_delim(
   "\t", 
   escape_double = FALSE, 
   trim_ws = TRUE
-)
+  )
 
 BRCA_Proteome_itraq <- fread(
   "Documents/translation/CPTAC/TCGA_Breast_BI_Proteome.itraq.tsv",
   header = T
   )
-
-
 
 BRCA_Phosphoproteome_summary <- read_delim(
   "Documents/translation/CPTAC/TCGA_Breast_BI_Phosphoproteome.summary.csv", 
@@ -42,10 +41,6 @@ BRCA_Phosphosite_itraq <- fread(
   "Documents/translation/CPTAC/TCGA_Breast_BI_Phosphoproteome.phosphosite.itraq-1.tsv", 
   header = T
   )
-
-
-
-
 
 CPTAC_BC_somatic_mutations <- read_excel(
   "Documents/translation/Proteogenomics connects somatic mutations to signalling in breast cancer/nature18003-s2/CPTAC_BC_SupplementaryTable01.xlsx")
@@ -181,13 +176,16 @@ plot.CPTAC.iTRAQ ("Proteome itraq", TCGA_Breast_BI_Proteome_itraq)
 
 plot.CPTAC <- function(status, data) {
   Proteome_EIF4 <- data [grep("EIF4", data$Gene), ]
+  EIF4.gene <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1")
+  Proteome_EIF4 <- Proteome_EIF4[
+    Proteome_EIF4$Gene %in% EIF4.gene, ]
   Proteome_EIF4_2 <- Proteome_EIF4 [ ,
     grep("Spectral Counts", names(Proteome_EIF4), value = TRUE)]
   rownames(Proteome_EIF4_2) <- Proteome_EIF4$Gene
   Proteome_EIF4_3 <- as.data.frame(t(Proteome_EIF4_2))
   Proteome_EIF4_4 <- melt(as.matrix(Proteome_EIF4_3[-38, ]))
-  Proteome_EIF4_4$type <- "tumor"
-  Proteome_EIF4_4$type[grep("263", Proteome_EIF4_4$Var1)] <- "normal"
+  Proteome_EIF4_4$type <- "Tumor (n=105)"
+  Proteome_EIF4_4$type[grep("263", Proteome_EIF4_4$Var1)] <- "Normal (n=3)"
   Proteome_EIF4_4$type <- as.factor(Proteome_EIF4_4$type)
   black_bold_tahoma_12 <- element_text(
     color  = "black",
@@ -213,12 +211,11 @@ plot.CPTAC <- function(status, data) {
     geom_violin(trim = FALSE) +
     geom_boxplot(
       alpha    = .01,
-      size     = .75,
       width    = .5,
       position = position_dodge(width = .9)
     ) +
-    labs(x = "protein name",
-      y = paste(status, "Spectral Counts")) +
+    labs(x = "sample type",
+         y = paste(status, "(Spectral Counts)")) +
     theme_bw() +
     theme(
       plot.title      = black_bold_tahoma_12,
@@ -230,13 +227,17 @@ plot.CPTAC <- function(status, data) {
       panel.grid      = element_blank(),
       legend.position = "none",
       strip.text      = black_bold_tahoma_12
-    )
-  #  p1 <- p1 + stat_compare_means(method = "anova")
-  print(p1)
+    )  
+  p2 <- p1 + stat_compare_means(comparisons = list(
+                                c("Tumor (n=105)", "Normal (n=3)"),
+                                method = "t.test"))
+  #  p2 <- p1 + stat_compare_means()
+  print(p2)
+  write.csv(Proteome_EIF4_4, file = paste0(status,"data.csv"))
 }
 
-plot.CPTAC ("Peptide", BRCA_Proteome_summary)
-plot.CPTAC ("Phosphoeptide", BRCA_Phosphoproteome_summary)
+plot.CPTAC ("Protein abundance", BRCA_Proteome_summary)
+plot.CPTAC ("PhosphoProtein abundance", BRCA_Phosphoproteome_summary)
 
 
 ################################################################
