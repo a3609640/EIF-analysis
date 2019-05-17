@@ -35,6 +35,8 @@ EIF.gene <- c("EIF4A1","EIF4E","EIF4G1",
               "LLGL2","GUCA1B", "RPS5")
 names(EIF.gene) <- EIF.gene
 
+ONCO <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","TP53","KRAS","BRAF")
+
 ####################################################################
 ## plot EIF RNASeq data from TCGA provisional cancer study groups ##
 ####################################################################
@@ -731,7 +733,7 @@ Onco.CNV <- function(EIF){
   df2 <- na.omit(df2)
   return(df2)
   }
-CNV.data <- Onco.CNV(EIF.gene)
+CNV.data <- Onco.CNV("EIF4G1")
 
 ONCO <- "EIF4G1"
 EIF <- "EIF4G1"
@@ -766,6 +768,7 @@ plot.CNV.RNAseq.all.tumor <- function(ONCO, EIF) {
           color = CNV)) +    geom_violin(trim = FALSE) +
       geom_boxplot(alpha      = .01,
                    width      = .5) +
+      
       scale_x_discrete(limits = c("-2", "-1", "0", "1", "2"), # skip NaN data
                        labels = c(
                                   "-2" = paste("Homdel \n n= ", Homdel.number),
@@ -802,8 +805,8 @@ plot.CNV.RNAseq.all.tumor <- function(ONCO, EIF) {
   print(a)
 }
 
-plot.CNV.RNAseq.all.tumor("EIF4E", "EIF4E")
-plot.CNV.RNAseq.all.tumor("EIF4EBP1", "EIF4EBP1")
+plot.CNV.RNAseq.all.tumor("EIF4G1", "EIF4A1")
+plot.CNV.RNAseq.all.tumor("TP53", "TP53")
 
 
 ########################################################################
@@ -893,16 +896,16 @@ Onco.Mut <- function(EIF){
     df2 <- melt(test)
     drops <- c("variable","value")
     df2 <- df2[ , !(names(df2) %in% drops)]
-    colnames(df2) <- c("SampleID",x,"TCGAstudy")
+    colnames(df2) <- c("case.id",x,"TCGAstudy")
     df2 <- data.frame(df2)
   }
   df2 <- EIF.tcga.Mut.all(EIF)
   df2$TCGAstudy <- as.factor(df2$TCGAstudy)
   return (df2)
 }
-Mut.data <- Onco.Mut("EIF4E")
+Mut.data <- Onco.Mut("EIF4G1")
 Mut.data <- na.omit(Mut.data)
-write.csv(Mut.data, file = "EIF4EMut.csv")
+write.csv(Mut.data, file = "EIF4G1Mut.csv")
 
 ONCO <- "EIF4G1"
 EIF <- "EIF4G1"
@@ -910,17 +913,18 @@ EIF <- "EIF4G1"
 plot.Mut.RNAseq.all.tumor <- function(ONCO, EIF) {
   EIF.RNAseq.data <- EIF.RNAseq(EIF)
   Mut.data <- Onco.Mut(ONCO)
-  Mut.data[ONCO] <- ifelse(is.na(Mut.data[ONCO]), "Mutated", "Wildtype")
+  Mut.data$Status <- NULL
+  Mut.data$Status <- ifelse(is.na(Mut.data[[ONCO]]), "Wildtype", "Mutated")
   Mut.data <- as.data.frame(Mut.data)
-  Mut.data[ONCO] <- as.character(Mut.data[ONCO])
-  Mut.data[ONCO] <- as.factor(Mut.data[ONCO])
-  Mut.DNFA.RNAseq <- merge(Mut.data, EIF.RNAseq.data, by = "SampleID", all = T)
+  Mut.data$Status <- as.factor(Mut.data$Status)
+  Mut.EIF.RNAseq <- merge(Mut.data, EIF.RNAseq.data, by = "SampleID", all = T)
+  Mut.EIF.RNAseq <- Mut.EIF.RNAseq[complete.cases(Mut.EIF.RNAseq$Status), ]
+  # levels(Mut.data$Status)
   # na.omit cannot eleminate NaN here!
   Wildtype.number <- 
-    nrow(Mut.DNFA.RNAseq[Mut.DNFA.RNAseq[EIF] == "NA", ])
+    nrow(Mut.EIF.RNAseq[Mut.EIF.RNAseq$Status == "Wildtype", ])
   Mut.number <- 
-    nrow(Mut.DNFA.RNAseq[Mut.DNFA.RNAseq[EIF] != "NA", ])
-
+    nrow(Mut.EIF.RNAseq[Mut.EIF.RNAseq$Status == "Mutated", ])
   black_bold_tahoma_12 <- element_text(
     color  = "black",
     face   = "bold",
@@ -928,15 +932,22 @@ plot.Mut.RNAseq.all.tumor <- function(ONCO, EIF) {
     size   = 12
   )
   print(
-    ggplot(data = Mut.DNFA.RNAseq,
-      aes(x     = EIF,
-          y     = log2(RNAseq),
-          color = EIF)) +    
+    ggplot(Mut.EIF.RNAseq,
+      aes(x     = Mut.EIF.RNAseq$Status,
+          y     = log2(Mut.EIF.RNAseq$RNAseq),
+          color = Mut.EIF.RNAseq$Status)) +    
       geom_violin(trim = FALSE) +
       geom_boxplot(alpha      = .01,
                    width      = .5) +
-      labs(x = paste(ONCO, "mutations"),
+      labs(x = ONCO,
            y = paste("log2(", EIF, "RNA counts)")) +
+      scale_x_discrete(limits = c("Wildtype", "Mutated"), # skip NaN data
+                       labels = c("Wildtype" = paste(
+                                                     "Wildtype \n n= ", 
+                                                      Wildtype.number),
+                                  "Mutated"  = paste(
+                                                     "Mutated \n n= ", 
+                                                      Mut.number)))+
       theme(axis.title      = element_text(face   = "bold",
                                            size   = 9,
                                            color  = "black"),
@@ -950,48 +961,132 @@ plot.Mut.RNAseq.all.tumor <- function(ONCO, EIF) {
             strip.text      = element_text(face   = "bold",
                                            size   = 9,
                                            colour = "black"),
-                                           legend.position = "none") 
-    )
-  a <- leveneTest(RNAseq ~ Mut, Mut.DNFA.RNAseq)
-  a$data.name <- paste(EIF,'expression by', ONCO, 'status')
-  b <- fligner.test(RNAseq ~ Mut, Mut.DNFA.RNAseq)
-  b$data.name <- paste(EIF,'expression by', ONCO, 'status')
-  print(b)
-  print(a)
+                                           legend.position = "none"))
 }
 
-plot.Mut.RNAseq.all.tumor("MYC", "EIF4G1")
-plot.Mut.RNAseq.all.tumor("MYC", "MYC")
+plot.Mut.RNAseq.all.tumor("EIF4E", "EIF4E")
+plot.Mut.RNAseq.all.tumor("EIF4A1", "EIF4A1")
 
 
 
+########################################################################
+##  Kaplan-Meier curve with clinic and mutation data from all tumors  ##
+########################################################################
+plot.km.mut.all.tumor <- function(ONCO) {
+  #### retrieve mutation data from all tcga groups ####
+  Mut.data <- Onco.Mut(ONCO)
+  Mut.data$Status <- NULL
+  Mut.data$Status <- ifelse(is.na(Mut.data[[ONCO]]), "Wildtype", "Mutated")
+  Mut.data <- as.data.frame(Mut.data)
+  Mut.data$Status <- as.factor(Mut.data$Status)
+  #### retrieve clinic data from all tcga groups ####
+  tcga.clinic.data <- function(x) {
+    print(x)
+    url <- function(x){
+      url <- "http://www.cbioportal.org/webservice.do?cmd=getClinicalData&case_set_id="
+      url <- paste0(url, x, "_all")
+      return(url)
+    }
+    # testurl <- url("acc_tcga")
+    # tesereq <- GET(url("acc_tcga"))
+    req <- function(x) {GET(url(x))}
+    # req <- req("acc_tcga")
+    clinical_data <- function(x) {content(req(x),
+      type      = 'text/tab-separated-values',
+      col_names = T,
+      col_types = NULL)}
+    data <- clinical_data(x)
+    data <- data[c("OS_MONTHS",
+      "OS_STATUS",
+      "CASE_ID")]
+  }
+  pro.tcga.studies <- getCancerStudies(mycgds)[
+    grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
+  # "pro.tcga.study.list" contains all the tcga provisional cancer studies
+  pro.tcga.study.list <- pro.tcga.studies$cancer_study_id
+  names(pro.tcga.study.list) <- pro.tcga.study.list
+  # three datasets donot have OS data and cause bugs remove them
+  bug.data.set <- names(pro.tcga.study.list) %in% c("meso_tcga", 
+    "pcpg_tcga", 
+    "ucs_tcga")
+  pro.tcga.study.list <- pro.tcga.study.list[!bug.data.set]
+  all.tcga.clinic.data <- lapply(pro.tcga.study.list, tcga.clinic.data)
+  all.tcga.clinic.data <- melt(all.tcga.clinic.data)
+  all.tcga.clinic.data <- all.tcga.clinic.data[c("OS_STATUS",
+                                                 "CASE_ID",
+                                                 "value",
+                                                 "L1")]
+  colnames(all.tcga.clinic.data) <- c("OS_STATUS",
+                                      "case.id",
+                                      "OS_MONTHS",
+                                      "TCGAstudy")
+  all.tcga.clinic.data$case.id <- str_replace_all(all.tcga.clinic.data$case.id,
+                                                  '-',
+                                                  '.')
+  message("clinical data retrieved")
+  #### combine clinic data and mutation data from all tcga groups ####
+  df <- join_all(list(all.tcga.clinic.data[c("OS_MONTHS",
+                                             "OS_STATUS",
+                                             "case.id")],
+                      Mut.data[c("case.id",
+                                 "TCGAstudy",
+                                 "Status")]),
+                      by   = "case.id")
+  df <- merge(all.tcga.clinic.data[c("OS_MONTHS","OS_STATUS","case.id")],
+              Mut.data[c("case.id", "TCGAstudy", "Status")], 
+              by   = "case.id",  
+              all = T)
+  df <- na.omit(df)
+  message("clinical and Mutation data combined")
+  #### print km plot ####
+  Wildtype.number <- 
+    nrow(df[df$Status == "Wildtype", ])
+  Mut.number <- 
+    nrow(df[df$Status == "Mutated", ])
+  
+  df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+  km <- survfit(SurvObj ~ df$Status, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Status, data = df, rho = 0)
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  colour = "black")
+  print(
+    ggplot2::autoplot(
+      km,
+      xlab = "Months",
+      ylab = "Survival Probability",
+      main = paste("Kaplan-Meier plot", ONCO, "Mutations")) +
+      theme(axis.title           = black.bold.12pt,
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.justification = c(1,1),
+            legend.position      = c(1,1))+
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+                         name   = paste(ONCO, "Mutations"),
+                         breaks = c("Wildtype", "Mutated"),
+                         labels = c(paste("Wildtype n = ", Wildtype.number),
+                                    paste("Mutated n = ", Mut.number))) +
+      geom_point(size = 0.25) +
+      annotate("text",
+                x     = 400,
+                y     = 0.70,
+                label = paste("log-rank test, p.val = ", p.val),
+                size  = 4.5,
+                hjust = 1,
+                fontface = "bold"))
+  }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+plot.km.mut.all.tumor ("EGFR")
+lapply(ONCO, plot.km.mut.all.tumor)
 
 
 #####################################################################
