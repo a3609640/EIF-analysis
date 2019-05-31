@@ -4,6 +4,7 @@
 
 library(car)
 library(cgdsr)
+library(corrplot)
 library(cowplot)
 library(data.table)
 library(ggfortify)
@@ -263,7 +264,6 @@ plot.EIF.pan.tcga <- function(EIF){
                                    color  = "black"),
         legend.position = "none"))
 }
-
 plot.EIF.pan.tcga("EIF4A1")
 sapply(EIF.gene, plot.EIF.pan.tcga)
 
@@ -424,8 +424,7 @@ plot.km.all.pro.tcga <- function(EIF) {
   print(EIF)
   print(stats)
 }
-
-plot.km.all.pro.tcga("EIF4G1")
+plot.km.all.pro.tcga("EIF4A1")
 sapply(EIF.gene, plot.km.all.pro.tcga)
 
 ############################################################################
@@ -590,8 +589,7 @@ plot.km.all.pan.tcga <- function(EIF) {
   print(EIF)
   print(stats)
 }
-
-plot.km.all.pan.tcga("EIF4G1")
+plot.km.all.pan.tcga("EIF4A1")
 sapply(EIF.gene, plot.km.all.pan.tcga)
 
 ##########################################################
@@ -720,6 +718,172 @@ plot_ly(x = log2(EIF.RNAseq.data$EIF4A1),
                         zaxis = list(title = 'EIF4G1')))
 
 
+################################################################
+## stacked bar plots for eIF4F CNV status across tumor groups ## 
+################################################################
+## Get oncogene CNV data from all cancer group ##
+plot.CNV.sum <- function(EIF){
+  tcga.pan.studies <- getCancerStudies(mycgds)[
+    grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
+  tcga.study.list <- tcga.pan.studies$cancer_study_id
+  names(tcga.study.list) <- tcga.study.list
+  caselist <- function(x) getCaseLists(mycgds, x)
+  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
+  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+  caselist.CNV <- function(x) {
+    tcga.pan.caselist[[x]][
+      grep("tcga_pan_can_atlas_2018_cnaseq",
+        tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
+  }
+  geneticprofile.CNV <- function(x) {
+    tcga.pan.geneticprofile[[x]][
+      grep("tcga_pan_can_atlas_2018_gistic", 
+        tcga.pan.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
+  }
+  tcga.profiledata.CNV <- function(genename, geneticprofile, caselist) {
+    getProfileData(mycgds,
+      genename,
+      geneticprofile,
+      caselist)
+  }
+  EIF.tcga.CNV <- function(x, y) {
+    EIF.tcga.CNV <- tcga.profiledata.CNV(x, geneticprofile.CNV(y), caselist.CNV(y))
+    ## change the rownames into the first column
+    setDT(EIF.tcga.CNV, keep.rownames = TRUE)[]
+    return(EIF.tcga.CNV)
+  }
+  EIF.tcga.CNV.all <- function(x) {
+    test <- lapply(tcga.study.list, EIF.tcga.CNV, x = x)
+    df2 <- melt(test)
+    colnames(df2) <- c("SampleID","Oncogene","CNV","TCGAstudy")
+    df2 <- data.frame(df2)
+  }
+  df2 <- EIF.tcga.CNV.all(EIF)
+  df2$Oncogene <- as.factor(df2$Oncogene)
+  df2$TCGAstudy <- as.factor(df2$TCGAstudy)
+  df2 <- na.omit(df2)
+  CNV.sum <- table(df2[,c("CNV","TCGAstudy")])
+  CNV.sum <- as.data.frame(CNV.sum)
+  CNV.sum$TCGAstudy <- str_remove(CNV.sum$TCGAstudy, regex('_.*\n*.*'))
+  CNV.sum$CNV <- ordered(CNV.sum$CNV, levels = c("2", "1", "0", "-1", "-2"))
+  # return(CNV.sum)
+  p <- ggplot(CNV.sum, aes(fill = CNV, 
+                           y    = Freq, 
+                           x    = TCGAstudy)) + 
+       geom_bar(stat = "identity", position = "stack") +
+       labs(x = "Tumor types (TCGA pan cancer atlas 2018)",
+            y = paste0("Tumors with ", EIF, " CNV")) +
+       theme(axis.title  = element_text(face   = "bold",
+                                        size   = 9,
+                                        color  = "black"),
+             axis.text.x = element_text(size   = 9,
+                                        angle  = 45,
+                                        hjust  = 1, # 1 means right-justified
+                                        face   = "bold",
+                                        color  = "black"),
+             axis.text.y = element_text(size   = 9,
+                                        angle  = 0,
+                                        hjust  = 1, # 1 means right-justified
+                                        face   = "bold",
+                                        color  = "black"),
+             axis.line.x = element_line(color  = "black"),
+             axis.line.y = element_line(color  = "black"),
+             panel.grid  = element_blank(),
+             strip.text  = element_text(face   = "bold",
+                                        size   = 9,
+                                        color  = "black"),
+             legend.title = element_text(colour = "black", 
+                                         size   = 9, 
+                                         face   = "bold"),
+             legend.text = element_text(colour  = "black", 
+                                        size    = 9, 
+                                        face    = "bold"),
+             legend.position = c(0.8, 0.8)) +
+        scale_fill_manual(name   = "Copy number variation",
+                          breaks = c("2", "1", "0", "-1", "-2"),
+                          labels = c("Amp","Gain","Diploid","Hetlos", "Homdel"),
+                          values = c('dark red','red',
+                                     'light green','blue',
+                                     'dark blue')) 
+    print(p)
+}
+plot.CNV.sum("EIF4G2")
+
+
+######################################################################
+## correlation analysis of CNV from all EIF4F subunits cancer types ## 
+######################################################################
+get.CNV.sum <- function(EIF){
+  tcga.pan.studies <- getCancerStudies(mycgds)[
+    grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
+  tcga.study.list <- tcga.pan.studies$cancer_study_id
+  names(tcga.study.list) <- tcga.study.list
+  caselist <- function(x) getCaseLists(mycgds, x)
+  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
+  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+  caselist.CNV <- function(x) {
+    tcga.pan.caselist[[x]][
+      grep("tcga_pan_can_atlas_2018_cnaseq",
+        tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
+  }
+  geneticprofile.CNV <- function(x) {
+    tcga.pan.geneticprofile[[x]][
+      grep("tcga_pan_can_atlas_2018_gistic", 
+        tcga.pan.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
+  }
+  tcga.profiledata.CNV <- function(genename, geneticprofile, caselist) {
+    getProfileData(mycgds,
+      genename,
+      geneticprofile,
+      caselist)
+  }
+  EIF.tcga.CNV <- function(x, y) {
+    EIF.tcga.CNV <- tcga.profiledata.CNV(x, geneticprofile.CNV(y), caselist.CNV(y))
+    ## change the rownames into the first column
+    setDT(EIF.tcga.CNV, keep.rownames = TRUE)[]
+    return(EIF.tcga.CNV)
+  }
+  EIF.tcga.CNV.all <- function(x) {
+    test <- lapply(tcga.study.list, EIF.tcga.CNV, x = x)
+    df2 <- melt(test)
+    colnames(df2) <- c("SampleID","Oncogene","CNV","TCGAstudy")
+    df2 <- data.frame(df2)
+  }
+  df2 <- EIF.tcga.CNV.all(EIF)
+  df2$Oncogene <- as.factor(df2$Oncogene)
+  df2$TCGAstudy <- as.factor(df2$TCGAstudy)
+  df2 <- na.omit(df2)
+  CNV.sum <- table(df2[,c("CNV")])
+  CNV.sum <- as.data.frame(CNV.sum)
+  colnames(CNV.sum)<- c("CNV", EIF)
+  return(CNV.sum)
+  }
+  
+  EIF.CNV.sum <- lapply(c("EIF4A1","EIF4E","EIF4G1","SOX2","EIF4EBP1","MYC","MITF","FASN"), get.CNV.sum)
+  EIF.CNV.sum.2 <- do.call(cbind.data.frame, EIF.CNV.sum)
+  EIF.CNV.sum.2 <- EIF.CNV.sum.2[, !duplicated(colnames(EIF.CNV.sum.2))]
+  EIF.CNV.sum.3 <- EIF.CNV.sum.2[,-1]
+  rownames(EIF.CNV.sum.3) <- EIF.CNV.sum.2[,1]
+  M <- cor(EIF.CNV.sum.3)
+  p.mat <- cor_pmat(EIF.CNV.sum.3)
+  corrplot(M, method = "circle")
+  corrplot(M, method = "number", type = "upper",  
+           order="hclust", tl.col="black", tl.srt = 0)
+  
+  library(ggcorrplot)
+
+  ggcorrplot(cor(EIF.CNV.sum.3), p.mat = cor_pmat(EIF.CNV.sum.3), hc.order=TRUE, type='lower')
+  ggcorrplot(round(cor(EIF.CNV.sum.3), 1), hc.order = TRUE, type = "lower",
+    lab = TRUE)
+  # Leave blank on no significant coefficient
+  ggcorrplot(M, method = "circle", p.mat = p.mat, hc.order = TRUE,
+    type = "lower", insig = "blank")
+
+
+
+
 ###################################################################
 ## correlation analysis of RNA-seq and CNV from all cancer types ## 
 ###################################################################
@@ -770,7 +934,7 @@ EIF.RNAseq <- function(EIF){
   }
 EIF.RNAseq.data <- EIF.RNAseq(EIF.gene)
 
-## Get oncogene CNV data from SKCM group ##
+## Get oncogene CNV data from all cancer groups ##
 Onco.CNV <- function(EIF){
   tcga.pan.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
@@ -972,10 +1136,9 @@ plot.CNV.RNAseq.all.tumor <- function(ONCO, EIF) {
 }
 plot.CNV.RNAseq.all.tumor("EIF4A1", "EIF4E")
 
-
-###################################################################
-## Overlap analysis of CNV in EIF subunits from all cancer types ## 
-###################################################################
+###############################################################
+## Distribution of CNV in EIF subunits from all cancer types ## 
+###############################################################
 Onco.CNV <- function(EIF){
   tcga.pan.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
@@ -1070,7 +1233,7 @@ plot.bubble.CNV.all.tumor <- function(x , y ){
     # df2 <- na.omit(df2)
     return(df2)
   }
-  df3 <- lapply(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1"), Onco.CNV)
+  df3 <- lapply(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1", "MYC"), Onco.CNV)
   ## use cbind to convert df3 list into a data frame
   df4 <- do.call(cbind.data.frame, df3)
   ## remove duplicated columns (TCGAstudy)
@@ -1080,7 +1243,7 @@ plot.bubble.CNV.all.tumor <- function(x , y ){
   cnt <- as.data.frame(cnt)
   cnt$radius <- sqrt(cnt$Freq / pi)
   p <- ggplot(cnt, aes(x = Var1, y = Var2)) 
-  p + geom_point(aes(size   = radius*7.5),
+  p + geom_point(aes(size   = radius),
                      shape  = 21, 
                      colour = "black", 
                      fill   = "skyblue")+
@@ -1091,11 +1254,25 @@ plot.bubble.CNV.all.tumor <- function(x , y ){
                                             size   = 1),
             legend.position  = "none")+
       scale_size_area(max_size = 20)+
+      scale_x_discrete(limits = c("-2", "-1", "0", "1", "2"), # skip NaN data
+                       labels = c(
+                                  "-2" = "Homdel",
+                                  "-1" = "Hetlos",
+                                  "0"  = "Diploid",
+                                  "1"  = "Gain",
+                                  "2"  = "Amp")) +
+      scale_y_discrete(limits = c("-2", "-1", "0", "1", "2"), # skip NaN data
+                       labels = c(
+                                  "-2" = "Homdel",
+                                  "-1" = "Hetlos",
+                                  "0"  = "Diploid",
+                                  "1"  = "Gain",
+                                  "2"  = "Amp")) +
   #Add labels to axes
   labs(x = paste(x, "copy number variation"), 
        y = paste(y, "copy number variation"))
 }
-plot.bubble.CNV.all.tumor ("EIF4G1", "EIF4EBP1")
+plot.bubble.CNV.all.tumor ("EIF4G1", "MYC")
 
 ### bugs in function plot.scatter.CNV.all.tumor
 library(cowplot)
