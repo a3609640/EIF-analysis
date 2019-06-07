@@ -1,13 +1,18 @@
 if (!require("BiocManager"))
   install.packages("BiocManager")
+BiocManager::install("IsoformSwitchAnalyzeR")
 BiocManager::install("maftools")
 BiocManager::install("GenVisR")
 BiocManager::install("graphics")
 # devtools::install_github(repo = "PoisonAlien/TCGAmutations")
 # devtools::install_github(repo = "BioinformaticsFMRP/TCGAbiolinks")
 
+
+
+
 library(GenVisR)
 library(graphics)
+library(IsoformSwitchAnalyzeR)
 library(maftools)
 library(TCGAmutations)
 library(TCGAbiolinks)
@@ -42,12 +47,21 @@ plotmafSummary(maf       = all.cancer,
                addStat   = 'median', 
                dashboard = TRUE, 
                titvRaw   = FALSE)
-lollipopPlot(maf = all.cancer, gene = 'EIF4G1', showMutationRate = TRUE)
-lollipopPlot(maf = all.cancer, gene = 'EIF4A1', showMutationRate = TRUE)
-lollipopPlot(maf = all.cancer, gene = 'EIF4E', showMutationRate = TRUE)
-lollipopPlot(maf = all.cancer, gene = 'EIF4EBP1', showMutationRate = TRUE)
+
 lollipopPlot(maf = all.cancer, 
              gene = 'EIF4A1',  
+             labelPos = 'all',
+             labPosAngle = 90)
+lollipopPlot(maf = all.cancer, 
+             gene = 'EIF4E',  
+             labelPos = 'all',
+             labPosAngle = 90)
+lollipopPlot(maf = all.cancer, 
+             gene = 'EIF4G1',  
+             labelPos = 'all',
+             labPosAngle = 90)
+lollipopPlot(maf = all.cancer, 
+             gene = 'EIF4EBP1',  
              labelPos = 'all',
              labPosAngle = 90)
 
@@ -59,6 +73,9 @@ eIF4F.dgi[,.(Gene, interaction_types, drug_name, drug_claim_name)]
 all.cancer.titv = titv(maf = all.cancer, plot = FALSE, useSyn = TRUE)
 #plot titv summary
 plotTiTv(res = all.cancer.titv)
+
+
+
 
 
 laml.maf = system.file('extdata', 'tcga_laml.maf.gz', package = 'maftools') 
@@ -166,8 +183,34 @@ lolliplot(data)
 
 
 
+data("exampleSwitchListAnalyzed")
+extractSwitchSummary(
+  exampleSwitchListAnalyzed,
+  filterForConsequences = TRUE
+) 
+subset(
+  extractTopSwitches(
+    exampleSwitchListAnalyzed,
+    filterForConsequences = TRUE,
+    n=10,
+    inEachComparison = TRUE
+  )[,c('gene_name','condition_2','gene_switch_q_value','Rank')],
+  gene_name == 'ZAK'
+)
+switchPlot(
+  exampleSwitchListAnalyzed,
+  gene='ZAK',
+  condition1 = 'COAD_ctrl',
+  condition2 = 'COAD_cancer'
+)
+extractSwitchOverlap(
+  exampleSwitchListAnalyzed,
+  filterForConsequences=TRUE
+)
 
-
-
-
-
+extractConsequenceSummary(
+  exampleSwitchListAnalyzed,
+  consequencesToAnalyze='all',
+  plotGenes = FALSE,           # enables analysis of genes (instead of isoforms)
+  asFractionTotal = FALSE      # enables analysis of fraction of significant features
+)
