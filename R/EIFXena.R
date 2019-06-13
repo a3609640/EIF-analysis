@@ -422,7 +422,7 @@ plotEIF.RNAseq.TCGA <-  function (x) {
       position = position_dodge(width = .9)
     ) +
     labs(x = "sample type",
-      y = paste("log2(RNA counts)")) +
+         y = paste("log2(RNA counts)")) +
     scale_x_discrete(
       labels =
         c(
@@ -448,19 +448,8 @@ plotEIF.RNAseq.TCGA <-  function (x) {
       legend.position = "none",
       strip.text      = black_bold_tahoma_12
     ) +
-    stat_compare_means(comparisons = list(
-      c("Metastatic",
-        "Solid Tissue Normal"),
-      c("Primary Tumor",
-        "Solid Tissue Normal"),
-      c("Recurrent Tumor",
-        "Solid Tissue Normal"),
-      c("Metastatic",
-        "Primary Tumor"),
-      c("Recurrent Tumor",
-        "Primary Tumor")
-    ),
-      method = "t.test")
+    stat_compare_means(
+      method = "anova")
   
   p2 <- ggplot(data = x,
     aes(x     = variable,
@@ -477,7 +466,7 @@ plotEIF.RNAseq.TCGA <-  function (x) {
       width    = .5,
       position = position_dodge(width = .9)
     ) +
-    labs(x = "EIF complex",
+    labs(x = "EIF4F complex",
          y = paste("log2(RNA counts)")) +
     theme_bw() +
     theme(
@@ -694,13 +683,6 @@ plot.EIF.seq.all.samples <- function(x) {
 ##
 plot.EIF.seq.each.tumor <- function(x, y) {
   m <- x[x$primary.disease == y, ]
-  my_comparison <- list(
-    c("Metastatic", "Solid Tissue Normal"),
-    c("Primary Tumor", "Solid Tissue Normal"),
-    c("Recurrent Tumor", "Solid Tissue Normal"),
-    c("Metastatic", "Primary Tumor"),
-    c("Recurrent Tumor", "Primary Tumor")
-  )
   plotEIF.RNAseq.TCGA(m) +
     labs(title = y) +
     stat_compare_means(method = "anova")
@@ -1001,3 +983,6 @@ lapply(get.disease.list("EIF4EBP1"),
 lapply(EIF.gene,
   plot.km.EIF.each.tumor,
   tumor = "Breast Invasive Carcinoma")
+
+
+EIF.gene <- c("EIF4E", "EIF4G1", "EIF4A1", "EIF4EBP1")
