@@ -48,7 +48,7 @@ plot.set(xlabel = 'Proteomics',
          title  = 'Proteomics vs. Transcriptomics for the SCD gene')
 plt.show()
 
-gene = 'EIF4G1'
+gene = 'EIF4E'
 gene_cross = col.compare_omics(omics_df1_name = "proteomics", 
                                omics_df2_name = "transcriptomics", 
                                genes1         = gene, 
@@ -91,10 +91,15 @@ plot.set(xlabel = 'Proteomics',
 plt.show()
 
 # Use Case 3: Associating Clinical Variables with Acetylation
+## Choose Clinical Attribute and Merge Dataframes
+clinical_attribute = "Histologic_type"
 
-
-
-
+#Merge attribute with acetylation dataframe
+clinical_and_phosphorylation = en.append_metadata_to_omics(
+        metadata_df_name = "clinical", 
+        omics_df_name    = "phosphoproteomics", 
+        metadata_cols    = clinical_attribute)
+clinical_and_phosphorylation.head()
 
 
 
