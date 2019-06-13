@@ -32,9 +32,7 @@ getCancerStudies(mycgds)
 # Get cases from TCGA provisional studies only
 EIF.gene <- c("EIF4A1","EIF4E","EIF4G1",
               "EIF4EBP1","EIF4EBP2","EIF4EBP3", 
-              "MYC","RPS6KB1","MTOR","RPTOR",
-              "HIST2H2BE", "HIST1H1B","HIST1H1C",
-              "LLGL2","GUCA1B", "RPS5")
+              "MYC","RPS6KB1","MTOR","RPTOR","PABP")
 names(EIF.gene) <- EIF.gene
 
 ONCO <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","TP53","KRAS","BRAF")
@@ -424,7 +422,7 @@ plot.km.all.pro.tcga <- function(EIF) {
   print(EIF)
   print(stats)
 }
-plot.km.all.pro.tcga("EIF4A1")
+plot.km.all.pro.tcga("PABP")
 sapply(EIF.gene, plot.km.all.pro.tcga)
 
 ############################################################################
@@ -589,7 +587,7 @@ plot.km.all.pan.tcga <- function(EIF) {
   print(EIF)
   print(stats)
 }
-plot.km.all.pan.tcga("EIF4A1")
+plot.km.all.pan.tcga("PABP")
 sapply(EIF.gene, plot.km.all.pan.tcga)
 
 ##########################################################
@@ -629,6 +627,7 @@ EIF.RNAseq.data <- getProfileData(mycgds,
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
 boxplot(log2(EIF.RNAseq.data), 
         main="EIF RNAseq data in diffuse large B-cell lymphoma")
+
 
 EIF.RNAseq.data <- getProfileData(mycgds,
                                   EIF.gene,
@@ -808,7 +807,7 @@ plot.CNV.sum <- function(EIF){
                                      'dark blue')) 
     print(p)
 }
-plot.CNV.sum("EIF4G2")
+plot.CNV.sum("PABP")
 
 
 ######################################################################
