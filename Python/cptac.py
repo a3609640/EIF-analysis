@@ -63,13 +63,7 @@ plt.show()
 
 
 ################################################################################
-# Use Case 2:  Comparing Clinical Data in endometrial cancer
-################################################################################
-
-
-
-################################################################################
-# Use Case 3: Associating Clinical Variables with Proteomics
+# Use Case 2: Associating Clinical Variables with Proteomics in Endometrial Cancer
 ################################################################################
 ## load the dataframe for clinical results by calling the en.get_clinical() method
 en_clinical_data = en.get_clinical()
@@ -77,11 +71,13 @@ print(en_clinical_data.columns)
 ## Choose clinical attribute and merge dataframes
 en_clinical_attribute = "tumor_Stage-Pathological"
 
+
 ## Merge clinical attribute with proteomics dataframe
 en_clinical_and_proteomics = en.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "proteomics",
         metadata_cols    = en_clinical_attribute)
+en_clinical_and_proteomics[en_clinical_attribute] = en_clinical_and_proteomics[en_clinical_attribute].fillna("Normal")
 en_clinical_and_proteomics.head()
 
 ## Show possible variations of Histologic_type
@@ -98,7 +94,7 @@ print(en_clinical_and_proteomics.filter(like='JUN').columns)
 #      dtype='object')
 
 # plot graph on EIF4 proteomics
-graphingSite = 'EIF4E_proteomics'
+graphingSite = 'EIF4EBP1_proteomics'
 graphingSite = 'EIF4A1_proteomics'
 graphingSite = 'EIF4G1_proteomics'
 graphingSite = 'JUN_proteomics'
@@ -108,13 +104,13 @@ sns.boxplot(x          = en_clinical_attribute,
             data       = en_clinical_and_proteomics,
             showfliers = False,
            # order      = ['Tumor','Adjacent_normal','Myometrium_normal','Enriched_normal'],
-            order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
 sns.stripplot(x        = en_clinical_attribute,
               y        = graphingSite,
               data     = en_clinical_and_proteomics,
               color    = '.3',
              # order    = ['Tumor','Adjacent_normal','Myometrium_normal','Enriched_normal'],
-              order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+              order      = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
 plt.xticks(rotation = 45)
 plt.title('endometrial cancer')
 #color = '.3' makes the dots black
@@ -125,30 +121,31 @@ en_clinical_and_phosphorylation = en.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "phosphoproteomics",
         metadata_cols    = en_clinical_attribute)
+en_clinical_and_phosphorylation[en_clinical_attribute] = en_clinical_and_phosphorylation[en_clinical_attribute].fillna("Normal")
 en_clinical_and_phosphorylation.head()
 
 ## Show possible variations of Histologic_type
 en_clinical_and_phosphorylation[en_clinical_attribute].unique()
 
 # Find column whose name contains a EIF4E
-print(en_clinical_and_phosphorylation.filter(like='JUN').columns)
+print(en_clinical_and_phosphorylation.filter(like='JUN-').columns)
 # plot graph on EIF4 phosphorylation
 graphingSite = 'EIF4E-S24_phosphoproteomics'
-graphingSite = 'EIF4EBP1-T36_phosphoproteomics'
-graphingSite = 'EIF4EBP1-T46_phosphoproteomics'
-graphingSite = 'JUN-T239_phosphoproteomics'
+graphingSite = 'EIF4EBP1-T37_phosphoproteomics'
+graphingSite = 'EIF4EBP1-T70_phosphoproteomics'
+graphingSite = 'JUN-T93_phosphoproteomics'
 
 sns.set_style("white")
 sns.boxplot(x          = en_clinical_attribute,
             y          = graphingSite,
             data       = en_clinical_and_phosphorylation,
             showfliers = False,
-            order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
 sns.stripplot(x        = en_clinical_attribute,
               y        = graphingSite,
               data     = en_clinical_and_phosphorylation,
               color    = '.3',
-              order    = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+              order    = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
 plt.xticks(rotation = 45)
 plt.title('endometrial cancer')
 #color = '.3' makes the dots black
@@ -159,6 +156,7 @@ en_clinical_and_phosphoproteomics_gene = en.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "phosphoproteomics_gene",
         metadata_cols    = en_clinical_attribute)
+en_clinical_and_phosphoproteomics_gene[en_clinical_attribute] = en_clinical_and_phosphoproteomics_gene[en_clinical_attribute].fillna("Normal")
 en_clinical_and_phosphoproteomics_gene.head()
 
 ## Show possible variations of Histologic_type
@@ -177,25 +175,27 @@ sns.boxplot(x          = en_clinical_attribute,
             y          = graphingSite,
             data       = en_clinical_and_phosphoproteomics_gene,
             showfliers = False,
-            order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
 sns.stripplot(x        = en_clinical_attribute,
               y        = graphingSite,
               data     = en_clinical_and_phosphoproteomics_gene,
               color    = '.3',
-              order    = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+              order    = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
 plt.xticks(rotation = 45)
 plt.title('endometrial cancer')
 #color = '.3' makes the dots black
 
 
 ################################################################################
-# Use Case 2:  Comparing Clinical Data in colon cancer
+# Use Case 3:  Comparing Clinical Data in colon cancer
 ################################################################################
 ### load the dataframe for clinical results by calling the en.get_clinical() method
 col_clinical_data = col.get_clinical()
 print(col_clinical_data.columns)
 
-# Use Case 3: Associating Clinical Variables with Proteomics
+####################################################
+## Associating Clinical Variables with proteomics ##
+####################################################
 ## Choose Clinical Attribute and Merge Dataframes
 col_clinical_attribute = "Stage"
 
@@ -204,13 +204,17 @@ col_clinical_and_proteomics = col.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "proteomics",
         metadata_cols    = col_clinical_attribute)
+
+
+col_clinical_and_proteomics[col_clinical_attribute] = col_clinical_and_proteomics[col_clinical_attribute].fillna("Normal")
+
 col_clinical_and_proteomics.head()
 
 ## Show possible variations of Histologic_type
 col_clinical_and_proteomics[col_clinical_attribute].unique()
 
 # Find column whose name contains a EIF4E
-print(col_clinical_and_proteomics.filter(like='JUN').columns)
+print(col_clinical_and_proteomics.filter(like='RAF').columns)
 #Index(['ANKHD1-EIF4EBP3_proteomics', 'EIF4A1_proteomics', 'EIF4A2_proteomics',
 #       'EIF4A3_proteomics', 'EIF4B_proteomics', 'EIF4E_proteomics',
 #       'EIF4E2_proteomics', 'EIF4E3_proteomics', 'EIF4EBP1_proteomics',
@@ -223,69 +227,71 @@ print(col_clinical_and_proteomics.filter(like='JUN').columns)
 graphingSite = 'EIF4E_proteomics'
 graphingSite = 'EIF4A1_proteomics'
 graphingSite = 'EIF4G1_proteomics'
-graphingSite = 'JUN_proteomics'
+graphingSite = 'EIF4EBP1_proteomics'
+graphingSite = 'BRAF_proteomics'
 
 sns.set_style("white")
 sns.boxplot(x          = col_clinical_attribute,
             y          = graphingSite,
             data       = col_clinical_and_proteomics,
             showfliers = False,
-           # order      = ['Tumor','Adjacent_normal','Myometrium_normal','Enriched_normal'],
-            order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
 sns.stripplot(x        = col_clinical_attribute,
               y        = graphingSite,
               data     = col_clinical_and_proteomics,
               color    = '.3',
-             # order    = ['Tumor','Adjacent_normal','Myometrium_normal','Enriched_normal'],
-              order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
 plt.xticks(rotation = 45)
 plt.title('colon cancer')
 #color = '.3' makes the dots black
 
-
+###########################################################
+## Associating Clinical Variables with Phosphoproteomics ##
+###########################################################
 ## Merge attribute with phosphorylation dataframe
 col_clinical_and_phosphorylation = col.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "phosphoproteomics",
         metadata_cols    = col_clinical_attribute)
+col_clinical_and_phosphorylation[col_clinical_attribute] = col_clinical_and_phosphorylation[col_clinical_attribute].fillna("Normal")
 col_clinical_and_phosphorylation.head()
 
 ## Show possible variations of Histologic_type
 col_clinical_and_phosphorylation[col_clinical_attribute].unique()
 
 # Find column whose name contains a EIF4E
-print(col_clinical_and_phosphorylation.filter(like='JUN').columns)
+print(col_clinical_and_phosphorylation.filter(like='PIK3C').columns)
 # plot graph on EIF4 phosphorylation
-graphingSite = 'JUN_T239__P05412_phosphoproteomics'
+graphingSite = 'EIF4EBP1_S101__Q13541_phosphoproteomics'
 
 sns.set_style("white")
 sns.boxplot(x          = col_clinical_attribute,
             y          = graphingSite,
             data       = col_clinical_and_phosphorylation,
             showfliers = False,
-            order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
 sns.stripplot(x        = col_clinical_attribute,
               y        = graphingSite,
               data     = col_clinical_and_phosphorylation,
               color    = '.3',
-              order    = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
 plt.xticks(rotation = 45)
 plt.title('colon cancer')
 #color = '.3' makes the dots black
 
 
 
-clinical_and_transcriptomics = col.append_metadata_to_omics(
+col_clinical_and_transcriptomics = col.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "transcriptomics",
         metadata_cols    = clinical_attribute)
-clinical_and_transcriptomics.head()
+col_clinical_and_transcriptomics.head()
 
 ## Show possible variations of Histologic_type
-clinical_and_transcriptomics[clinical_attribute].unique()
+col_clinical_and_transcriptomics[col_clinical_attribute].unique()
 
 # Find column whose name contains a EIF4E
-print(clinical_and_transcriptomics.filter(like='EIF4').columns)
+print(col_clinical_and_transcriptomics.filter(like='EIF4').columns)
 #Index(['ANKHD1-EIF4EBP3_transcriptomics', 'EIF4A1_transcriptomics',
 #       'EIF4A2_transcriptomics', 'EIF4A3_transcriptomics',
 #       'EIF4B_transcriptomics', 'EIF4E_transcriptomics',
@@ -301,44 +307,66 @@ graphingSite = 'EIF4E_transcriptomics'
 graphingSite = 'EIF4A1_transcriptomics'
 graphingSite = 'EIF4G1_transcriptomics'
 graphingSite = 'EIF4EBP1_transcriptomics'
-sns.boxplot(x          = clinical_attribute,
+sns.boxplot(x          = col_clinical_attribute,
             y          = graphingSite,
-            data       = clinical_and_transcriptomics,
+            data       = col_clinical_and_transcriptomics,
             showfliers = False,
             order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
-sns.stripplot(x        = clinical_attribute,
+sns.stripplot(x        = col_clinical_attribute,
               y        = graphingSite,
-              data     = clinical_and_transcriptomics,
+              data     = col_clinical_and_transcriptomics,
               color    = '.3',
               order    = ["Stage I", "Stage II", "Stage III", "Stage IV"])
 plt.title('colon cancer')
 #color = '.3' makes the dots black
 
 
+##########################################################################
+## Associating Clinical Variables with proteomics and Phosphoproteomics ##
+##########################################################################
+col_clinical_and_proteomics_phosphoproteomics = pd.concat(
+        [col_clinical_and_proteomics, col_clinical_and_phosphorylation], 
+        axis=1, sort=False) 
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ################################################################################
-# Use Case 2:  Comparing Clinical Data in ovarian cancer
+# Use Case 4:  Comparing Clinical Data in ovarian cancer
 ################################################################################
 ### load the dataframe for clinical results by calling the en.get_clinical() method
 ov_clinical_data = ov.get_clinical()
 print(ov_clinical_data.columns)
 
-# Use Case 3: Associating Clinical Variables with Proteomics
+####################################################
+## Associating Clinical Variables with Proteomics ##
+####################################################
 ## Choose Clinical Attribute and Merge Dataframes
-ov_clinical_attribute = "Stage"
+ov_clinical_attribute = "Tumor_Stage_Ovary_FIGO"
 
 ## Merge clinical attribute with proteomics dataframe
-ov_clinical_and_proteomics = col.append_metadata_to_omics(
+ov_clinical_and_proteomics = ov.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "proteomics",
         metadata_cols    = ov_clinical_attribute)
+ov_clinical_and_proteomics[ov_clinical_attribute] = ov_clinical_and_proteomics[ov_clinical_attribute].fillna("Normal")
 ov_clinical_and_proteomics.head()
 
 ## Show possible variations of Histologic_type
 ov_clinical_and_proteomics[ov_clinical_attribute].unique()
 
 # Find column whose name contains a EIF4E
-print(ov_clinical_and_proteomics.filter(like='JUN').columns)
+print(ov_clinical_and_proteomics.filter(like='EIF4G1').columns)
 #Index(['ANKHD1-EIF4EBP3_proteomics', 'EIF4A1_proteomics', 'EIF4A2_proteomics',
 #       'EIF4A3_proteomics', 'EIF4B_proteomics', 'EIF4E_proteomics',
 #       'EIF4E2_proteomics', 'EIF4E3_proteomics', 'EIF4EBP1_proteomics',
@@ -346,64 +374,118 @@ print(ov_clinical_and_proteomics.filter(like='JUN').columns)
 #       'EIF4G1_proteomics', 'EIF4G2_proteomics', 'EIF4G3_proteomics',
 #       'EIF4H_proteomics'],
 #      dtype='object')
+cols = []
+count = 1
+for column in ov_clinical_and_proteomics.columns:
+    if column == 'EIF4G1_proteomics':
+        cols.append('EIF4G1_proteomics'+ str(count))
+        count+=1
+        continue
+    cols.append(column)
+ov_clinical_and_proteomics.columns = cols
+
+print(ov_clinical_and_proteomics.filter(like='JUN').columns)
+cols = []
+count = 1
+for column in ov_clinical_and_proteomics.columns:
+    if column == 'JUN_proteomics':
+        cols.append('JUN_proteomics'+ str(count))
+        count+=1
+        continue
+    cols.append(column)
+ov_clinical_and_proteomics.columns = cols
 
 # plot graph on EIF4 proteomics
 graphingSite = 'EIF4E_proteomics'
 graphingSite = 'EIF4A1_proteomics'
-graphingSite = 'EIF4G1_proteomics'
-graphingSite = 'JUN_proteomics'
+graphingSite = 'EIF4EBP1_proteomics'
+graphingSite = 'JUN_proteomics1'
 
 sns.set_style("white")
 sns.boxplot(x          = ov_clinical_attribute,
             y          = graphingSite,
             data       = ov_clinical_and_proteomics,
             showfliers = False,
-           # order      = ['Tumor','Adjacent_normal','Myometrium_normal','Enriched_normal'],
-            order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "IC", "IIIA", "IIIB", "IIIC","IV"])
 sns.stripplot(x        = ov_clinical_attribute,
               y        = graphingSite,
               data     = ov_clinical_and_proteomics,
               color    = '.3',
-             # order    = ['Tumor','Adjacent_normal','Myometrium_normal','Enriched_normal'],
-              order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "IC", "IIIA", "IIIB", "IIIC","IV"])
 plt.xticks(rotation = 45)
-plt.title('colon cancer')
+plt.title('ovarian cancer')
 #color = '.3' makes the dots black
 
-
+###########################################################
+## Associating Clinical Variables with Phosphoproteomics ##
+###########################################################
 ## Merge attribute with phosphorylation dataframe
-ov_clinical_and_phosphorylation = col.append_metadata_to_omics(
+ov_clinical_and_phosphorylation = ov.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "phosphoproteomics",
         metadata_cols    = ov_clinical_attribute)
+ov_clinical_and_phosphorylation[ov_clinical_attribute] = ov_clinical_and_phosphorylation[ov_clinical_attribute].fillna("Normal")
 ov_clinical_and_phosphorylation.head()
 
 ## Show possible variations of Histologic_type
 ov_clinical_and_phosphorylation[ov_clinical_attribute].unique()
 
 # Find column whose name contains a EIF4E
-print(ov_clinical_and_phosphorylation.filter(like='JUN').columns)
+print(ov_clinical_and_phosphorylation.filter(like='EIF4E-').columns)
+cols = []
+count = 1
+for column in ov_clinical_and_phosphorylation.columns:
+    if column == 'EIF4E-S24s_phosphoproteomics':
+        cols.append('EIF4E-S24s_phosphoproteomics'+ str(count))
+        count+=1
+        continue
+    cols.append(column)
+ov_clinical_and_phosphorylation.columns = cols
+
+print(ov_clinical_and_phosphorylation.filter(like='EIF4EBP1').columns)
+cols = []
+count = 1
+for column in ov_clinical_and_phosphorylation.columns:
+    if column == 'EIF4EBP1-T46t_phosphoproteomics':
+        cols.append('EIF4EBP1-T46t_phosphoproteomics'+ str(count))
+        count+=1
+        continue
+    cols.append(column)
+ov_clinical_and_phosphorylation.columns = cols
+
+cols = []
+count = 1
+for column in ov_clinical_and_phosphorylation.columns:
+    if column == 'EIF4EBP1-T70t_phosphoproteomics':
+        cols.append('EIF4EBP1-T70t_phosphoproteomics'+ str(count))
+        count+=1
+        continue
+    cols.append(column)
+ov_clinical_and_phosphorylation.columns = cols
+
 # plot graph on EIF4 phosphorylation
-graphingSite = 'JUN-S63_phosphoproteomics'
+graphingSite = 'EIF4EBP1-T37tT46t_phosphoproteomics'
 
 sns.set_style("white")
 sns.boxplot(x          = ov_clinical_attribute,
             y          = graphingSite,
-            data       = ov_clinical_and_proteomics,
+            data       = ov_clinical_and_phosphorylation,
             showfliers = False,
-            order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "IC", "IIIA", "IIIB", "IIIC", "IV"])
 sns.stripplot(x        = ov_clinical_attribute,
               y        = graphingSite,
-              data     = ov_clinical_and_proteomics,
+              data     = ov_clinical_and_phosphorylation,
               color    = '.3',
-              order    = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "IC", "IIIA", "IIIB", "IIIC", "IV"])
 plt.xticks(rotation = 45)
-plt.title('colon cancer')
+plt.title('ovarian cancer')
 #color = '.3' makes the dots black
 
 
-
-ov_clinical_and_transcriptomics = col.append_metadata_to_omics(
+###########################################################
+## Associating Clinical Variables with Transcriptomics ##
+###########################################################
+ov_clinical_and_transcriptomics = ov.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "transcriptomics",
         metadata_cols    = ov_clinical_attribute)
@@ -413,7 +495,7 @@ ov_clinical_and_transcriptomics.head()
 ov_clinical_and_transcriptomics[ov_clinical_attribute].unique()
 
 # Find column whose name contains a EIF4E
-print(ov_clinical_and_transcriptomics.filter(like='EIF4').columns)
+print(ov_clinical_and_transcriptomics.filter(like='EIF4G').columns)
 #Index(['ANKHD1-EIF4EBP3_transcriptomics', 'EIF4A1_transcriptomics',
 #       'EIF4A2_transcriptomics', 'EIF4A3_transcriptomics',
 #       'EIF4B_transcriptomics', 'EIF4E_transcriptomics',
@@ -429,16 +511,17 @@ graphingSite = 'EIF4E_transcriptomics'
 graphingSite = 'EIF4A1_transcriptomics'
 graphingSite = 'EIF4G1_transcriptomics'
 graphingSite = 'EIF4EBP1_transcriptomics'
+sns.set_style("white")
 sns.boxplot(x          = ov_clinical_attribute,
             y          = graphingSite,
             data       = ov_clinical_and_transcriptomics,
             showfliers = False,
-            order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = ["Normal", "IC", "IIIA", "IIIB", "IIIC", "IV"])
 sns.stripplot(x        = ov_clinical_attribute,
               y        = graphingSite,
               data     = ov_clinical_and_transcriptomics,
               color    = '.3',
-              order    = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+              order    = ["Normal", "IC", "IIIA", "IIIB", "IIIC", "IV"])
 plt.title('colon cancer')
 #color = '.3' makes the dots black
 
