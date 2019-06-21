@@ -6,7 +6,7 @@ import numpy as np
 import scipy.stats
 import seaborn as sns
 import statsmodels.stats.multitest
-
+from statannot import add_stat_annotation
 
 # To view available datasets, enter 'cptac.list_data()'.
 cptac.list_data()
@@ -30,6 +30,7 @@ proteomics.head()
 
 transcriptomics = en.get_transcriptomics()
 transcriptomics.head()
+
 
 ## Step 1: Merging dataframes
 SCD_cross = en.compare_omics(omics_df1_name = "proteomics",
@@ -99,19 +100,31 @@ graphingSite = 'EIF4A1_proteomics'
 graphingSite = 'EIF4G1_proteomics'
 graphingSite = 'JUN_proteomics'
 sns.set_style("white")
-sns.boxplot(x          = en_clinical_attribute,
-            y          = graphingSite,
-            data       = en_clinical_and_proteomics,
-            showfliers = False,
-           # order      = ['Tumor','Adjacent_normal','Myometrium_normal','Enriched_normal'],
-            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
+order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"]
+ax = sns.boxplot(x          = en_clinical_attribute,
+                 y          = graphingSite,
+                 data       = en_clinical_and_proteomics,
+                 showfliers = False,
+                 order      = order)
 sns.stripplot(x        = en_clinical_attribute,
               y        = graphingSite,
               data     = en_clinical_and_proteomics,
               color    = '.3',
-             # order    = ['Tumor','Adjacent_normal','Myometrium_normal','Enriched_normal'],
-              order      = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
-plt.xticks(rotation = 45)
+              order     = order)
+add_stat_annotation(ax,
+                    data        = en_clinical_and_proteomics,
+                    x           = en_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [("Normal", "Stage I"),
+                                   ("Normal", "Stage II"),
+                                   ("Normal", "Stage III"),
+                                   ("Normal", "Stage IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
+
 plt.title('endometrial cancer')
 #color = '.3' makes the dots black
 
@@ -131,22 +144,35 @@ en_clinical_and_phosphorylation[en_clinical_attribute].unique()
 print(en_clinical_and_phosphorylation.filter(like='JUN-').columns)
 # plot graph on EIF4 phosphorylation
 graphingSite = 'EIF4E-S24_phosphoproteomics'
-graphingSite = 'EIF4EBP1-T37_phosphoproteomics'
+graphingSite = 'EIF4EBP1-S65_phosphoproteomics'
 graphingSite = 'EIF4EBP1-T70_phosphoproteomics'
-graphingSite = 'JUN-T93_phosphoproteomics'
+graphingSite = 'JUN-S243_phosphoproteomics'
 
 sns.set_style("white")
-sns.boxplot(x          = en_clinical_attribute,
-            y          = graphingSite,
-            data       = en_clinical_and_phosphorylation,
-            showfliers = False,
-            order      = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
+order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"]
+ax = sns.boxplot(x          = en_clinical_attribute,
+                 y          = graphingSite,
+                 data       = en_clinical_and_phosphorylation,
+                 showfliers = False,
+                 order      = order)
 sns.stripplot(x        = en_clinical_attribute,
               y        = graphingSite,
               data     = en_clinical_and_phosphorylation,
               color    = '.3',
-              order    = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
-plt.xticks(rotation = 45)
+              order    = order)
+add_stat_annotation(ax,
+                    data        = en_clinical_and_phosphorylation,
+                    x           = en_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [("Normal", "Stage I"),
+                                   ("Normal", "Stage II"),
+                                   ("Normal", "Stage III"),
+                                   ("Normal", "Stage IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
 plt.title('endometrial cancer')
 #color = '.3' makes the dots black
 
@@ -171,19 +197,97 @@ graphingSite = 'EIF4G1_phosphoproteomics_gene'
 graphingSite = 'EIF4EBP1_phosphoproteomics_gene'
 
 sns.set_style("white")
-sns.boxplot(x          = en_clinical_attribute,
-            y          = graphingSite,
-            data       = en_clinical_and_phosphoproteomics_gene,
-            showfliers = False,
-            order      = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
+order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"]
+ax = sns.boxplot(x          = en_clinical_attribute,
+                 y          = graphingSite,
+                 data       = en_clinical_and_phosphoproteomics_gene,
+                 showfliers = False,
+                 order      = order)
 sns.stripplot(x        = en_clinical_attribute,
               y        = graphingSite,
               data     = en_clinical_and_phosphoproteomics_gene,
               color    = '.3',
-              order    = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"])
-plt.xticks(rotation = 45)
+              order    = order)
+add_stat_annotation(ax,
+                    data        = en_clinical_and_phosphoproteomics_gene,
+                    x           = en_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [("Normal", "Stage I"),
+                                   ("Normal", "Stage II"),
+                                   ("Normal", "Stage III"),
+                                   ("Normal", "Stage IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
 plt.title('endometrial cancer')
 #color = '.3' makes the dots black
+
+
+##############################################################################
+## Associating Clinical Variables with Transcriptomics in Endometrial Cancer##
+##############################################################################
+
+en_clinical_and_transcriptomics = en.append_metadata_to_omics(
+        metadata_df_name = "clinical",
+        omics_df_name    = "transcriptomics",
+        metadata_cols    = en_clinical_attribute)
+en_clinical_and_transcriptomics[en_clinical_attribute] = en_clinical_and_transcriptomics[en_clinical_attribute].fillna("Normal")
+en_clinical_and_transcriptomics.head()
+
+## Show possible variations of Histologic_type
+en_clinical_and_transcriptomics[en_clinical_attribute].unique()
+
+# Find column whose name contains a EIF4E
+print(en_clinical_and_transcriptomics.filter(like='EIF4').columns)
+#Index(['ANKHD1-EIF4EBP3_transcriptomics', 'EIF4A1_transcriptomics',
+#       'EIF4A2_transcriptomics', 'EIF4A3_transcriptomics',
+#       'EIF4B_transcriptomics', 'EIF4E_transcriptomics',
+#       'EIF4E2_transcriptomics', 'EIF4E3_transcriptomics',
+#       'EIF4EBP1_transcriptomics', 'EIF4EBP2_transcriptomics',
+#       'EIF4EBP3_transcriptomics', 'EIF4ENIF1_transcriptomics',
+#       'EIF4G1_transcriptomics', 'EIF4G2_transcriptomics',
+#       'EIF4G3_transcriptomics', 'EIF4H_transcriptomics'],
+#      dtype='object')
+
+# plot graph on EIF4 transcriptomics
+graphingSite = 'EIF4E_transcriptomics'
+graphingSite = 'EIF4A1_transcriptomics'
+graphingSite = 'EIF4G1_transcriptomics'
+graphingSite = 'EIF4EBP1_transcriptomics'
+
+sns.set_style("white")
+order      = ["Stage I", "Stage II", "Stage III", "Stage IV"]
+ax = sns.boxplot(x          = en_clinical_attribute,
+                 y          = graphingSite,
+                 data       = en_clinical_and_transcriptomics,
+                 showfliers = False,
+                 order      = order)
+sns.stripplot(x        = en_clinical_attribute,
+              y        = graphingSite,
+              data     = en_clinical_and_transcriptomics,
+              color    = '.3',
+              order    = order)
+add_stat_annotation(ax,
+                    data        = en_clinical_and_transcriptomics,
+                    x           = en_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [("Normal", "Stage I"),
+                                   ("Normal", "Stage II"),
+                                   ("Normal", "Stage III"),
+                                   ("Normal", "Stage IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
+plt.title('colon cancer')
+#color = '.3' makes the dots black
+
+
+
+
 
 
 ################################################################################
@@ -204,7 +308,6 @@ col_clinical_and_proteomics = col.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "proteomics",
         metadata_cols    = col_clinical_attribute)
-
 
 col_clinical_and_proteomics[col_clinical_attribute] = col_clinical_and_proteomics[col_clinical_attribute].fillna("Normal")
 
@@ -228,20 +331,33 @@ graphingSite = 'EIF4E_proteomics'
 graphingSite = 'EIF4A1_proteomics'
 graphingSite = 'EIF4G1_proteomics'
 graphingSite = 'EIF4EBP1_proteomics'
-graphingSite = 'BRAF_proteomics'
+graphingSite = 'JUN_proteomics'
 
 sns.set_style("white")
-sns.boxplot(x          = col_clinical_attribute,
-            y          = graphingSite,
-            data       = col_clinical_and_proteomics,
-            showfliers = False,
-            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
+order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"]
+ax = sns.boxplot(x          = col_clinical_attribute,
+                 y          = graphingSite,
+                 data       = col_clinical_and_proteomics,
+                 showfliers = False,
+                 order      = order)
 sns.stripplot(x        = col_clinical_attribute,
               y        = graphingSite,
               data     = col_clinical_and_proteomics,
               color    = '.3',
-            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
-plt.xticks(rotation = 45)
+            order      = order)
+add_stat_annotation(ax,
+                    data        = col_clinical_and_proteomics,
+                    x           = col_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [("Normal", "Stage I"),
+                                   ("Normal", "Stage II"),
+                                   ("Normal", "Stage III"),
+                                   ("Normal", "Stage IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
 plt.title('colon cancer')
 #color = '.3' makes the dots black
 
@@ -260,31 +376,49 @@ col_clinical_and_phosphorylation.head()
 col_clinical_and_phosphorylation[col_clinical_attribute].unique()
 
 # Find column whose name contains a EIF4E
-print(col_clinical_and_phosphorylation.filter(like='PIK3C').columns)
+print(col_clinical_and_phosphorylation.filter(like='JUN').columns)
 # plot graph on EIF4 phosphorylation
-graphingSite = 'EIF4EBP1_S101__Q13541_phosphoproteomics'
+graphingSite = 'JUN_S243__P05412_phosphoproteomics'
 
 sns.set_style("white")
-sns.boxplot(x          = col_clinical_attribute,
-            y          = graphingSite,
-            data       = col_clinical_and_phosphorylation,
-            showfliers = False,
-            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
+order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"]
+ax = sns.boxplot(x          = col_clinical_attribute,
+                 y          = graphingSite,
+                 data       = col_clinical_and_phosphorylation,
+                 showfliers = False,
+                 order      = order)
 sns.stripplot(x        = col_clinical_attribute,
               y        = graphingSite,
               data     = col_clinical_and_phosphorylation,
               color    = '.3',
-            order      = ["Normal", "Stage I", "Stage II", "Stage III", "Stage IV"])
-plt.xticks(rotation = 45)
+              order    = order
+            )
+add_stat_annotation(ax,
+                    data        = col_clinical_and_phosphorylation,
+                    x           = col_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [("Normal", "Stage I"),
+                                   ("Normal", "Stage II"),
+                                   ("Normal", "Stage III"),
+                                   ("Normal", "Stage IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
 plt.title('colon cancer')
 #color = '.3' makes the dots black
 
 
+###########################################################
+## Associating Clinical Variables with Transcriptomics ##
+###########################################################
 
 col_clinical_and_transcriptomics = col.append_metadata_to_omics(
         metadata_df_name = "clinical",
         omics_df_name    = "transcriptomics",
-        metadata_cols    = clinical_attribute)
+        metadata_cols    = col_clinical_attribute)
+col_clinical_and_transcriptomics[col_clinical_attribute] = col_clinical_and_transcriptomics[col_clinical_attribute].fillna("Normal")
 col_clinical_and_transcriptomics.head()
 
 ## Show possible variations of Histologic_type
@@ -307,16 +441,32 @@ graphingSite = 'EIF4E_transcriptomics'
 graphingSite = 'EIF4A1_transcriptomics'
 graphingSite = 'EIF4G1_transcriptomics'
 graphingSite = 'EIF4EBP1_transcriptomics'
+
+sns.set_style("white")
+order      = ["Stage I", "Stage II", "Stage III", "Stage IV"]
 sns.boxplot(x          = col_clinical_attribute,
             y          = graphingSite,
             data       = col_clinical_and_transcriptomics,
             showfliers = False,
-            order      = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+            order      = order)
 sns.stripplot(x        = col_clinical_attribute,
               y        = graphingSite,
               data     = col_clinical_and_transcriptomics,
               color    = '.3',
-              order    = ["Stage I", "Stage II", "Stage III", "Stage IV"])
+              order    = order)
+add_stat_annotation(ax,
+                    data        = col_clinical_and_transcriptomics,
+                    x           = col_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [("Normal", "Stage I"),
+                                   ("Normal", "Stage II"),
+                                   ("Normal", "Stage III"),
+                                   ("Normal", "Stage IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
 plt.title('colon cancer')
 #color = '.3' makes the dots black
 
@@ -324,14 +474,62 @@ plt.title('colon cancer')
 ##########################################################################
 ## Associating Clinical Variables with proteomics and Phosphoproteomics ##
 ##########################################################################
+col_clinical_attribute = "Stage"
+
+col_clinical_and_proteomics = col.append_metadata_to_omics(
+        metadata_df_name = "clinical",
+        omics_df_name    = "proteomics",
+        metadata_cols    = col_clinical_attribute)
+col_clinical_and_proteomics[col_clinical_attribute] = col_clinical_and_proteomics[col_clinical_attribute].fillna("Normal")
+
+col_clinical_and_phosphorylation = col.append_metadata_to_omics(
+        metadata_df_name = "clinical",
+        omics_df_name    = "phosphoproteomics",
+        metadata_cols    = col_clinical_attribute)
+col_clinical_and_phosphorylation[col_clinical_attribute] = col_clinical_and_phosphorylation[col_clinical_attribute].fillna("Normal")
+col_clinical_and_phosphorylation.head()
+
 col_clinical_and_proteomics_phosphoproteomics = pd.concat(
-        [col_clinical_and_proteomics, col_clinical_and_phosphorylation], 
-        axis=1, sort=False) 
+        [col_clinical_and_proteomics, col_clinical_and_phosphorylation],
+        axis=1,
+        join='inner')
+## remove columns with duplicated names
+col_clinical_and_proteomics_phosphoproteomics = col_clinical_and_proteomics_phosphoproteomics.loc[:,~col_clinical_and_proteomics_phosphoproteomics.columns.duplicated()]
+col_clinical_and_proteomics_phosphoproteomics[col_clinical_attribute].unique()
 
 
+print(col_clinical_and_proteomics_phosphoproteomics.filter(like='EIF4EBP1').columns)
 
+col_clinical_and_proteomics_phosphoproteomics['ratio'] = col_clinical_and_proteomics_phosphoproteomics['EIF4EBP1_T46__Q13541_phosphoproteomics']/col_clinical_and_proteomics_phosphoproteomics['EIF4EBP1_proteomics']
 
-
+graphingSite ='ratio'
+sns.set_style("white")
+order      = ["Normal","Stage I", "Stage II", "Stage III", "Stage IV"]
+ax = sns.boxplot(x          = col_clinical_attribute,
+            y          = graphingSite,
+            data       = col_clinical_and_proteomics_phosphoproteomics,
+            showfliers = False,
+            order      = order)
+sns.stripplot(x        = col_clinical_attribute,
+              y        = graphingSite,
+              data     = col_clinical_and_proteomics_phosphoproteomics,
+              color    = '.3',
+              order    = order)
+add_stat_annotation(ax,
+                    data        = col_clinical_and_proteomics_phosphoproteomics,
+                    x           = col_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [("Normal", "Stage I"),
+                                   ("Normal", "Stage II"),
+                                   ("Normal", "Stage III"),
+                                   ("Normal", "Stage IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
+plt.title('colon cancer')
+#color = '.3' makes the dots black
 
 
 
@@ -398,21 +596,36 @@ ov_clinical_and_proteomics.columns = cols
 # plot graph on EIF4 proteomics
 graphingSite = 'EIF4E_proteomics'
 graphingSite = 'EIF4A1_proteomics'
+graphingSite = 'EIF4G1_proteomics1'
 graphingSite = 'EIF4EBP1_proteomics'
 graphingSite = 'JUN_proteomics1'
 
 sns.set_style("white")
-sns.boxplot(x          = ov_clinical_attribute,
-            y          = graphingSite,
-            data       = ov_clinical_and_proteomics,
-            showfliers = False,
-            order      = ["Normal", "IC", "IIIA", "IIIB", "IIIC","IV"])
+order      = ["Normal", "IIIA", "IIIB", "IIIC","IV"]
+ax = sns.boxplot(x          = ov_clinical_attribute,
+                 y          = graphingSite,
+                 data       = ov_clinical_and_proteomics,
+                 showfliers = False,
+                 order      = order)
 sns.stripplot(x        = ov_clinical_attribute,
               y        = graphingSite,
               data     = ov_clinical_and_proteomics,
               color    = '.3',
-            order      = ["Normal", "IC", "IIIA", "IIIB", "IIIC","IV"])
-plt.xticks(rotation = 45)
+            order      = order)
+add_stat_annotation(ax,
+                    data        = ov_clinical_and_proteomics,
+                    x           = ov_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [
+                                   ("Normal", "IIIA"),
+                                   ("Normal", "IIIB"),
+                                   ("Normal", "IIIB"),
+                                   ("Normal", "IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
 plt.title('ovarian cancer')
 #color = '.3' makes the dots black
 
@@ -463,21 +676,37 @@ for column in ov_clinical_and_phosphorylation.columns:
     cols.append(column)
 ov_clinical_and_phosphorylation.columns = cols
 
+print(ov_clinical_and_phosphorylation.filter(like='JUN').columns)
+
 # plot graph on EIF4 phosphorylation
-graphingSite = 'EIF4EBP1-T37tT46t_phosphoproteomics'
+graphingSite = 'JUN-T93t_phosphoproteomics'
 
 sns.set_style("white")
-sns.boxplot(x          = ov_clinical_attribute,
-            y          = graphingSite,
-            data       = ov_clinical_and_phosphorylation,
-            showfliers = False,
-            order      = ["Normal", "IC", "IIIA", "IIIB", "IIIC", "IV"])
+order      = ["Normal", "IIIA", "IIIB", "IIIC","IV"]
+ax = sns.boxplot(x          = ov_clinical_attribute,
+                 y          = graphingSite,
+                 data       = ov_clinical_and_phosphorylation,
+                 showfliers = False,
+                 order      = order)
 sns.stripplot(x        = ov_clinical_attribute,
               y        = graphingSite,
               data     = ov_clinical_and_phosphorylation,
               color    = '.3',
-            order      = ["Normal", "IC", "IIIA", "IIIB", "IIIC", "IV"])
-plt.xticks(rotation = 45)
+            order      = order)
+add_stat_annotation(ax,
+                    data        = ov_clinical_and_phosphorylation,
+                    x           = ov_clinical_attribute,
+                    y           = graphingSite,
+                    order       = order,
+                    boxPairList = [
+                                   ("Normal", "IIIA"),
+                                   ("Normal", "IIIB"),
+                                   ("Normal", "IIIB"),
+                                   ("Normal", "IV")],
+                    test        = 't-test_ind',
+                    textFormat  = 'star',
+                    loc         = 'inside',
+                    verbose     = 2)
 plt.title('ovarian cancer')
 #color = '.3' makes the dots black
 
@@ -524,12 +753,3 @@ sns.stripplot(x        = ov_clinical_attribute,
               order    = ["Normal", "IC", "IIIA", "IIIB", "IIIC", "IV"])
 plt.title('colon cancer')
 #color = '.3' makes the dots black
-
-
-
-
-
-
-
-
-
