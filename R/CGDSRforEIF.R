@@ -7,6 +7,7 @@ library(cgdsr)
 library(corrplot)
 library(cowplot)
 library(data.table)
+library(dplyr)
 library(ggfortify)
 library(ggplot2)
 library(ggpubr)
@@ -221,6 +222,9 @@ plot.EIF.pan.tcga <- function(EIF){
   df2$EIFgene <- as.factor(df2$EIFgene)
   df2$TCGAstudy <- as.factor(df2$TCGAstudy)
   df2 <- na.omit(df2)
+  df2$TCGAstudy <- str_remove_all(df2$TCGAstudy, "_tcga_pan_can_atlas_2018")
+  df2$TCGAstudy <- str_to_upper(df2$TCGAstudy)
+ # df2$TCGAstudy <- mutate_all(df2$TCGAstudy, .funs = toupper)
   ### plot EIF gene expression across all TCGA groups ##
   m <- paste0(EIF, ".", EIF)
   mean <- within(df2[df2$EIFgene == m,], # TCGAstudy is one column in df2
@@ -228,8 +232,7 @@ plot.EIF.pan.tcga <- function(EIF){
   a <- levels(mean$TCGAstudy)
   ### write.csv(mean, file = paste(EIF, ".mean", sep=""))
   ### with highlight on skin cancer
-  colors <- ifelse(a == "hnsc_tcga_pan_can_atlas_2018"
-    | a == "cesc_tcga_pan_can_atlas_2018", "red", "black")
+  colors <- ifelse(a == "SKCM" | a == "BRCA", "red", "black")
   print(
     ggplot(mean,
       aes(x        = TCGAstudy,
@@ -239,17 +242,17 @@ plot.EIF.pan.tcga <- function(EIF){
                    width    = .5,
                    position = position_dodge(width = .9)) +
       coord_flip() +
-      labs(x = "Tumor types (TCGA)",
+      labs(x = "Tumor types",
            y = paste0("log2(", EIF, " RNA counts)")) +
       theme(
         axis.title  = element_text(face   = "bold",
-                                   size   = 9,
+                                   size   = 12,
                                    color  = "black"),
-        axis.text.x = element_text(size   = 9,
+        axis.text.x = element_text(size   = 12,
                                    hjust  = 1, # 1 means right-justified
                                    face   = "bold",
                                    color  = "black"),
-        axis.text.y = element_text(size   = 9,
+        axis.text.y = element_text(size   = 12,
                                    angle  = 0,
                                    hjust  = 1, # 1 means right-justified
                                    face   = "bold",
@@ -258,11 +261,11 @@ plot.EIF.pan.tcga <- function(EIF){
         axis.line.y = element_line(color  = "black"),
         panel.grid  = element_blank(),
         strip.text  = element_text(face   = "bold",
-                                   size   = 9,
+                                   size   = 12,
                                    color  = "black"),
         legend.position = "none"))
 }
-plot.EIF.pan.tcga("EIF4A1")
+plot.EIF.pan.tcga("RPS6KB1")
 sapply(EIF.gene, plot.EIF.pan.tcga)
 
 ##############################################################################
@@ -388,12 +391,16 @@ plot.km.all.pro.tcga <- function(EIF) {
     size   = 12,
     colour = "black")
   print(
-    ggplot2::autoplot(km,
+    ggplot2::autoplot(
+      km,
       xlab = "Months",
       ylab = "Survival Probability",
-      main = paste("Kaplan-Meier plot", EIF, 
-        "RNA expression in all TCGA provisional groups")) +
-      theme(axis.title           = black.bold.12pt,
+      main = paste("Kaplan-Meier plot", 
+                   EIF, 
+                   "RNA expression in all TCGA provisional groups")
+                      ) +
+      theme(
+        axis.title           = black.bold.12pt,
         axis.text            = black.bold.12pt,
         axis.line.x          = element_line(color  = "black"),
         axis.line.y          = element_line(color  = "black"),
@@ -401,28 +408,30 @@ plot.km.all.pro.tcga <- function(EIF) {
         strip.text           = black.bold.12pt,
         legend.text          = black.bold.12pt ,
         legend.title         = black.bold.12pt ,
+        legend.position      = c(1,1),
         legend.justification = c(1,1)) +
       guides(fill = FALSE) +
-      scale_color_manual(values = c("red", "blue"),
+      scale_color_manual(
+        values = c("red", "blue"),
         name   = paste(EIF, "mRNA expression"),
         breaks = c("Bottom 20%", "Top 20%"),
         labels = c("Bottom 20%, n = 1859",
-          "Top 20%, n = 1859")) +
+                   "Top 20%, n = 1859")) +
       geom_point(size = 0.25) +
       annotate("text",
-        x     = 300,
-        y     = 0.85,
-        label = paste("log-rank test, p.val = ", p.val),
-        size  = 4.5,
-        hjust = 1,
-        fontface = "bold")
+                x     = 300,
+                y     = 0.85,
+                label = paste("log-rank test, p.val = ", p.val),
+                size  = 4.5,
+                hjust = 1,
+                fontface = "bold")
   )
   # rho = 1 the Gehan-Wilcoxon test
   #  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
   print(EIF)
   print(stats)
 }
-plot.km.all.pro.tcga("PABP")
+plot.km.all.pro.tcga("EIF4A1")
 sapply(EIF.gene, plot.km.all.pro.tcga)
 
 ############################################################################
@@ -548,33 +557,36 @@ plot.km.all.pan.tcga <- function(EIF) {
   p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
   p.val <- signif(p.val, 3)
   black.bold.12pt <- element_text(face   = "bold",
-    size   = 12,
-    colour = "black")
+                                  size   = 12,
+                                  colour = "black")
   print(
     ggplot2::autoplot(
       km,
       xlab = "Months",
       ylab = "Survival Probability",
-      main = paste("Kaplan-Meier plot", EIF, "RNA expression"),
+      main = paste("Kaplan-Meier plot of", 
+                    EIF, 
+                    "expression in all cancers"),
       xlim = c(0, 250)) +
       theme(axis.title           = black.bold.12pt,
-        axis.text            = black.bold.12pt,
-        axis.line.x          = element_line(color  = "black"),
-        axis.line.y          = element_line(color  = "black"),
-        panel.grid           = element_blank(),
-        strip.text           = black.bold.12pt,
-        legend.text          = black.bold.12pt ,
-        legend.title         = black.bold.12pt ,
-        legend.justification = c(1,1),
-        legend.position      = c(1,1))+
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.justification = c(1,1),
+            legend.position      = c(1,1))+
       guides(fill = FALSE) +
       scale_color_manual(values = c("red", "blue"),
-        name   = paste(EIF, "mRNA expression"),
-        breaks = c("Bottom 20%", "Top 20%"),
-        labels = c(paste("Bottom 20%, n =", number),
-          paste("Top 20%, n =", number))) +
+                         name   = paste(EIF, "mRNA expression"),
+                         breaks = c("Bottom 20%", "Top 20%"),
+                         labels = c(paste("Bottom 20%, n =", number),
+                                    paste("Top 20%, n =", number))) +
       geom_point(size = 0.25) +
-      annotate("text",
+      annotate(
+        "text",
         x     = 250,
         y     = 0.80,
         label = paste("log-rank test, p.val = ", p.val),
@@ -587,8 +599,77 @@ plot.km.all.pan.tcga <- function(EIF) {
   print(EIF)
   print(stats)
 }
-plot.km.all.pan.tcga("PABP")
-sapply(EIF.gene, plot.km.all.pan.tcga)
+plot.km.all.pan.tcga("MYC")
+  sapply(EIF.gene, plot.km.all.pan.tcga)
+
+##########################################################################
+## Kaplan-Meier curve with EIF RNAseq data from individual cancer group ##
+##########################################################################
+plot.km.each.tumor <- function(DNFA) {
+  mycancerstudy <- getCancerStudies(mycgds)[
+    grep("^brca_tcga$", getCancerStudies(mycgds)$cancer_study_id), 1]
+  mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1] ### "skcm_tcga_all"
+  skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
+  skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
+  skcm.RNAseq.data <- getProfileData(mycgds,
+    DNFA,
+    "brca_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
+    "brca_tcga_pan_can_atlas_2018_all")
+  skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
+  skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
+  df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
+    skcm.RNAseq.data),
+    by   = "rn",
+    type = "full")
+  df <- na.omit(df)
+  df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.2)] = "Bottom 20%"
+  df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.8)] = "Top 20%"
+  df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
+  df <- na.omit(df)
+  number <- round(nrow(df)/5)
+  km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0)
+  p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
+  p.val <- signif(p.val, 3)
+  black.bold.12pt <- element_text(face   = "bold",
+                                  size   = 12,
+                                  colour = "black")
+  print(
+    ggplot2::autoplot(km,
+                      xlab = "Months",
+                      ylab = "Survival Probability",
+                      main = paste("Kaplan-Meier plot of", 
+                      DNFA, 
+                      "expression in breast invasive carcinoma")) +
+      theme(axis.title           = black.bold.12pt,
+            axis.text            = black.bold.12pt,
+            axis.line.x          = element_line(color  = "black"),
+            axis.line.y          = element_line(color  = "black"),
+            panel.grid           = element_blank(),
+            strip.text           = black.bold.12pt,
+            legend.text          = black.bold.12pt ,
+            legend.title         = black.bold.12pt ,
+            legend.justification = c(1,1))+
+      guides(fill = FALSE) +
+      scale_color_manual(values = c("red", "blue"),
+                         name   = paste(DNFA, "mRNA expression"),
+                         breaks = c("Bottom 20%", "Top 20%"),
+                         labels = c(paste("Bottom 20%, n =", number),
+                                    paste("Top 20%, n =", number))) +
+      geom_point(size = 0.25) +
+      annotate("text",
+               x        = 250,
+               y        = 0.80,
+               label    = paste("log-rank test, p.val = ", p.val),
+               size     = 4.5,
+               hjust    = 1,
+               fontface = "bold"))
+  # rho = 1 the Gehan-Wilcoxon test
+  stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
+  print(DNFA)
+  print(stats)
+}
+plot.km.each.tumor("EIF4E")
 
 ##########################################################
 ## plot RNAseq data of EIF complex in TCGA study groups ##
@@ -631,11 +712,11 @@ boxplot(log2(EIF.RNAseq.data),
 
 EIF.RNAseq.data <- getProfileData(mycgds,
                                   EIF.gene,
-                                  "esca_tcga_rna_seq_v2_mrna",
-                                  "esca_tcga_all")
+                                  "brca_tcga_rna_seq_v2_mrna",
+                                  "brca_tcga_all")
 EIF.RNAseq.data <- na.omit(EIF.RNAseq.data)
 boxplot(log2(EIF.RNAseq.data), 
-        main="EIF RNAseq data in Esophageal cancer")
+        main="EIF RNAseq data in breast invasive cancer")
 
 
 ##################################################################
