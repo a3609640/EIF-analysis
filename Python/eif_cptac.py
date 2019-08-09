@@ -31,8 +31,8 @@ ov.list_data()
 #################################################################
 def encorrelationplot(omics1, omics2, gene1, gene2):
     gene_cross_en = en.join_omics_to_omics(df1_name = omics1,
-                                           df2_name = omics2, 
-                                           genes1   = gene1, 
+                                           df2_name = omics2,
+                                           genes1   = gene1,
                                            genes2   = gene2)
     print(gene_cross_en.head())
     gene_cross_en = gene_cross_en.dropna()
@@ -53,12 +53,12 @@ def encorrelationplot(omics1, omics2, gene1, gene2):
              ylabel = gene2 + ' ' + omics2,
              title  = gene1 + ' vs ' + gene2 + ' (Endometrial Cancer)')
     plt.show()
-    
+
 
 def colcorrelationplot(omics1, omics2, gene1, gene2):
     gene_cross_col = col.join_omics_to_omics(df1_name = omics1,
-                                             df2_name = omics2, 
-                                             genes1   = gene1, 
+                                             df2_name = omics2,
+                                             genes1   = gene1,
                                              genes2   = gene2)
     gene_cross_col.head()
     gene_cross_col = gene_cross_col.dropna()
@@ -79,11 +79,11 @@ def colcorrelationplot(omics1, omics2, gene1, gene2):
              ylabel = gene2 + ' ' + omics2,
              title  = gene1 + ' vs ' + gene2 + ' (Colon Cancer)')
     plt.show()
-    
+
 def ovcorrelationplot(omics1, omics2, gene1, gene2):
     gene_cross_ov = ov.join_omics_to_omics(df1_name = omics1,
-                                           df2_name = omics2, 
-                                           genes1   = gene1, 
+                                           df2_name = omics2,
+                                           genes1   = gene1,
                                            genes2   = gene2)
     gene_cross_ov.head()
     gene_cross_ov = gene_cross_ov.dropna()
@@ -104,30 +104,30 @@ def ovcorrelationplot(omics1, omics2, gene1, gene2):
              ylabel = gene2 + ' ' + omics2,
              title  = gene1 + ' vs ' + gene2 + ' (Ovarian Cancer)')
     plt.show()
-    
 
-encorrelationplot(omics1 = "proteomics", 
+
+encorrelationplot(omics1 = "proteomics",
                   omics2 = "transcriptomics",
-                  gene1  = "EIF4E", 
+                  gene1  = "EIF4E",
                   gene2  = "EIF4E")
 
-encorrelationplot(omics1 = "phosphoproteomics_gene", 
+encorrelationplot(omics1 = "phosphoproteomics_gene",
                   omics2 = "transcriptomics",
-                  gene1  = "EIF4G1", 
+                  gene1  = "EIF4G1",
                   gene2  = "EIF4G1")
 
-encorrelationplot(omics1 = "phosphoproteomics_gene", 
+encorrelationplot(omics1 = "phosphoproteomics_gene",
                   omics2 = "proteomics",
-                  gene1  = "EIF4A1", 
+                  gene1  = "EIF4A1",
                   gene2  = "EIF4A1")
 
-colcorrelationplot(omics1 = "proteomics", 
+colcorrelationplot(omics1 = "proteomics",
                    omics2 = "transcriptomics",
-                   gene1  = "EIF4E", 
+                   gene1  = "EIF4E",
                    gene2  = "EIF4E")
-ovcorrelationplot(omics1 = "proteomics", 
+ovcorrelationplot(omics1 = "proteomics",
                   omics2 = "transcriptomics",
-                  gene1  = "EIF4E", 
+                  gene1  = "EIF4E",
                   gene2  = "EIF4E")
 
 
@@ -137,8 +137,8 @@ ovcorrelationplot(omics1 = "proteomics",
 ## correlation between 4EBP1-T37 and 4EBP1 protein in endometrial cancer
 def encorrelationplot(gene1, gene2):
     gene_cross_en = en.join_omics_to_omics(df1_name = "phosphoproteomics",
-                                           df2_name = "proteomics", 
-                                           genes1   = gene1, 
+                                           df2_name = "proteomics",
+                                           genes1   = gene1,
                                            genes2   = gene2)
     print(gene_cross_en.columns)
     gene_cross_en = gene_cross_en.dropna(subset = ['EIF4EBP1-T37_phosphoproteomics'])
@@ -167,8 +167,8 @@ encorrelationplot(gene1 = "EIF4EBP1", gene2 = "EIF4EBP1")
 ## correlation between 4EBP1-T37 and MYC protein in endometrial cancer
 def encorrelationplot(gene1, gene2):
     gene_cross_en = en.join_omics_to_omics(df1_name = "phosphoproteomics",
-                                           df2_name = "proteomics", 
-                                           genes1   = gene1, 
+                                           df2_name = "proteomics",
+                                           genes1   = gene1,
                                            genes2   = gene2)
     print(gene_cross_en.head())
     gene_cross_en = gene_cross_en.dropna(subset = ['EIF4EBP1-T37_phosphoproteomics'])
@@ -499,10 +499,10 @@ def col_pho_cliplot(gene):
             plt.figure()
             sns.set(style      ="white",
                     font_scale = 1.5)
-            order = ["Normal", 
-                     "Stage I", 
-                     "Stage II", 
-                     "Stage III", 
+            order = ["Normal",
+                     "Stage I",
+                     "Stage II",
+                     "Stage III",
                      "Stage IV"]
             ax = sns.boxplot(x          = "Stage",
                              y          = i,
@@ -548,10 +548,10 @@ def col_tra_cli_plot(gene):
     col_clinical_and_proteomics["Stage"].unique()
     sns.set(style      ="white",
             font_scale = 1.5)
-    order = ["Normal", 
-             "Stage I", 
-             "Stage II", 
-             "Stage III", 
+    order = ["Normal",
+             "Stage I",
+             "Stage II",
+             "Stage III",
              "Stage IV"]
     ax = sns.boxplot(x          = "Stage",
                      y          = gene + '_transcriptomics',
@@ -592,9 +592,9 @@ def col_tra_cli_plot(gene):
     col_clinical_and_proteomics["Stage"].unique()
     sns.set(style      ="white",
             font_scale = 1.5)
-    order = ["Stage I", 
-             "Stage II", 
-             "Stage III", 
+    order = ["Stage I",
+             "Stage II",
+             "Stage III",
              "Stage IV"]
     ax = sns.boxplot(x          = "Stage",
                      y          = gene + '_transcriptomics',
@@ -669,7 +669,7 @@ def ov_pro_cli_plot(gene):
                    continue
                 cols.append(column)
             ov_clinical_and_proteomics.columns = cols
-            
+
             ov_clinical_and_proteomics = ov_clinical_and_proteomics.dropna(subset = [i])
             plt.figure()
             sns.set(style      ="white",
@@ -696,7 +696,7 @@ def ov_pro_cli_plot(gene):
                                 loc         = 'inside',
                                 verbose     = 2)
             plt.title('ovarian cancer')
-       
+
 
 ov_pro_cli_plot(gene = "EIF4E")
 
@@ -747,7 +747,7 @@ def ov_pho_cli_plot(gene):
                                 loc         = 'inside',
                                 verbose     = 2)
             plt.title('ovarian cancer')
-       
+
 
 ov_pho_cli_plot(gene = "EIF4EBP1")
 
@@ -775,9 +775,9 @@ def ovcliplot(gene):
         # ov_clinical_and_proteomics = ov_clinical_and_proteomics.dropna(subset = [i])
         plt.figure()
         sns.set_style("white")
-        order = ["Normal", 
-                 "IIIA", 
-                 "IIIB", 
+        order = ["Normal",
+                 "IIIA",
+                 "IIIB",
                  "IIIC",
                  "IV"]
         ax = sns.boxplot(x          = "Tumor_Stage_Ovary_FIGO",
@@ -847,7 +847,7 @@ def ov_tra_cli_plot(gene):
                    continue
                 cols.append(column)
             ov_clinical_and_proteomics.columns = cols
-            
+
             ov_clinical_and_proteomics = ov_clinical_and_proteomics.dropna(subset = [i])
             plt.figure()
             sns.set(style      ="white",
@@ -874,7 +874,7 @@ def ov_tra_cli_plot(gene):
                                 loc         = 'inside',
                                 verbose     = 2)
             plt.title('ovarian cancer')
-       
+
 
 ov_tra_cli_plot(gene = "EIF4E")
 
@@ -894,8 +894,8 @@ ov_tra_cli_plot(gene = "EIF4E")
 ## correlation between JUN-S243 and SOX2 mRNA in endometrial cancer
 def encorrelationplot(gene1, gene2):
     gene_cross_en = en.join_omics_to_omics(df1_name = "phosphoproteomics",
-                                           df2_name = "transcriptomics", 
-                                           genes1   = gene1, 
+                                           df2_name = "transcriptomics",
+                                           genes1   = gene1,
                                            genes2   = gene2)
     print(gene_cross_en.head())
     gene_cross_en = gene_cross_en.dropna(subset = ['JUN-S243_phosphoproteomics'])
@@ -923,8 +923,8 @@ encorrelationplot(gene1 = "JUN", gene2 = "SOX2")
 ## correlation between JUN-T239 and SOX2 mRNA in endometrial cancer
 def encorrelationplot(gene1, gene2):
     gene_cross_en = en.join_omics_to_omics(df1_name = "phosphoproteomics",
-                                           df2_name = "transcriptomics", 
-                                           genes1   = gene1, 
+                                           df2_name = "transcriptomics",
+                                           genes1   = gene1,
                                            genes2   = gene2)
     print(gene_cross_en.head())
     gene_cross_en = gene_cross_en.dropna(subset = ['JUN-T239_phosphoproteomics'])
@@ -952,8 +952,8 @@ encorrelationplot(gene1 = "JUN", gene2 = "SOX2")
 ## correlation between JUN-S58 and SOX2 mRNA in endometrial cancer
 def encorrelationplot(gene1, gene2):
     gene_cross_en = en.join_omics_to_omics(df1_name = "phosphoproteomics",
-                                           df2_name = "transcriptomics", 
-                                           genes1   = gene1, 
+                                           df2_name = "transcriptomics",
+                                           genes1   = gene1,
                                            genes2   = gene2)
     print(gene_cross_en.head())
     gene_cross_en = gene_cross_en.dropna(subset = ['JUN-S58_phosphoproteomics'])
@@ -980,8 +980,8 @@ encorrelationplot(gene1 = "JUN", gene2 = "SOX2")
 ## correlation between JUN-S63 and SOX2 mRNA in endometrial cancer
 def encorrelationplot(gene1, gene2):
     gene_cross_en = en.join_omics_to_omics(df1_name = "phosphoproteomics",
-                                           df2_name = "transcriptomics", 
-                                           genes1   = gene1, 
+                                           df2_name = "transcriptomics",
+                                           genes1   = gene1,
                                            genes2   = gene2)
     print(gene_cross_en.head())
     gene_cross_en = gene_cross_en.dropna(subset = ['JUN-S63_phosphoproteomics'])
@@ -1008,8 +1008,8 @@ encorrelationplot(gene1 = "JUN", gene2 = "SOX2")
 ## correlation between JUN-S63 and SOX2 mRNA in ovarian cancer
 def ovcorrelationplot(gene1, gene2):
     gene_cross_ov = ov.join_omics_to_omics(df1_name = "phosphoproteomics",
-                                           df2_name = "transcriptomics", 
-                                           genes1   = gene1, 
+                                           df2_name = "transcriptomics",
+                                           genes1   = gene1,
                                            genes2   = gene2)
     print(gene_cross_ov.head())
     gene_cross_ov = gene_cross_ov.dropna(subset = ['JUN-S63s_phosphoproteomics'])
@@ -1036,8 +1036,8 @@ ovcorrelationplot(gene1 = "JUN", gene2 = "SOX2")
 ## correlation between JUN-S73 and SOX2 mRNA in ovarian cancer
 def ovcorrelationplot(gene1, gene2):
     gene_cross_ov = ov.join_omics_to_omics(df1_name = "phosphoproteomics",
-                                           df2_name = "transcriptomics", 
-                                           genes1   = gene1, 
+                                           df2_name = "transcriptomics",
+                                           genes1   = gene1,
                                            genes2   = gene2)
     print(gene_cross_ov.head())
     gene_cross_ov = gene_cross_ov.dropna(subset = ['JUN-S73s_phosphoproteomics'])
