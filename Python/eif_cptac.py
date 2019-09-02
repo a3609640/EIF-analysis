@@ -10,160 +10,142 @@ import statsmodels.stats.multitest
 from statannot import add_stat_annotation
 from scipy.stats import pearsonr
 
-# To view available datasets, enter 'cptac.list_data()'.
-cptac.list_datasets()
-cptac.download(dataset = "endometrial")
-cptac.download(dataset = 'colon')
-cptac.download(dataset = 'ovarian')
-cptac.download(dataset = 'renalCcrcc')
-en = cptac.Endometrial()
-col = cptac.Colon()
-ov = cptac.Ovarian()
-# re = cptac.RenalCcrcc()
 
-en.list_data()
-col.list_data()
-ov.list_data()
-# re.list_data()
+def downloadCptac():
+    # To view available datasets, enter 'cptac.list_data()'.
+    cptac.list_datasets()
+    cptac.download(dataset = "endometrial")
+    cptac.download(dataset = 'colon')
+    cptac.download(dataset = 'ovarian')
+    cptac.download(dataset = 'Ccrcc')
+    #cptac.download(dataset ='luad')
+    #cptac.download(dataset ='brca')
+downloadCptac()
+
+endometrialData = cptac.Endometrial()
+colorectalData = cptac.Colon()
+ovarianData = cptac.Ovarian()
+renalData = cptac.Ccrcc()
+lungData = cptac.Luad()
+breastData = cptac.Brca()
+
+def listDataForEachCancer():
+    print("endometrial")
+    endometrialData.list_data()
+    print("\n\ncolorectal")
+    colorectalData.list_data()
+    print("\n\novarian")
+    ovarianData.list_data()
+    print("\n\nrenal")
+    renalData.list_data()
+
+listDataForEachCancer()
 
 #################################################################
 # Correlation: Proteomics vs Transcriptom in Endometrial Cancer #
 #################################################################
-def encorrelationplot(omics1, omics2, gene1, gene2):
-    gene_cross_en = en.join_omics_to_omics(df1_name = omics1,
-                                           df2_name = omics2,
-                                           genes1   = gene1,
-                                           genes2   = gene2)
-    print(gene_cross_en.head())
-    gene_cross_en = gene_cross_en.dropna()
-    corr = pearsonr(gene_cross_en.iloc[:, 0],
-                    gene_cross_en.iloc[:, 1])
+def correlationPlot(dataSet, label, omics1, omics2, gene1, gene2):
+    gene_cross = dataSet.join_omics_to_omics(df1_name = omics1,
+                                             df2_name = omics2,
+                                             genes1   = gene1,
+                                             genes2   = gene2)
+    print(gene_cross.head())
+    gene_cross = gene_cross.dropna()
+    corr = pearsonr(gene_cross.iloc[:, 0],
+                    gene_cross.iloc[:, 1])
     corr = [np.round(c, 2) for c in corr]
     print(corr)
     sns.set(style      ="white",
             font_scale = 1.5)
-    plot = sns.regplot(x    = gene_cross_en.columns[0],
-                       y    = gene_cross_en.columns[1],
-                       data = gene_cross_en)
+    plot = sns.regplot(x    = gene_cross.columns[0],
+                       y    = gene_cross.columns[1],
+                       data = gene_cross)
     text = 'r=%s, p=%s' % (corr[0], corr[1])
     tl   = ((plot.get_xlim()[1] - plot.get_xlim()[0])*0.010 + plot.get_xlim()[0],
             (plot.get_ylim()[1] - plot.get_ylim()[0])*0.95 + plot.get_ylim()[0])
     plot.text(tl[0], tl[1], text, fontsize = 12)
     plot.set(xlabel = gene1 + ' ' + omics1,
              ylabel = gene2 + ' ' + omics2,
-             title  = gene1 + ' vs ' + gene2 + ' (Endometrial Cancer)')
+             title = '{} vs {} ({})'.format(gene1, gene2, label))
     plt.show()
 
 
-def colcorrelationplot(omics1, omics2, gene1, gene2):
-    gene_cross_col = col.join_omics_to_omics(df1_name = omics1,
-                                             df2_name = omics2,
-                                             genes1   = gene1,
-                                             genes2   = gene2)
-    gene_cross_col.head()
-    gene_cross_col = gene_cross_col.dropna()
-    corr = pearsonr(gene_cross_col.iloc[:, 0],
-                    gene_cross_col.iloc[:, 1])
-    corr = [np.round(c, 2) for c in corr]
-    print(corr)
-    sns.set(style      ="white",
-            font_scale = 1.5)
-    plot = sns.regplot(x    = gene_cross_col.columns[0],
-                       y    = gene_cross_col.columns[1],
-                       data = gene_cross_col)
-    text = 'r=%s, p=%s' % (corr[0], corr[1])
-    tl   = ((plot.get_xlim()[1] - plot.get_xlim()[0])*0.010 + plot.get_xlim()[0],
-            (plot.get_ylim()[1] - plot.get_ylim()[0])*0.95 + plot.get_ylim()[0])
-    plot.text(tl[0], tl[1], text, fontsize=12)
-    plot.set(xlabel = gene1 + ' ' + omics1,
-             ylabel = gene2 + ' ' + omics2,
-             title  = gene1 + ' vs ' + gene2 + ' (Colon Cancer)')
-    plt.show()
+correlationPlot(dataSet = endometrialData,
+                label  = "Endometrial Cancer",
+                omics1 = "proteomics",
+                omics2 = "transcriptomics",
+                gene1  = "EIF4A1",
+                gene2  = "VEGFA")
 
-def ovcorrelationplot(omics1, omics2, gene1, gene2):
-    gene_cross_ov = ov.join_omics_to_omics(df1_name = omics1,
-                                           df2_name = omics2,
-                                           genes1   = gene1,
-                                           genes2   = gene2)
-    gene_cross_ov.head()
-    gene_cross_ov = gene_cross_ov.dropna()
-    corr = pearsonr(gene_cross_ov.iloc[:, 0],
-                    gene_cross_ov.iloc[:, 1])
-    corr = [np.round(c, 2) for c in corr]
-    print(corr)
-    sns.set(style      ="white",
-            font_scale = 1.5)
-    plot = sns.regplot(x    = gene_cross_ov.columns[0],
-                       y    = gene_cross_ov.columns[1],
-                       data = gene_cross_ov)
-    text = 'r=%s, p=%s' % (corr[0], corr[1])
-    tl   = ((plot.get_xlim()[1] - plot.get_xlim()[0])*0.010 + plot.get_xlim()[0],
-            (plot.get_ylim()[1] - plot.get_ylim()[0])*0.95 + plot.get_ylim()[0])
-    plot.text(tl[0], tl[1], text, fontsize=12)
-    plot.set(xlabel = gene1 + ' ' + omics1,
-             ylabel = gene2 + ' ' + omics2,
-             title  = gene1 + ' vs ' + gene2 + ' (Ovarian Cancer)')
-    plt.show()
+correlationPlot(dataSet = endometrialData,
+                label  = "Endometrial Cancer",
+                omics1 = "phosphoproteomics_gene",
+                omics2 = "transcriptomics",
+                gene1  = "EIF4G1",
+                gene2  = "EIF4G1")
 
+correlationPlot(dataSet = endometrialData,
+                label  = "Endometrial Cancer",
+                omics1 = "phosphoproteomics_gene",
+                omics2 = "proteomics",
+                gene1  = "EIF4A1",
+                gene2  = "EIF4A1")
 
-encorrelationplot(omics1 = "proteomics",
-                  omics2 = "transcriptomics",
-                  gene1  = "EIF4E",
-                  gene2  = "EIF4E")
+correlationPlot(dataSet = colorectalData,
+                label  = "Colorectal Cancer",
+                omics1 = "proteomics",
+                omics2 = "proteomics",
+                gene1  = "EIF4G1",
+                gene2  = "EIF4A1")
 
-encorrelationplot(omics1 = "phosphoproteomics_gene",
-                  omics2 = "transcriptomics",
-                  gene1  = "EIF4G1",
-                  gene2  = "EIF4G1")
-
-encorrelationplot(omics1 = "phosphoproteomics_gene",
-                  omics2 = "proteomics",
-                  gene1  = "EIF4A1",
-                  gene2  = "EIF4A1")
-
-colcorrelationplot(omics1 = "proteomics",
-                   omics2 = "transcriptomics",
-                   gene1  = "EIF4E",
-                   gene2  = "EIF4E")
-ovcorrelationplot(omics1 = "proteomics",
-                  omics2 = "transcriptomics",
-                  gene1  = "EIF4E",
-                  gene2  = "EIF4E")
+try:
+    correlationPlot(dataSet = ovarianData,
+                    label  = "Ovarian Cancer",
+                    omics1 = "proteomics",
+                    omics2 = "transcriptomics",
+                    gene1  = "EIF4G1",
+                    gene2  = "EIF4G1")
+except Exception as ex:
+    print('Could not make correlation plot for Ovarian Cancer: ' + str(ex))
 
 
 ######################################################################
 # Correlation: Phosphoproteomics vs Proteomics in Endometrial Cancer #
 ######################################################################
 ## correlation between 4EBP1-T37 and 4EBP1 protein in endometrial cancer
-def encorrelationplot(gene1, gene2):
-    gene_cross_en = en.join_omics_to_omics(df1_name = "phosphoproteomics",
-                                           df2_name = "proteomics",
-                                           genes1   = gene1,
-                                           genes2   = gene2)
+def siteSpecificCorrelationPlot(dataSet, gene1, gene2, site):
+    gene_cross_en = dataSet.join_omics_to_omics(
+            df1_name = "phosphoproteomics",
+            df2_name = "proteomics",
+            genes1   = gene1,
+            genes2   = gene2)
     print(gene_cross_en.columns)
     gene_cross_en = gene_cross_en.dropna(subset = ['EIF4EBP1-T37_phosphoproteomics'])
     print(gene_cross_en.head())
     corr = pearsonr(gene_cross_en['EIF4EBP1-T37_phosphoproteomics'],
-                    gene_cross_en['EIF4EBP1_proteomics'])
+                    gene_cross_en[site])
     corr = [np.round(c, 2) for c in corr]
     print(corr)
     sns.set(style      ="white",
             font_scale = 1.5)
     plot = sns.regplot(x    = gene_cross_en['EIF4EBP1-T37_phosphoproteomics'],
-                       y    = gene_cross_en['EIF4EBP1_proteomics'],
+                       y    = gene_cross_en[site],
                        data = gene_cross_en)
     text = 'r=%s, p=%s' % (corr[0], corr[1])
     tl   = ((plot.get_xlim()[1] - plot.get_xlim()[0])*0.010 + plot.get_xlim()[0],
             (plot.get_ylim()[1] - plot.get_ylim()[0])*0.95 + plot.get_ylim()[0])
     plot.text(tl[0], tl[1], text, fontsize=12)
     plot.set(xlabel = 'EIF4EBP1-T37 phosphoproteomics',
-             ylabel = 'EIF4EBP1 proteomics',
+             ylabel = site,
              title  = 'Phosphoproteomics vs Proteomics (Endometrial Cancer)')
     plt.show()
 
-encorrelationplot(gene1 = "EIF4EBP1", gene2 = "EIF4EBP1")
+siteSpecificCorrelationPlot(dataSet = endometrialData,
+                  gene1 = "EIF4EBP1",
+                  gene2 = "EIF4EBP1",
+                  site = "EIF4EBP1_proteomics")
 
-
+'''
 ## correlation between 4EBP1-T37 and MYC protein in endometrial cancer
 def encorrelationplot(gene1, gene2):
     gene_cross_en = en.join_omics_to_omics(df1_name = "phosphoproteomics",
@@ -190,8 +172,11 @@ def encorrelationplot(gene1, gene2):
              ylabel = 'EIF4A1 proteomics',
              title  = 'Phosphoproteomics vs Proteomics (Endometrial Cancer)')
     plt.show()
-
-encorrelationplot(gene1 = "EIF4EBP1", gene2 = "EIF4A1")
+'''
+siteSpecificCorrelationPlot(dataSet = endometrialData,
+                  gene1 = "EIF4EBP1",
+                  gene2 = "EIF4A1",
+                  site = "EIF4A1_proteomics")
 
 
 #########################################################################
