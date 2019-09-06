@@ -81,8 +81,6 @@ date <- getFirebrowseDates()
 # Available data types
 dataTypes <- getFirebrowseDataTypes()
 
-
-
 edbx <- filter(EnsDb.Hsapiens.v75, filter = ~ seq_name == "8") 
 gnm <- GRanges("8:128746765-128754082") # for MYC
 
@@ -332,7 +330,7 @@ plot.EIF.exon <- function(x) {
   Exon.data.long <- melt(Exon.data)
   Exon.data.long <- Exon.data.long[
     Exon.data.long$cancer.type.abbreviation == x, ]
-  Exon.data.long <- subset(Exon.data.long, grepl("^chr4", Exon.data.long$variable))
+  Exon.data.long <- subset(Exon.data.long, grepl("^chr8", Exon.data.long$variable))
 
   tumor.type <- c(
     "Metastatic",
@@ -391,11 +389,87 @@ plot.EIF.exon <- function(x) {
         method = "t.test", 
         label = "p.signif"))
   }
-plot.EIF.exon ("BRCA")
+plot.EIF.exon ("SKCM")
+
+
+##########################################
+library(GenomicFeatures)
+library(dplyr)
+
+supportedUCSCtables(genome = "hg38")
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
+
+hg38_txlens <- transcriptLengths(txdb, with.cds_len  = TRUE,
+                                       with.utr5_len = TRUE,
+                                       with.utr3_len = TRUE)
+head(hg38_txlens)
+coding <- hg38_txlens[hg38_txlens$cds_len != 0, ]
+stopifnot(all(rowSums(coding[6:8]) == coding[[5]]))
+coding <- hg38_txlens[hg38_txlens$cds_len != 0 & 
+                      hg38_txlens$utr5_len != 0 & 
+                      hg38_txlens$utr3_len != 0, ]
+# coding <- hg38_txlens[hg38_txlens$utr3_len != 0, ]
+
+
+pos.corr.list <- pos.overlap$entrez
+neg.corr.list <- neg.overlap$entrez
+
+coding$group <- NA
+coding$group[coding$gene_id %in% pos.corr.list] <- "pos.corr"
+coding$group[coding$gene_id %in% neg.corr.list] <- "neg.corr"
+coding <- na.omit(coding)
+black_bold_tahoma_16 <- element_text(
+                                     color  = "black",
+                                     face   = "bold",
+                                     family = "Tahoma",
+                                     size   = 16
+                                     )
+ggplot(coding,
+       aes(x    = group,
+           y     = log2(cds_len),
+           fill  = group,
+           color = group)) +
+       stat_n_text(size = 6, fontface = "bold", hjust = 0.5) +
+  geom_violin(trim = FALSE) +
+  geom_boxplot(
+    alpha    = .01,
+    width    = .1,
+    color    = "black",
+    position = position_dodge(width = .9)
+  ) +
+  theme_bw() +
+  theme(
+    plot.title      = black_bold_tahoma_16,
+    axis.title.x    = element_blank(),
+    axis.title.y    = black_bold_tahoma_16,
+    axis.text.x     = black_bold_tahoma_16,
+    axis.text.y     = black_bold_tahoma_16,
+    axis.line.x     = element_line(color = "black"),
+    axis.line.y     = element_line(color = "black"),
+    panel.grid      = element_blank(),
+    legend.position = "none",
+    strip.text      = black_bold_tahoma_16
+  ) +
+      stat_compare_means(
+                        comparisons = list(c("neg.corr", "pos.corr")), 
+                                           method = "t.test", 
+                                           label  = "p.signif", 
+                                           size   = 6)
+
+##################################################3
 
 
 
-
+## another way to extract UTR length
+library(dplyr)
+refSeq             <- makeTxDbFromUCSC(genom="mm9",tablename="refGene")                  
+threeUTRs          <- threeUTRsByTranscript(txdb, use.names=TRUE)
+length_threeUTRs   <- width(ranges(threeUTRs))
+the_lengths        <- as.data.frame(length_threeUTRs)
+the_lengths        <- the_lengths %>% group_by(group, group_name) %>% summarise(sum(value))
+the_lengths        <- unique(the_lengths[,c("group_name", "sum(value)")])
+colnames(the_lengths) <- c("RefSeq Transcript", "3' UTR Length")
 
 
 

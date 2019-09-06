@@ -1,18 +1,254 @@
-## the following script perform PCA on RNA-Seq data of seven EIF genes
-## from SKCM amd GTEX dataset with R package "ggfortify".
+library(AnnotationDbi)
+library(data.table)
+library(eulerr)
 library(EnvStats)
 library(ggfortify)
 library(ggplot2)
 library(ggpubr)
 library(ggsignif)
 library(gridExtra)
+#library(plyr)
+library(limma)
+library(org.Hs.eg.db)
+library(ReactomePA)
 library(reshape2)
 library(readr)
 library(survival)
 library(survMisc)
 library(survminer)
+library(tidyverse)
 
-## read.csv will transform characters into factors
+
+EIF.gene <- c(
+  "EIF4E",
+  "EIF4G1",
+  "EIF4A1",
+  "EIF4EBP1"
+)
+names(EIF.gene) <- EIF.gene
+
+meta.data <- function(){
+  TCGA.pancancer <- fread("/home/wagner/suwu/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
+  # test datasets
+  TCGA.sampletype <- read_tsv("/home/wagner/suwu/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+  TCGA.pancancer1 <- as.data.frame(TCGA.pancancer)
+  TCGA.pancancer1 <- TCGA.pancancer1[!duplicated(TCGA.pancancer1$sample), ]
+  TCGA.pancancer1 <- TCGA.pancancer1[ ,!duplicated(colnames(TCGA.pancancer1))]
+  TCGA.pancancer2 <- TCGA.pancancer1
+  row.names(TCGA.pancancer2) <- TCGA.pancancer1$sample
+  TCGA.pancancer2$sample <- NULL
+  TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer2)
+  rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer2)
+  colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer2)
+  row.names(TCGA.sampletype) <- TCGA.sampletype$sample
+  TCGA.sampletype$sample <- NULL
+  TCGA.sampletype$sample_type_id <- NULL
+  TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose, 
+    TCGA.sampletype, 
+    by    = "row.names",
+    all.x = TRUE)
+  TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
+  return(TCGA.RNAseq.sampletype)
+}
+
+TCGA.RNAseq.sampletype <- meta.data()
+
+genes <- function(){
+  TCGA.pancancer <- fread("/home/wagner/suwu/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
+  # test datasets
+  TCGA.sampletype <- read_tsv("/home/wagner/suwu/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+  TCGA.pancancer <- as.data.frame(TCGA.pancancer)
+  TCGA.pancancer <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample), ]
+  TCGA.pancancer <- TCGA.pancancer[ ,!duplicated(colnames(TCGA.pancancer))]
+  TCGA.pancancer2 <- TCGA.pancancer
+  row.names(TCGA.pancancer2) <- TCGA.pancancer$sample
+  TCGA.pancancer2$sample <- NULL
+  TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer2)
+  rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer2)
+  colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer2)
+  gene.name <- TCGA.pancancer$sample
+  names(gene.name) <- gene.name  
+  return(gene.name)
+  }
+gene.name <- genes()
+
+plot.EIF.correlation.pathway <- function() {
+  TCGA.RNAseq.sampletype <- TCGA.RNAseq.sampletype[
+    TCGA.RNAseq.sampletype$sample_type == "Solid Tissue Normal", ]
+  EIF.correlation <- function (x, y) {
+    result <- cor.test(TCGA.RNAseq.sampletype[[x]], 
+                       TCGA.RNAseq.sampletype[[y]], 
+                       method = "pearson")
+    res <- data.frame(x, 
+                      y, 
+                      result[c("estimate","p.value","statistic","method")], 
+                      stringsAsFactors=FALSE)
+    }
+# find all genes positively correlate with EIF4F expression
+# lapply function gives a large list, need to convert it to a dataframe
+  DT <- do.call(rbind.data.frame, 
+                lapply(gene.name, 
+                       EIF.correlation, 
+                       y = "EIF4E"))
+  DT1 <- do.call(rbind.data.frame, 
+                 lapply(gene.name, 
+                        EIF.correlation, 
+                        y = "EIF4G1"))
+  DT2 <- do.call(rbind.data.frame, 
+                 lapply(gene.name, 
+                        EIF.correlation, 
+                        y = "EIF4A1"))
+  EIF4E <- na.omit(DT[DT$estimate > 0.3, ])
+  EIF4E.neg <- na.omit(DT[DT$estimate < -0.3, ])
+  EIF4G1 <- na.omit(DT1[DT1$estimate > 0.3, ])
+  EIF4G1.neg <- na.omit(DT1[DT1$estimate < -0.3, ])
+  EIF4A1 <- na.omit(DT2[DT2$estimate > 0.3, ])
+  EIF4A1.neg <- na.omit(DT2[DT2$estimate < -0.3, ])
+  c3 <- cbind(DT$estimate > 0.3, DT1$estimate > 0.3, DT2$estimate > 0.3)
+  c4 <- cbind(DT$estimate < -0.3, DT1$estimate < -0.3, DT2$estimate < -0.3)
+  a <- vennCounts(c3)
+  b <- vennCounts(c4)
+  vennDiagram(a)
+  vennDiagram(b)
+  ## draw Venn diagram for overlapping genes
+  pos.Venn <- euler(c(A       = nrow(EIF4E),
+                    B       = nrow(EIF4G1),
+                    C       = nrow(EIF4A1),
+                    "A&B"   = a[7, "Counts"], 
+                    "A&C"   = a[6, "Counts"],
+                    "B&C"   = a[4, "Counts"],
+                    "A&B&C" = a[8, "Counts"]))
+  p1 <- plot(pos.Venn, 
+       #key = TRUE, 
+             lwd = 0, 
+             fill = c("#999999", "#E69F00", "#56B4E9"),
+             quantities = list(cex = 1.25),
+             labels = list(labels = c("EIF4E positive corr",
+                                      "EIF4G1 positive corr",
+                                      "EIF4A1 positive corr"), 
+                           cex = 1.25))
+  neg.Venn <- euler(c(A       = nrow(EIF4E.neg),
+                      B       = nrow(EIF4G1.neg),
+                      C       = nrow(EIF4A1.neg),
+                      "A&B"   = b[7, "Counts"], 
+                      "A&C"   = b[6, "Counts"],
+                      "B&C"   = b[4, "Counts"],
+                      "A&B&C" = b[8, "Counts"]))
+  p2 <- plot(neg.Venn, 
+    #key = TRUE, 
+             lwd = 0, 
+             fill = c("#999999", "#E69F00", "#56B4E9"),
+             quantities = list(cex = 1.25),
+             labels = list(labels = c("EIF4E negative corr",
+                                      "EIF4G1 negative corr",
+                                      "EIF4A1 negative corr"), 
+                           cex    = 1.25))
+  print(p1)
+  print(p2)
+# perform pathway analysis on overlapping genes
+  pos.overlap <- merge(EIF4G1, EIF4A1, by.x = "x", by.y = "x")
+  neg.overlap <- merge(EIF4G1.neg, EIF4A1.neg, by.x = "x", by.y = "x")
+  # overlap <- merge(EIF4G1.neg, EIF4A1.neg, by.x = "x", by.y = "x")
+  pos.overlap$entrez = mapIds(org.Hs.eg.db,
+                              keys      = pos.overlap$x, 
+                              column    = "ENTREZID",
+                              keytype   = "SYMBOL",
+                              multiVals = "first")
+  neg.overlap$entrez = mapIds(org.Hs.eg.db,
+                              keys      = neg.overlap$x, 
+                              column    = "ENTREZID",
+                              keytype   = "SYMBOL",
+                              multiVals = "first")
+  x <- enrichPathway(gene = pos.overlap$entrez, readable = T)
+  z <- enrichPathway(gene = neg.overlap$entrez, readable = T)
+  p3 <- barplot(x, showCategory = 8)
+  p4 <- dotplot(x, font.size = 16, title = "pos correlating with EIF4A1, EIF4G1")
+  p5 <- emapplot(x, font.size = 18) + geom_node_text(label.size = 5)
+  p6 <- cnetplot(x)
+  print(p3)
+  print(p4)
+  print(p5)
+  print(p6)
+  allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE), 
+                     list(EIF4E, EIF4G1, EIF4A1))
+  allthree <- na.omit(allthree)
+  allthree$entrez = mapIds(org.Hs.eg.db,
+                           keys      = allthree$x, 
+                           column    = "ENTREZID",
+                           keytype   = "SYMBOL",
+                           multiVals = "first")
+  y <- enrichPathway(gene = allthree$entrez, readable = T)
+  p7 <- barplot(y)
+  p8 <- emapplot(y, font.size = 18)
+  p9 <- dotplot(y, font.size = 16)
+  p10 <- cnetplot(y)
+  print(p7)
+  print(p8)
+  print(p9)
+  print(p10)
+}
+plot.EIF.correlation.pathway()
+
+plot.correlation.scatter <- function(x){
+  tumor.type <- c("Metastatic", "Primary Tumor", "Solid Tissue Normal")
+  TCGA.RNAseq.sampletype <- TCGA.RNAseq.sampletype[
+    TCGA.RNAseq.sampletype$sample_type %in% tumor.type, ]
+  TCGA.RNAseq.sampletype$sample_type <- as.factor(
+    TCGA.RNAseq.sampletype$sample_type)
+  TCGA.RNAseq.sampletype$`_primary_disease` <- as.factor(
+    TCGA.RNAseq.sampletype$`_primary_disease`)
+  levels(TCGA.RNAseq.sampletype$sample_type)
+  levels(TCGA.RNAseq.sampletype$`_primary_disease`)
+  plotdata <- TCGA.RNAseq.sampletype %>% select(x, 
+    c("EIF4E", "EIF4G1", "EIF4A1"), "sample_type")
+  black_bold_tahoma_16 <- element_text(
+                                       color  = "black",
+                                       face   = "bold",
+                                       family = "Tahoma",
+                                       size   = 16
+                                      )
+  p1 <- ggscatter(data = plotdata, 
+                  x         = x, 
+                  y         = c("EIF4E", "EIF4G1", "EIF4A1"), 
+                  # ylim      = c(4, 18),
+                  combine   = TRUE, 
+                  ylab      = "log2(RNA expression)",
+                  size      = 1,
+                  color     = "sample_type", 
+                 # palette  = "jco",
+                  # facet.by = "sample_type", #scales = "free_x",
+                  add       = "reg.line", # Add regression line
+                  fullrange = TRUE, # Extending the regression line
+                  font.label = "bold",
+                  repel     = TRUE, # repel labels to avoid overlapping
+                  shape     = "sample_type", # Change point shape by sample_type 
+                  rug       = TRUE,    # Add marginal rug
+                  conf.int  = TRUE,
+                  cor.coef = TRUE, # Add correlation coefficient. see ?stat_cor
+                  cor.coeff.args = list(aes(color = sample_type), 
+                                        method = "pearson",  
+                                        label.y.npc = "bottom",
+                                        size = 6)) +
+                  theme_bw() +
+                  theme(
+                    plot.title      = black_bold_tahoma_16,
+                    axis.title      = black_bold_tahoma_16,
+                    axis.text.x     = black_bold_tahoma_16,
+                    axis.text.y     = black_bold_tahoma_16,
+                    axis.line.x     = element_line(color = "black"),
+                    axis.line.y     = element_line(color = "black"),
+                    panel.grid      = element_blank(),
+                    legend.position = c(0.18, 0.9),
+                    legend.title    = element_blank(),
+                    legend.text     = black_bold_tahoma_16,
+                    strip.text      = black_bold_tahoma_16
+                  ) 
+  print(p1)
+      }
+plot.correlation.scatter(x = "CDC45")
+  lapply(EIF.gene, plot.correlation.scatter, y = "CCNB1")
+
+  ## read.csv will transform characters into factors
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
   EIF.TCGA.GTEX <- read_csv("project-data/EIFTCGAGTEX.csv")
   EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:10])
@@ -329,59 +565,84 @@ get.EIF.GTEX.score.long <- function () {
 }
 
 ##
-EIF.TCGA.GTEX <- read_csv("project-data/EIFTCGAGTEX.csv")
-EIF.TCGA.GTEX <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$EIF4E != 0, ]
-EIF.TCGA.GTEX <-  subset(EIF.TCGA.GTEX, subset = study %in% c('TCGA', "GTEX"))
-EIF.TCGA.GTEX$sample_type <- as.factor(EIF.TCGA.GTEX$sample_type)
-levels(EIF.TCGA.GTEX$sample_type)
+plot.EIF.correlation <- function(x, y){
+  EIF.TCGA.GTEX <- read_csv("project-data/EIFTCGAGTEX.csv")
+  EIF.TCGA.GTEX <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$EIF4E != 0, ]
+  EIF.TCGA.GTEX <-  subset(EIF.TCGA.GTEX, subset = study %in% c('TCGA', "GTEX"))
+  EIF.TCGA.GTEX$sample_type <- as.factor(EIF.TCGA.GTEX$sample_type)
+  levels(EIF.TCGA.GTEX$sample_type)
 # EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA', ]
-tumor.type <- c(
-  "Metastatic",
-  "Primary Tumor",
-  #"Recurrent Tumor",
-  "Solid Tissue Normal",
-  "Normal Tissue"
-)
-EIF.TCGA.GTEX <-  subset(EIF.TCGA.GTEX, subset = sample_type %in% tumor.type)
-EIF.TCGA.GTEX <- droplevels(EIF.TCGA.GTEX)
+  tumor.type <- c(
+    "Metastatic",
+    "Primary Tumor",
+    #"Recurrent Tumor",
+    "Solid Tissue Normal",
+    "Normal Tissue"
+  )
+  EIF.TCGA.GTEX <-  subset(EIF.TCGA.GTEX, subset = sample_type %in% tumor.type)
+  EIF.TCGA.GTEX <- droplevels(EIF.TCGA.GTEX)
+  EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA', ]
+  cor.test(EIF.TCGA.GTEX$EIF4A1, EIF.TCGA.GTEX$MYC, method = "pearson")
+  black_bold_tahoma_16 <- element_text(
+    color  = "black",
+    face   = "bold",
+    family = "Tahoma",
+    size   = 16
+  )
+  p1 <- ggscatter(EIF.TCGA.GTEX, 
+            x        = x, 
+            y        = y, 
+            size     = 0.3,
+            color    = "sample_type", 
+            # palette  = "jco",
+            facet.by = "sample_type", #scales = "free_x",
+            add      = "reg.line", 
+            conf.int = TRUE) +
+    theme_bw() +
+    theme(
+      plot.title      = black_bold_tahoma_16,
+      axis.title      = black_bold_tahoma_16,
+      axis.text.x     = black_bold_tahoma_16,
+      axis.text.y     = black_bold_tahoma_16,
+      axis.line.x     = element_line(color = "black"),
+      axis.line.y     = element_line(color = "black"),
+      panel.grid      = element_blank(),
+      legend.position = "none",
+      strip.text      = black_bold_tahoma_16
+    ) + 
+    stat_cor(#aes(color   = "sample_type"), 
+                 method  = "pearson", 
+                 label.y = 6)
+  p2 <- ggscatter(EIF.TCGA, 
+            x        = x, 
+            y        = y, 
+            size     = 0.3,
+            color    = "primary_disease_or_tissue", 
+            #palette  = "nrc",
+            facet.by = "primary_disease_or_tissue", #scales = "free_x",
+            add      = "reg.line", 
+            conf.int = TRUE) +
+    theme_bw() +
+    theme(
+      plot.title      = black_bold_tahoma_16,
+      axis.title      = black_bold_tahoma_16,
+      axis.text.x     = black_bold_tahoma_16,
+      axis.text.y     = black_bold_tahoma_16,
+      axis.line.x     = element_line(color = "black"),
+      axis.line.y     = element_line(color = "black"),
+      panel.grid      = element_blank(),
+      legend.position = "none",
+      strip.text      = black_bold_tahoma_16
+    ) + 
+    # discrete_scale("fill", "manual", palette_Dark2)+
+    stat_cor(#aes(color   = "primary_disease_or_tissue"), 
+                 method  = "pearson", 
+                 label.y = 6)
+  print(p1)
+  print(p2)
+  }
 
-cor.test(EIF.TCGA.GTEX$EIF4A1, EIF.TCGA.GTEX$MYC, method = "pearson")
-black_bold_tahoma_16 <- element_text(
-  color  = "black",
-  face   = "bold",
-  family = "Tahoma",
-  size   = 16
-)
-
-ggscatter(EIF.TCGA.GTEX, 
-          x        = "EIF4EBP1", 
-          y        = "MYC", 
-          size     = 0.3,
-          color    = "sample_type", 
-          palette  = "jco",
-          facet.by = "sample_type", #scales = "free_x",
-          add      = "reg.line", 
-          conf.int = TRUE) +
-  stat_cor(aes(color   = "sample_type"), 
-               method  = "pearson", 
-               label.y = 6)
-
-EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA', ]
-ggscatter(EIF.TCGA, 
-          x        = "EIF4EBP1", 
-          y        = "MYC", 
-          size     = 0.3,
-          color    = "primary_disease_or_tissue", 
-          palette  = "jco",
-          facet.by = "primary_disease_or_tissue", #scales = "free_x",
-          add      = "reg.line", 
-          conf.int = TRUE) +
-  stat_cor(aes(color   = "primary_disease_or_tissue"), 
-               method  = "pearson", 
-               label.y = 6)
-
-
-    ##
+##
 plotEIF.RNAseq.TCGA.GTEX <-  function (x) {
   name <- deparse(substitute(x))
   black_bold_tahoma_12 <- element_text(
@@ -682,26 +943,26 @@ plotEIF.RNAseq.TCGA <-  function (x) {
   x$sample.type <- factor(x$sample.type, levels = tumor.type)
   #y <- x[x$variable == "EIF4E", ]
   black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 12
-  )
+                                       color  = "black",
+                                       face   = "bold",
+                                       family = "Tahoma",
+                                       size   = 12
+                                       )
   black_bold_tahoma_16 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 16
-  )
+                                       color  = "black",
+                                       face   = "bold",
+                                       family = "Tahoma",
+                                       size   = 16
+                                       )
   black_bold_tahoma_16_90 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 16,
-    angle  = 90,
-    hjust  = 1,
-    vjust  = 0.5
-  )
+                                          color  = "black",
+                                          face   = "bold",
+                                          family = "Tahoma",
+                                          size   = 16,
+                                          angle  = 90,
+                                          hjust  = 1,
+                                          vjust  = 0.5
+                                        )
   p1 <- ggplot(data = x,
     aes(x     = sample.type,
         y     = value,
@@ -738,7 +999,6 @@ plotEIF.RNAseq.TCGA <-  function (x) {
       legend.position = "none",
       strip.text      = black_bold_tahoma_16
     ) +
-    
     stat_compare_means(
       comparisons = list(
         c("Metastatic", "Solid Tissue Normal"),
@@ -1493,9 +1753,16 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
   #  print(tst)
 }
 
+
+######################
+## plot correlation ##
+######################
+
+plot.EIF.correlation.pathway()
 #################################################################
 ##  PCA plots on EIF4F RNA-seq data from TCGA and GTEx groups  ##
 #################################################################
+## the following script perform PCA on RNA-Seq data of seven EIF genes
 plot.EIF.TCGA.GTEX.PCA.all <- function () {
   EIF.TCGA.GTEX <- read.csv(file = "project-data/EIFTCGAGTEX2.csv",
                             header = TRUE,
@@ -1728,15 +1995,8 @@ plot.EIF.PCA <- function () {
 }
 
 ####################################################
-####################################################
-EIF <- "EIF4A1"
-EIF.gene <- c(
-              "EIF4E",
-              "EIF4G1",
-              "EIF4A1",
-              "EIF4EBP1"
-              )
-names(EIF.gene) <- EIF.gene
+####################################################    
+plot.EIF.correlation(x = "EIF4A1", y = "MYC")
 
 plotEIF.RNAseq.TCGA.GTEX (get.EIF.TCGA.GTEX.RNAseq.long())
   plotEIF.RNAseq.TCGA.GTEX.tissue ("Colon")
