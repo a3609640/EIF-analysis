@@ -8,6 +8,7 @@ library(corrplot)
 library(cowplot)
 library(data.table)
 library(dplyr)
+library(ggcorrplot)
 library(ggfortify)
 library(ggplot2)
 library(ggpubr)
@@ -32,15 +33,21 @@ test(mycgds)
 getCancerStudies(mycgds)
 # Get cases from TCGA provisional studies only
 EIF.gene <- c("EIF4A1","EIF4E","EIF4G1",
-              "EIF4EBP1","EIF4EBP2","EIF4EBP3", 
-              "MYC","RPS6KB1","MTOR","RPTOR","PABP")
+              "EIF4EBP1","MYC","RPS6KB1",
+              "MTOR","RPTOR","PA2G4")
 names(EIF.gene) <- EIF.gene
 
-ONCO <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","TP53","KRAS","BRAF")
+ONCO <- c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1","MKNK1","MKNK2",
+          "TP53","KRAS","EGFR","MYC","VEGFR","CCND1")
 
-####################################################################
-## plot EIF RNASeq data from TCGA provisional cancer study groups ##
-####################################################################
+
+############################
+### Copy Number Variants ###
+############################
+
+##############################################################
+## Boxplot of EIF RNASeq from TCGA provisional study groups ##
+##############################################################
 plot.EIF.provisional.tcga <- function(EIF){
   ### Get EIF RNAseq data from all TCGA study groups
   tcga.pro.studies <- getCancerStudies(mycgds)[
@@ -151,12 +158,12 @@ plot.EIF.provisional.tcga <- function(EIF){
                                        color  = "black"),
             legend.position = "none"))
 }
-plot.EIF.provisional.tcga("EIF4A1")
+plot.EIF.provisional.tcga("EIF4E")
 sapply(EIF.gene, plot.EIF.provisional.tcga)
 
-###########################################################
-## plot EIF RNASeq data from TCGA pan cancer study groups ##
-############################################################
+#############################################################
+## Boxplot of EIF RNASeq from TCGA pan cancer study groups ##
+#############################################################
 plot.EIF.pan.tcga <- function(EIF){
   # Get EIF RNAseq data from all TCGA study groups
   tcga.pan.studies <- getCancerStudies(mycgds)[
@@ -244,6 +251,7 @@ plot.EIF.pan.tcga <- function(EIF){
       coord_flip() +
       labs(x = "Tumor types",
            y = paste0("log2(", EIF, " RNA counts)")) +
+     # ylim(0, 20) +
       theme(
         axis.title  = element_text(face   = "bold",
                                    size   = 12,
@@ -265,7 +273,7 @@ plot.EIF.pan.tcga <- function(EIF){
                                    color  = "black"),
         legend.position = "none"))
 }
-plot.EIF.pan.tcga("RPS6KB1")
+plot.EIF.pan.tcga(c("MYC"))
 sapply(EIF.gene, plot.EIF.pan.tcga)
 
 ##############################################################################
@@ -599,22 +607,22 @@ plot.km.all.pan.tcga <- function(EIF) {
   print(EIF)
   print(stats)
 }
-plot.km.all.pan.tcga("MYC")
+plot.km.all.pan.tcga("EGFR")
   sapply(EIF.gene, plot.km.all.pan.tcga)
 
 ##########################################################################
 ## Kaplan-Meier curve with EIF RNAseq data from individual cancer group ##
 ##########################################################################
-plot.km.each.tumor <- function(DNFA) {
+plot.km.each.tumor <- function(EIF) {
   mycancerstudy <- getCancerStudies(mycgds)[
-    grep("^brca_tcga$", getCancerStudies(mycgds)$cancer_study_id), 1]
+    grep("^luad_tcga$", getCancerStudies(mycgds)$cancer_study_id), 1]
   mycaselist <- getCaseLists(mycgds, mycancerstudy)[4, 1] ### "skcm_tcga_all"
   skcm.clinicaldata <- getClinicalData(mycgds, mycaselist)
   skcm.clinicaldata$rn <- rownames(skcm.clinicaldata)
   skcm.RNAseq.data <- getProfileData(mycgds,
-    DNFA,
-    "brca_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
-    "brca_tcga_pan_can_atlas_2018_all")
+    EIF,
+    "luad_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
+    "luad_tcga_pan_can_atlas_2018_all")
   skcm.RNAseq.data <- as.data.frame(skcm.RNAseq.data)
   skcm.RNAseq.data$rn <- rownames(skcm.RNAseq.data)
   df <- join_all(list(skcm.clinicaldata[c("OS_MONTHS", "OS_STATUS", "rn")],
@@ -622,8 +630,8 @@ plot.km.each.tumor <- function(DNFA) {
     by   = "rn",
     type = "full")
   df <- na.omit(df)
-  df$Group[df[[DNFA]] < quantile(df[[DNFA]], prob = 0.2)] = "Bottom 20%"
-  df$Group[df[[DNFA]] > quantile(df[[DNFA]], prob = 0.8)] = "Top 20%"
+  df$Group[df[[EIF]] < quantile(df[[EIF]], prob = 0.2)] = "Bottom 20%"
+  df$Group[df[[EIF]] > quantile(df[[EIF]], prob = 0.8)] = "Top 20%"
   df$SurvObj <- with(df, Surv(OS_MONTHS, OS_STATUS == "DECEASED"))
   df <- na.omit(df)
   number <- round(nrow(df)/5)
@@ -639,7 +647,7 @@ plot.km.each.tumor <- function(DNFA) {
                       xlab = "Months",
                       ylab = "Survival Probability",
                       main = paste("Kaplan-Meier plot of", 
-                      DNFA, 
+                      EIF, 
                       "expression in breast invasive carcinoma")) +
       theme(axis.title           = black.bold.12pt,
             axis.text            = black.bold.12pt,
@@ -652,7 +660,7 @@ plot.km.each.tumor <- function(DNFA) {
             legend.justification = c(1,1))+
       guides(fill = FALSE) +
       scale_color_manual(values = c("red", "blue"),
-                         name   = paste(DNFA, "mRNA expression"),
+                         name   = paste(EIF, "mRNA expression"),
                          breaks = c("Bottom 20%", "Top 20%"),
                          labels = c(paste("Bottom 20%, n =", number),
                                     paste("Top 20%, n =", number))) +
@@ -666,10 +674,10 @@ plot.km.each.tumor <- function(DNFA) {
                fontface = "bold"))
   # rho = 1 the Gehan-Wilcoxon test
   stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 1)
-  print(DNFA)
+  print(EIF)
   print(stats)
 }
-plot.km.each.tumor("EIF4E")
+plot.km.each.tumor("EGFR")
 
 ##########################################################
 ## plot RNAseq data of EIF complex in TCGA study groups ##
@@ -720,7 +728,7 @@ boxplot(log2(EIF.RNAseq.data),
 
 
 ##################################################################
-## density plot of EIF complex RNA-seq in all TCGA study groups ##
+## Density plot of EIF complex RNA-seq in all TCGA study groups ##
 ##################################################################
 EIF.RNAseq.all.tumor <- function(){
   EIF.RNAseq <- function(EIF){
@@ -768,7 +776,7 @@ EIF.RNAseq.all.tumor <- function(){
     return(df2)
     }
 # EIF.RNAseq.data <- EIF.RNAseq(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1"))
-  df3 <- lapply(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1"), EIF.RNAseq)
+  df3 <- lapply(ONCO, EIF.RNAseq)
 ## use cbind to convert df3 list into a data frame
   df4 <- do.call(cbind.data.frame, df3)
 ## remove duplicated columns (TCGAstudy)
@@ -776,27 +784,84 @@ EIF.RNAseq.all.tumor <- function(){
   }
 
 plot.density.RNAseq.all.tumor <- function(x , y ){
+  EIF.RNAseq.all.tumor <- function(){
+    EIF.RNAseq <- function(EIF){
+      tcga.pan.studies <- getCancerStudies(mycgds)[
+        grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
+      tcga.study.list <- tcga.pan.studies$cancer_study_id
+      names(tcga.study.list) <- tcga.study.list
+      caselist <- function(x) getCaseLists(mycgds, x)
+      geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
+      tcga.pan.caselist <- lapply(tcga.study.list, caselist)
+      tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
+      caselist.RNAseq <- function(x) {
+        tcga.pan.caselist[[x]][
+          grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
+            tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
+      }
+      geneticprofile.RNAseq <- function(x) {
+        tcga.pan.geneticprofile[[x]][
+          grep("mRNA Expression, RSEM", 
+            tcga.pan.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
+      }
+      tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
+        getProfileData(mycgds,
+          genename,
+          geneticprofile,
+          caselist)
+      }
+      EIF.tcga.RNAseq <- function(x, y) {
+        EIF.tcga.RNAseq <- tcga.profiledata.RNAseq(x, geneticprofile.RNAseq(y),caselist.RNAseq(y))
+        ## change the rownames into the first column
+        setDT(EIF.tcga.RNAseq, keep.rownames = TRUE)[]
+        return(EIF.tcga.RNAseq)
+      }
+      EIF.RNAseq.tcga.all <- function(x) {
+        ## test[] to keep row.names by lapply function 
+        test <- lapply(tcga.study.list, EIF.tcga.RNAseq, x = x)
+        df2 <- melt(test)
+        colnames(df2) <- c("SampleID", "EIFgene", EIF,"TCGAstudy")
+        df2 <- data.frame(df2)
+      }
+      df2 <- EIF.RNAseq.tcga.all(EIF)
+      df2$EIFgene <- NULL
+      df2$TCGAstudy <- as.factor(df2$TCGAstudy)
+      # df2 <- na.omit(df2)
+      return(df2)
+    }
+    # EIF.RNAseq.data <- EIF.RNAseq(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1"))
+    df3 <- lapply(ONCO, EIF.RNAseq)
+    ## use cbind to convert df3 list into a data frame
+    df4 <- do.call(cbind.data.frame, df3)
+    ## remove duplicated columns (TCGAstudy)
+    df4 <- df4[, !duplicated(colnames(df4))]
+  }
   EIF.RNAseq.data <- EIF.RNAseq.all.tumor()
   ggplot(EIF.RNAseq.data, 
     aes(x  = log2(EIF.RNAseq.data[,x]), 
         y  = log2(EIF.RNAseq.data[,y]))) + 
-    labs(x = paste0("log2(", x, "RNA-seq counts)"), 
-         y = paste0("log2(", y, "RNA-seq counts)"))+
+    labs(x = paste0("log2(", x, " RNA-seq counts)"), 
+         y = paste0("log2(", y, " RNA-seq counts)"))+
     stat_density_2d(aes(fill = ..level..), geom = "polygon", colour="white")
 }
-plot.density.RNAseq.all.tumor("EIF4E","EIF4A1")
+plot.density.RNAseq.all.tumor("EIF4E","EGFR")
 
 ## 3D denisty plot by plotly
 plot_ly(x = log2(EIF.RNAseq.data$EIF4A1), 
         y = log2(EIF.RNAseq.data$EIF4E), 
-        z = log2(EIF.RNAseq.data$EIF4G1),
+        z = log2(EIF.RNAseq.data$EGFR),
         type   = "scatter3d", 
         mode   = "markers",
         marker = list(size = 1)) %>%
     layout(scene = list(xaxis = list(title = 'EIF4A1'),
                         yaxis = list(title = 'EIF4E'),
-                        zaxis = list(title = 'EIF4G1')))
+                        zaxis = list(title = 'EGFR')))
 
+
+
+############################
+### Copy Number Variants ###
+############################
 
 ################################################################
 ## stacked bar plots for eIF4F CNV status across tumor groups ## 
@@ -888,13 +953,13 @@ plot.CNV.sum <- function(EIF){
                                      'dark blue')) 
     print(p)
 }
-plot.CNV.sum("PABP")
-
+plot.CNV.sum("EGFR")
 
 ######################################################################
-## correlation analysis of CNV from all EIF4F subunits cancer types ## 
+## Correlation analysis of CNV from all EIF4F subunits cancer types ## 
 ######################################################################
-get.CNV.sum <- function(EIF){
+plot.cor.CNV.all.tumor <- function (gene.list){
+  get.CNV.sum <- function(EIF){
   tcga.pan.studies <- getCancerStudies(mycgds)[
     grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
   tcga.study.list <- tcga.pan.studies$cancer_study_id
@@ -940,131 +1005,33 @@ get.CNV.sum <- function(EIF){
   colnames(CNV.sum)<- c("CNV", EIF)
   return(CNV.sum)
   }
-  
-  EIF.CNV.sum <- lapply(c("EIF4A1","EIF4E","EIF4G1","SOX2","EIF4EBP1","MYC","MITF","FASN"), get.CNV.sum)
+  EIF.CNV.sum <- lapply(gene.list, get.CNV.sum)
   EIF.CNV.sum.2 <- do.call(cbind.data.frame, EIF.CNV.sum)
   EIF.CNV.sum.2 <- EIF.CNV.sum.2[, !duplicated(colnames(EIF.CNV.sum.2))]
   EIF.CNV.sum.3 <- EIF.CNV.sum.2[,-1]
   rownames(EIF.CNV.sum.3) <- EIF.CNV.sum.2[,1]
   M <- cor(EIF.CNV.sum.3)
   p.mat <- cor_pmat(EIF.CNV.sum.3)
-  corrplot(M, method = "circle")
+  print(corrplot(M, method = "circle"))
   corrplot(M, method = "number", type = "upper",  
            order="hclust", tl.col="black", tl.srt = 0)
-  
-  library(ggcorrplot)
-
   ggcorrplot(cor(EIF.CNV.sum.3), p.mat = cor_pmat(EIF.CNV.sum.3), hc.order=TRUE, type='lower')
   ggcorrplot(round(cor(EIF.CNV.sum.3), 1), hc.order = TRUE, type = "lower",
     lab = TRUE)
   # Leave blank on no significant coefficient
   ggcorrplot(M, method = "circle", p.mat = p.mat, hc.order = TRUE,
-    type = "lower", insig = "blank")
-
-
-
+    type = "lower", insig = "blank")}
+plot.cor.CNV.all.tumor(ONCO)
 
 ###################################################################
-## correlation analysis of RNA-seq and CNV from all cancer types ## 
+## Correlation analysis of RNA-seq and CNV from all cancer types ## 
 ###################################################################
-## Get DNFA gene expression from all cancer groups ##
-EIF.RNAseq <- function(EIF){
-  tcga.pan.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
-  tcga.study.list <- tcga.pan.studies$cancer_study_id
-  names(tcga.study.list) <- tcga.study.list
-  caselist <- function(x) getCaseLists(mycgds, x)
-  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
-  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
-  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
-  caselist.RNAseq <- function(x) {
-    tcga.pan.caselist[[x]][
-      grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
-        tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
-    }
-  geneticprofile.RNAseq <- function(x) {
-    tcga.pan.geneticprofile[[x]][
-      grep("mRNA Expression, RSEM", 
-        tcga.pan.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
-    }
-  tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
-    getProfileData(mycgds,
-      genename,
-      geneticprofile,
-      caselist)
-    }
-  EIF.tcga.RNAseq <- function(x, y) {
-    EIF.tcga.RNAseq <- tcga.profiledata.RNAseq(x, geneticprofile.RNAseq(y),caselist.RNAseq(y))
-    ## change the rownames into the first column
-    setDT(EIF.tcga.RNAseq, keep.rownames = TRUE)[]
-    return(EIF.tcga.RNAseq)
-  }
-  EIF.RNAseq.tcga.all <- function(x) {
-    ## test[] to keep row.names by lapply function 
-    test <- lapply(tcga.study.list, EIF.tcga.RNAseq, x = x)
-    df2 <- melt(test)
-    colnames(df2) <- c("SampleID", "EIFgene", "RNAseq","TCGAstudy")
-    df2 <- data.frame(df2)
-    }
-  df2 <- EIF.RNAseq.tcga.all(EIF)
-  df2$EIFgene <- as.factor(df2$EIFgene)
-  df2$TCGAstudy <- as.factor(df2$TCGAstudy)
-  df2 <- na.omit(df2)
-  return(df2)
-  }
-EIF.RNAseq.data <- EIF.RNAseq(EIF.gene)
-
-## Get oncogene CNV data from all cancer groups ##
-Onco.CNV <- function(EIF){
-  tcga.pan.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
-  tcga.study.list <- tcga.pan.studies$cancer_study_id
-  names(tcga.study.list) <- tcga.study.list
-  caselist <- function(x) getCaseLists(mycgds, x)
-  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
-  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
-  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
-  caselist.CNV <- function(x) {
-    tcga.pan.caselist[[x]][
-      grep("tcga_pan_can_atlas_2018_cnaseq",
-        tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
-  }
-  geneticprofile.CNV <- function(x) {
-    tcga.pan.geneticprofile[[x]][
-      grep("tcga_pan_can_atlas_2018_gistic", 
-        tcga.pan.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
-  }
-  tcga.profiledata.CNV <- function(genename, geneticprofile, caselist) {
-    getProfileData(mycgds,
-      genename,
-      geneticprofile,
-      caselist)
-  }
-  EIF.tcga.CNV <- function(x, y) {
-    EIF.tcga.CNV <- tcga.profiledata.CNV(x, geneticprofile.CNV(y), caselist.CNV(y))
-    ## change the rownames into the first column
-    setDT(EIF.tcga.CNV, keep.rownames = TRUE)[]
-    return(EIF.tcga.CNV)
-    }
-  EIF.tcga.CNV.all <- function(x) {
-    test <- lapply(tcga.study.list, EIF.tcga.CNV, x = x)
-    df2 <- melt(test)
-    colnames(df2) <- c("SampleID","Oncogene","CNV","TCGAstudy")
-    df2 <- data.frame(df2)
-  }
-  df2 <- EIF.tcga.CNV.all(EIF)
-  df2$Oncogene <- as.factor(df2$Oncogene)
-  df2$TCGAstudy <- as.factor(df2$TCGAstudy)
-  df2 <- na.omit(df2)
-  return(df2)
-  }
-CNV.data <- Onco.CNV("EIF4G1")
-CNV.data <- lapply(EIF.gene, Onco.CNV)
-
 plot.CNV.RNAseq.all.tumor <- function(ONCO, EIF) {
+  ## Get DNFA gene expression from all cancer groups ##
   EIF.RNAseq <- function(EIF){
     tcga.pan.studies <- getCancerStudies(mycgds)[
-      grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
+      grep("(TCGA, PanCancer Atlas)", 
+        getCancerStudies(mycgds)$name), ]
     tcga.study.list <- tcga.pan.studies$cancer_study_id
     names(tcga.study.list) <- tcga.study.list
     caselist <- function(x) getCaseLists(mycgds, x)
@@ -1088,7 +1055,10 @@ plot.CNV.RNAseq.all.tumor <- function(ONCO, EIF) {
         caselist)
     }
     EIF.tcga.RNAseq <- function(x, y) {
-      EIF.tcga.RNAseq <- tcga.profiledata.RNAseq(x, geneticprofile.RNAseq(y),caselist.RNAseq(y))
+      EIF.tcga.RNAseq <- tcga.profiledata.RNAseq(
+        x, 
+        geneticprofile.RNAseq(y),
+        caselist.RNAseq(y))
       ## change the rownames into the first column
       setDT(EIF.tcga.RNAseq, keep.rownames = TRUE)[]
       return(EIF.tcga.RNAseq)
@@ -1097,7 +1067,10 @@ plot.CNV.RNAseq.all.tumor <- function(ONCO, EIF) {
       ## test[] to keep row.names by lapply function 
       test <- lapply(tcga.study.list, EIF.tcga.RNAseq, x = x)
       df2 <- melt(test)
-      colnames(df2) <- c("SampleID", "EIFgene", "RNAseq","TCGAstudy")
+      colnames(df2) <- c("SampleID", 
+                         "EIFgene", 
+                         "RNAseq",
+                         "TCGAstudy")
       df2 <- data.frame(df2)
     }
     df2 <- EIF.RNAseq.tcga.all(EIF)
@@ -1107,6 +1080,8 @@ plot.CNV.RNAseq.all.tumor <- function(ONCO, EIF) {
     return(df2)
   }
   EIF.RNAseq.data <- EIF.RNAseq(EIF)
+  
+  ## Get oncogene CNV data from all cancer groups ##
   Onco.CNV <- function(EIF){
     tcga.pan.studies <- getCancerStudies(mycgds)[
       grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
@@ -1155,58 +1130,48 @@ plot.CNV.RNAseq.all.tumor <- function(ONCO, EIF) {
   # na.omit cannot eleminate NaN here!
   CNV.DNFA.RNAseq <- na.omit(CNV.DNFA.RNAseq)
   CNV.DNFA.RNAseq$CNV <- as.factor(CNV.DNFA.RNAseq$CNV)
-  Homdel.number <- 
-    nrow(CNV.DNFA.RNAseq[CNV.DNFA.RNAseq$CNV == "-2", ])
-  Hetlos.number <- 
-    nrow(CNV.DNFA.RNAseq[CNV.DNFA.RNAseq$CNV == "-1", ])
-  Diploid.number <-
-    nrow(CNV.DNFA.RNAseq[CNV.DNFA.RNAseq$CNV == "0", ])
-  Gain.number <-
-    nrow(CNV.DNFA.RNAseq[CNV.DNFA.RNAseq$CNV == "1", ])
-  Amp.number <-
-    nrow(CNV.DNFA.RNAseq[CNV.DNFA.RNAseq$CNV == "2", ])
-  black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 12
-  )
   print(
     ggplot(data = CNV.DNFA.RNAseq,
       aes(x     = CNV,
           y     = log2(RNAseq),
-          color = CNV)) +    geom_violin(trim = FALSE) +
+          color = CNV,
+          fill  = CNV)) +    
+      geom_violin(trim = FALSE) +
       geom_boxplot(alpha      = .01,
-                   width      = .5) +
-      
+                   width      = .1,
+                   color      = "black") +
+      stat_n_text(size = 6, fontface = "bold") + 
       scale_x_discrete(limits = c("-2", "-1", "0", "1", "2"), # skip NaN data
-                       labels = c(
-                                  "-2" = paste("Homdel \n n= ", Homdel.number),
-                                  "-1" = paste("Hetlos \n n= ", Hetlos.number),
-                                  "0"  = paste("Diploid \n n= ", Diploid.number),
-                                  "1"  = paste("Gain \n n= ", Gain.number),
-                                  "2"  = paste("Amp \n n= ", Amp.number)
-                                  )) +
+                       labels = c("Homdel", 
+                                  "Hetlos", 
+                                  "Diploid", 
+                                  "Gain",
+                                  "Amp")
+                                  ) +
       labs(x = paste(ONCO, "copy number variation"),
-           y = paste("log2(", EIF, "RNA counts)")) +
+           y = paste0("log2(", EIF, " RNA counts)")) +
+      theme_bw() +
       theme(axis.title      = element_text(face   = "bold",
-                                           size   = 9,
+                                           size   = 18,
                                            color  = "black"),
-            axis.text       = element_text(size   = 9,
-                                           hjust  = 1,
+            axis.text       = element_text(size   = 18,
+                                           hjust  = 0.5,
                                            face   = "bold",
                                            color  = "black"),
             axis.line.x     = element_line(color  = "black"),
             axis.line.y     = element_line(color  = "black"),
             panel.grid      = element_blank(),
             strip.text      = element_text(face   = "bold",
-                                           size   = 9,
+                                           size   = 18,
                                            colour = "black"),
             legend.position = "none") +
-    stat_compare_means(comparisons = list(
-      c("1","0"),c("2","0"),c("-1","0"),c("-2","0")),
-      method = "t.test")
-  )
+    stat_compare_means(comparisons = list(c("1","0"),
+                                          c("2","0"),
+                                          c("-1","0"),
+                                          c("-2","0")),
+                                          method = "t.test", 
+                                          label  = "p.signif",
+                                          size   = 6))
   a <- leveneTest(RNAseq ~ CNV, CNV.DNFA.RNAseq)
   a$data.name <- paste(EIF,'expression by', ONCO, 'status')
   b <- fligner.test(RNAseq ~ CNV, CNV.DNFA.RNAseq)
@@ -1214,58 +1179,11 @@ plot.CNV.RNAseq.all.tumor <- function(ONCO, EIF) {
   print(b)
   print(a)
 }
-plot.CNV.RNAseq.all.tumor("EIF4A1", "EIF4E")
+plot.CNV.RNAseq.all.tumor("EGFR", "EIF4G1")
 
 ###############################################################
 ## Distribution of CNV in EIF subunits from all cancer types ## 
 ###############################################################
-Onco.CNV <- function(EIF){
-  tcga.pan.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
-  tcga.study.list <- tcga.pan.studies$cancer_study_id
-  names(tcga.study.list) <- tcga.study.list
-  caselist <- function(x) getCaseLists(mycgds, x)
-  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
-  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
-  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
-  caselist.CNV <- function(x) {
-    tcga.pan.caselist[[x]][
-      grep("tcga_pan_can_atlas_2018_cnaseq",
-        tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
-  }
-  geneticprofile.CNV <- function(x) {
-    tcga.pan.geneticprofile[[x]][
-      grep("tcga_pan_can_atlas_2018_gistic", 
-        tcga.pan.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
-  }
-  tcga.profiledata.CNV <- function(genename, geneticprofile, caselist) {
-    getProfileData(mycgds,
-      genename,
-      geneticprofile,
-      caselist)
-  }
-  EIF.tcga.CNV <- function(x, y) {
-    EIF.tcga.CNV <- tcga.profiledata.CNV(x, geneticprofile.CNV(y), caselist.CNV(y))
-    ## change the rownames into the first column
-    setDT(EIF.tcga.CNV, keep.rownames = TRUE)[]
-    return(EIF.tcga.CNV)
-  }
-  EIF.tcga.CNV.all <- function(x) {
-    test <- lapply(tcga.study.list, EIF.tcga.CNV, x = x)
-    df2 <- melt(test)
-    colnames(df2) <- c("SampleID","Oncogene","CNV","TCGAstudy")
-    df2 <- data.frame(df2)
-  }
-  df2 <- EIF.tcga.CNV.all(EIF)
-#  df2$Oncogene <- as.factor(df2$Oncogene)
-#  df2$CNV <- as.factor(df2$CNV)
-  df2$TCGAstudy <- as.factor(df2$TCGAstudy)
-  df2$Oncogene <- NULL
-  names(df2)[names(df2) == "CNV"] <- EIF
-  # df2 <- na.omit(df2)
-  return(df2)
-}
-
 plot.bubble.CNV.all.tumor <- function(x , y ){
   Onco.CNV <- function(EIF){
     tcga.pan.studies <- getCancerStudies(mycgds)[
@@ -1313,7 +1231,7 @@ plot.bubble.CNV.all.tumor <- function(x , y ){
     # df2 <- na.omit(df2)
     return(df2)
   }
-  df3 <- lapply(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1", "MYC"), Onco.CNV)
+  df3 <- lapply(c("EIF4A1","EIF4E","EIF4G1","EIF4EBP1", "MYC", "EGFR"), Onco.CNV)
   ## use cbind to convert df3 list into a data frame
   df4 <- do.call(cbind.data.frame, df3)
   ## remove duplicated columns (TCGAstudy)
@@ -1352,7 +1270,7 @@ plot.bubble.CNV.all.tumor <- function(x , y ){
   labs(x = paste(x, "copy number variation"), 
        y = paste(y, "copy number variation"))
 }
-plot.bubble.CNV.all.tumor ("EIF4G1", "MYC")
+plot.bubble.CNV.all.tumor ("EIF4A1", "EIF4E")
 
 ### bugs in function plot.scatter.CNV.all.tumor
 library(cowplot)
@@ -1420,106 +1338,19 @@ plot.scatter.CNV.all.tumor <- function(x, y, z){
   }
 plot.scatter.CNV.all.tumor ("EIF4G1", "EIF4E1","EIF4A1")
 
-########################################################################
-## correlation analysis of RNA-seq and mutation from all cancer types ## 
-########################################################################
-## Get DNFA gene expression from all cancer groups ##
-EIF.RNAseq <- function(EIF){
-  tcga.pan.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
-  tcga.study.list <- tcga.pan.studies$cancer_study_id
-  names(tcga.study.list) <- tcga.study.list
-  caselist <- function(x) getCaseLists(mycgds, x)
-  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
-  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
-  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
-  caselist.RNAseq <- function(x) {
-    tcga.pan.caselist[[x]][
-      grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
-        tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
-  }
-  geneticprofile.RNAseq <- function(x) {
-    tcga.pan.geneticprofile[[x]][
-      grep("mRNA Expression, RSEM", 
-        tcga.pan.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
-  }
-  tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
-    getProfileData(mycgds,
-      genename,
-      geneticprofile,
-      caselist)
-  }
-  EIF.tcga.RNAseq <- function(x, y) {
-    EIF.tcga.RNAseq <- tcga.profiledata.RNAseq(x, geneticprofile.RNAseq(y),caselist.RNAseq(y))
-    ## change the rownames into the first column
-    setDT(EIF.tcga.RNAseq, keep.rownames = TRUE)[]
-    return(EIF.tcga.RNAseq)
-  }
-  EIF.RNAseq.tcga.all <- function(x) {
-    ## test[] to keep row.names by lapply function 
-    test <- lapply(tcga.study.list, EIF.tcga.RNAseq, x = x)
-    df2 <- melt(test)
-    colnames(df2) <- c("SampleID", "EIFgene", "RNAseq","TCGAstudy")
-    df2 <- data.frame(df2)
-  }
-  df2 <- EIF.RNAseq.tcga.all(EIF)
-  df2$EIFgene <- as.factor(df2$EIFgene)
-  df2$TCGAstudy <- as.factor(df2$TCGAstudy)
-  df2 <- na.omit(df2)
-  return(df2)
-}
-EIF.RNAseq.data <- EIF.RNAseq("EIF4G1")
 
-## Get oncogene CNV data from SKCM group ##
-Onco.Mut <- function(EIF){
-  tcga.pan.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
-  tcga.study.list <- tcga.pan.studies$cancer_study_id
-  names(tcga.study.list) <- tcga.study.list
-  caselist <- function(x) getCaseLists(mycgds, x)
-  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
-  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
-  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
-  caselist.Mut <- function(x) {
-    tcga.pan.caselist[[x]][
-      grep("tcga_pan_can_atlas_2018_sequenced",
-        tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
-  }
-  geneticprofile.Mut <- function(x) {
-    tcga.pan.geneticprofile[[x]][
-      grep("tcga_pan_can_atlas_2018_mutations", 
-        tcga.pan.geneticprofile[[x]]$genetic_profile_id), ][1, 1]
-  }
-  tcga.profiledata.Mut <- function(genename, geneticprofile, caselist) {
-    getProfileData(mycgds,
-      genename,
-      geneticprofile,
-      caselist)
-  }
-  EIF.tcga.Mut <- function(x, y) {
-    EIF.tcga.Mut <- tcga.profiledata.Mut(x, geneticprofile.Mut(y), caselist.Mut(y))
-    ## change the rownames into the first column
-    setDT(EIF.tcga.Mut, keep.rownames = TRUE)[]
-    return(EIF.tcga.Mut)
-  }
-  EIF.tcga.Mut.all <- function(x) {
-    test <- lapply(tcga.study.list, EIF.tcga.Mut, x = x)
-    df2 <- melt(test)
-    drops <- c("variable","value")
-    df2 <- df2[ , !(names(df2) %in% drops)]
-    colnames(df2) <- c("SampleID",x,"TCGAstudy")
-    df2 <- data.frame(df2)
-  }
-  df2 <- EIF.tcga.Mut.all(EIF)
-  df2$TCGAstudy <- as.factor(df2$TCGAstudy)
-  return (df2)
-}
-Mut.data <- Onco.Mut("EIF4G1")
-Mut.data <- na.omit(Mut.data)
-write.csv(Mut.data, file = "EIF4G1Mut.csv")
 
+
+#################
+### Mutations ###
+#################
+
+######################################################################
+## Correlating RNA-seq and mutation from all cancer types (Boxplot) ## 
+######################################################################
 plot.Mut.RNAseq.all.tumor <- function(ONCO, EIF) {
-  EIF.RNAseq <- function(EIF){
+    ## Get DNFA gene expression from all cancer groups ##
+    EIF.RNAseq <- function(EIF){
     tcga.pan.studies <- getCancerStudies(mycgds)[
       grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
     tcga.study.list <- tcga.pan.studies$cancer_study_id
@@ -1564,6 +1395,7 @@ plot.Mut.RNAseq.all.tumor <- function(ONCO, EIF) {
     return(df2)
   }
   EIF.RNAseq.data <- EIF.RNAseq(EIF)
+  ## Get oncogene CNV data from SKCM group ##
   Onco.Mut <- function(EIF){
     tcga.pan.studies <- getCancerStudies(mycgds)[
       grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
@@ -1658,7 +1490,7 @@ plot.Mut.RNAseq.all.tumor <- function(ONCO, EIF) {
                                            colour = "black"),
                                            legend.position = "none"))
 }
-plot.Mut.RNAseq.all.tumor("EIF4E", "EIF4E")
+plot.Mut.RNAseq.all.tumor("EGFR", "EIF4E")
 
 ########################################################################
 ##  Kaplan-Meier curve with clinic and mutation data from all tumors  ##
@@ -1817,7 +1649,6 @@ plot.km.mut.all.tumor <- function(ONCO) {
                 hjust    = 1,
                 fontface = "bold"))
   }
-
 plot.km.mut.all.tumor ("EGFR")
 lapply(ONCO, plot.km.mut.all.tumor)
 
@@ -1826,224 +1657,6 @@ lapply(ONCO, plot.km.mut.all.tumor)
 
 
 
-
-
-
-
-
-
-#####################################################################
-get.EIF.RNAseq.tcga <- function(x) {
-  EIF.gene <- c("EIF4E","EIF4G1","EIF4EBP2","RPS6KB1")
-  tcga.pan.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, PanCancer Atlas)", getCancerStudies(mycgds)$name), ]
-  # "tcag_study_list" contains all the tcga cancer studies
-  tcga.study.list <- tcga.pan.studies$cancer_study_id
-  names(tcga.study.list) <- tcga.study.list
-  caselist <- function(x) getCaseLists(mycgds, x)
-  geneticprofile <- function(x) getGeneticProfiles(mycgds, x)
-  # use lappy to pull out all the caselists within tcga.study.list
-  # because we named each elements in tcga.study.list,
-  # lappy will return a large list, each element (with a cancer study name)
-  # in that list is a data-table
-  tcga.pan.caselist <- lapply(tcga.study.list, caselist)
-  tcga.pan.geneticprofile <- lapply(tcga.study.list, geneticprofile)
-  # for example, tcga.pro.caselist[[1]] shows the dataframe of caselist
-  # in laml study group.
-  # to choose case_list_id that is labeled with laml_tcga_rna_seq_v2_mrna,
-  # we use the following tcag_provisional_caselist[[1][8,1]
-  # a <- tcga.pro.caselist[[1]][
-  # grep("tcga_rna_seq_v2_mrna", tcga.pro.caselist[[1]]$case_list_id),
-  # ][1,1]
-  # b <- tcga.pro.geneticprofile[[1]][
-  # grep("mRNA expression \\(RNA Seq V2 RSEM\\)",
-  # tcga.pro.geneticprofile[[1]]$genetic_profile_name), ][1,1]
-  # how do we do this for all study groups from [[1]] to  [[32]]?
-  caselist.RNAseq <- function(x) {
-    tcga.pan.caselist[[x]][
-      grep("tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
-        tcga.pan.caselist[[x]]$case_list_id), ][1, 1]
-  }
-  geneticprofile.RNAseq <- function(x) {
-    tcga.pan.geneticprofile[[x]][
-      # double backslash \\ suppress the special meaning of ( )
-      # in regular expression
-      grep("mRNA Expression, RSEM", 
-        tcga.pan.geneticprofile[[x]]$genetic_profile_name), ][1, 1]
-  }
-  # test the functions: caselist.RNAseq () and geneticprofile.RNAseq ()
-  # caselist.RNAseq = caselist.RNAseq ('acc_tcga')
-  # geneticprofile.RNAseq = geneticprofile.RNAseq ('acc_tcga')
-  # Wrap two functions: geneticprofile.RNAseq(x), caselist.RNAseq(x)
-  # within TCGA_ProfileData_RNAseq(x)
-  tcga.profiledata.RNAseq <- function(genename, geneticprofile, caselist) {
-    getProfileData(mycgds,
-      genename,
-      geneticprofile,
-      caselist)
-  }
-  EIF.RNAseq.tcga <- tcga.profiledata.RNAseq(EIF.gene,
-                                             geneticprofile.RNAseq(x),
-                                             caselist.RNAseq(x))
-  EIF.RNAseq.tcga$rn <- rownames(EIF.RNAseq.tcga)
-  return(EIF.RNAseq.tcga)
-  }
-
-get.EIF.score.tcga <- function(x){
-  EIF.RNAseq.tcga <- get.EIF.RNAseq.tcga(x) 
-  EIF.score.tcga <- EIF.RNAseq.tcga
-  EIF.score.tcga$EIF4Escore <- EIF.RNAseq.tcga$EIF4E/EIF.RNAseq.tcga$EIF4E
-  EIF.score.tcga$EIF4G1score <- EIF.RNAseq.tcga$EIF4G1/EIF.RNAseq.tcga$EIF4E
-  EIF.score.tcga$EIF4EBP2score <- EIF.RNAseq.tcga$EIF4EBP2/EIF.RNAseq.tcga$EIF4E
-#  EIF.score.tcga$RPS6KB1score <- EIF.RNAseq.tcga$RPS6KB1/EIF.RNAseq.tcga$EIF4E
-  EIF.score.tcga <- EIF.score.tcga [, 5:8]
-  return(EIF.score.tcga)
-  }
-### EIF.score.tcga$GEBPscore <- EIF.RNAseq.tcga$EIF4G1/EIF.RNAseq.tcga$EIF4EBP1
-
-plot.EIF.RNAseq.score <- function (x) {
-  EIF.RNAseq.tcga <- get.EIF.RNAseq.tcga(x)
-  EIF.score.tcga <- get.EIF.score.tcga(x)
-  par(mfrow=c(1,2))
-  boxplot(log2(EIF.RNAseq.tcga[, 
-                             c("EIF4E", "EIF4G1", 
-                               "EIF4EBP2", "RPS6KB1")]),
-          main= paste0("EIF RNAseq counts in ", x),
-          las = 2)
-  boxplot(log2(EIF.score.tcga[,
-                        c("EIF4Escore","EIF4G1score",
-                          "EIF4EBP2score")]),
-          main= paste0("EIF scores in ", x),
-          las = 2)
-  }
-lapply(tcga.study.list, plot.EIF.RNAseq.score)
-
-### to be tested!
-plot.EIF.score.all.tcga <- function(x) {
-  tcga.pro.studies <- getCancerStudies(mycgds)[
-    grep("(TCGA, Provisional)", getCancerStudies(mycgds)$name), ]
-  ### "tcag_study_list" contains all the tcga cancer studies
-  tcga.study.list <- tcga.pro.studies$cancer_study_id
-  EIF.score.tcga <- lapply(tcga.study.list, get.EIF.score.tcga)
-  EIF.score.tcga.all.tumors <- melt(EIF.score.tcga)
-  colnames(EIF.score.tcga.all.tumors) <- c("rn", "EIFgene", "Score", "TCGAstudy")
-  EIF.score.tcga.all.tumors <- data.frame(EIF.score.tcga.all.tumors)
-  EIF.score.tcga.all.tumors$EIFgene <- as.factor(EIF.score.tcga.all.tumors$EIFgene)
-  EIF.score.tcga.all.tumors$TCGAstudy <- as.factor(EIF.score.tcga.all.tumors$TCGAstudy)
-  ### to be tested!  
-#  EIF.score.tcga.all.tumors <- EIF.score.tcga.all.tumors[EIF.score.tcga.all.tumors$EIFgene == x,]
-#  mean <- within(EIF.score.tcga.all.tumors, TCGAstudy <- reorder(TCGAstudy, log2(x), median))
-  y <- paste0(x, "score")
-  median <- within(EIF.score.tcga.all.tumors[
-    EIF.score.tcga.all.tumors$EIFgene == y,], # TCGAstudy is one column in df2
-                 TCGAstudy <- reorder(TCGAstudy, log2(Score), median))
-  print(
-    ggplot(median,
-           aes(x     = TCGAstudy,
-               y     = log2(Score),
-               color = TCGAstudy)) +
-      geom_boxplot(alpha    = .01,
-                   width    = .5,
-                   position = position_dodge(width = .9)) +
-      labs(x = "Tumor types (TCGA)",
-           y = paste0("log2(EIF4G1/EIF4EBP1 ratio)")) +
-      theme(axis.title  = element_text(face   = "bold",
-                                       size   = 9,
-                                       color  = "black"),
-            axis.text.x = element_text(size   = 9,
-                                       angle  = 45,
-                                       hjust  = 1, # 1 means right-justified
-                                       face   = "bold",
-                                       color  = "black"),
-            axis.text.y = element_text(size   = 9,
-                                       angle  = 0,
-                                       hjust  = 1, # 1 means right-justified
-                                       face   = "bold",
-                                       color  = "black"),
-            axis.line.x = element_line(color  = "black"),
-            axis.line.y = element_line(color  = "black"),
-            panel.grid  = element_blank(),
-            strip.text  = element_text(face   = "bold",
-                                       size   = 9,
-                                       color  = "black"),
-            legend.position = "none"))
-  
-  }
-plot.EIF.score.all.tcga("EIF4E")
-
-##########################################################
-##########################################################
-plotEIF <-  function (x) {
-#  name <- deparse(substitute(x))
-  black_bold_tahoma_12 <- element_text(color  = "black", 
-                                       face   = "bold",
-                                       family = "Tahoma", 
-                                       size   = 12)
-  
-  black_bold_tahoma_12_45 <- element_text(color  = "black",
-                                          face   = "bold",
-                                          family = "Tahoma", 
-                                          size   = 12, 
-                                          angle  = 45,
-                                          hjust  = 1)
-  ggplot(x,
-         aes(x = variable,
-             y = log2(value))) +
-    geom_boxplot(alpha    = .01, 
-                 size     = .75,
-                 width    = .75,
-                 position = position_dodge(width = .9)) +
-    #    labs(title = paste0(name," n = 8555"),
-    #         x     = "eIF4F complex components",
-    #         y     = paste0("log2(value)")) +
-    theme_bw() +
-    theme(plot.title  = black_bold_tahoma_12,
-          axis.title  = black_bold_tahoma_12,
-          axis.text.x = black_bold_tahoma_12_45,
-          axis.text.y = black_bold_tahoma_12,
-          axis.line.x = element_line(color  = "black"),
-          axis.line.y = element_line(color  = "black"),
-          panel.grid  = element_blank(),
-          strip.text  = black_bold_tahoma_12,
-          legend.position = "none")
-}
-
-plot.EIFandScore.all.tumors <- function (){
-  EIF.RNAseq.tcga <- lapply(tcga.study.list, get.EIF.RNAseq.tcga)
-  EIF.score.tcga <- lapply(tcga.study.list, get.EIF.score.tcga)
-  EIF.RNAseq.tcga.all.tumors <- melt(EIF.RNAseq.tcga)
-#  x1  = factor(x, levels=c("B", "C", "A"))
-#  levels(EIF.RNAseq.tcga.all.tumors$variable)
-  EIF.RNAseq.tcga.all.tumors$variable <- ordered(EIF.RNAseq.tcga.all.tumors$variable, 
-                                                 levels = c("EIF4E","EIF4G1",
-                                                            "EIF4EBP2","RPS6KB1"))
-  number <- nrow(EIF.RNAseq.tcga.all.tumors)/4
-  EIF.score.tcga.all.tumors <- melt(EIF.score.tcga)
-  my_comparison1 <- list( c("EIF4E", "EIF4G1"), 
-                          c("EIF4G1", "EIF4EBP2"), 
-                          c("EIF4E", "EIF4EBP2"),
-                          c("EIF4E", "RPS6KB2"),
-                          c("EIF4EBP1", "RPS6KB1"))
-  my_comparison2 <- list( c("EIF4Escore", "EIF4G1score"), 
-                          c("EIF4G1score", "EIF4EBP2score"), 
-                          c("EIF4Escore", "EIF4EBP2score"),
-                          c("EIF4Escore", "RPS6KB1score"),
-                          c("EIF4EBP2score", "RPS6KB1score"))
-  p1 <- plotEIF(EIF.RNAseq.tcga.all.tumors) +
-    labs(title = paste0("All tumors n = ", number),
-         x     = "eIF4F subunit RNAseq",
-         y     = paste0("log2(value)")) +
-    stat_compare_means(comparisons = my_comparison1, method = "t.test")
-  p1$layers[[2]]$aes_params$textsize <- 5  
-  p2 <- plotEIF(EIF.score.tcga.all.tumors) + 
-    labs(title = paste0("All tumors n = ", number),
-         x     = "eIF4E ratio score",
-         y     = paste0("log2(value)")) +
-    stat_compare_means(comparisons = my_comparison2, method = "t.test")
-   p2$layers[[2]]$aes_params$textsize <- 5
-  grid.arrange(p1, p2, ncol=2)
-}
-plot.EIFandScore.all.tumors()
 
 
 

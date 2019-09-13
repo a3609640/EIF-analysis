@@ -40,7 +40,7 @@ EIF.gene <- c(
               "EIF4EBP1",
               "EIF4EBP2",
               "EIF4EBP3")
-Onco.gene <- c("BRAF", "NRAS", "AKT1", "PTEN", "TP53","MYC")
+Onco.gene <- c("BRAF", "NRAS", "AKT1", "PTEN", "TP53","MYC", "EGFR", "VEGFA", "CCND1")
 EIF.Onco <- c(EIF.gene, Onco.gene)
 # names(DNFA.gene ) <- DNFA.gene
 names(Onco.gene) <- Onco.gene
@@ -223,13 +223,13 @@ sapply(Onco.mutations,
 plot.CNV.RNAseq <- function(geneCNV, RNAseq) {
   EIF.RNAseq.data <- getProfileData(mycgds,
     EIF.Onco,
-    "ov_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
-    "ov_tcga_pan_can_atlas_2018_all")
+    "luad_tcga_pan_can_atlas_2018_rna_seq_v2_mrna",
+    "luad_tcga_pan_can_atlas_2018_all")
   getCNV <- function(x) {
     CNV <- getProfileData(mycgds,
       x,
-      "ov_tcga_pan_can_atlas_2018_gistic",
-      "ov_tcga_pan_can_atlas_2018_all")
+      "luad_tcga_pan_can_atlas_2018_gistic",
+      "luad_tcga_pan_can_atlas_2018_all")
     v <- rownames(CNV)
     colnames(CNV) <- paste0(colnames(CNV), '.CNV')
     # change CNV column from numeric to factor
