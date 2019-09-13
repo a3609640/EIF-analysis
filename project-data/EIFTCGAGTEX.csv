@@ -1,4 +1,4 @@
-sample,_study,EIF4A1,EIF4E,EIF4G1,EIF4EBP1,RPS6KB1,MYC,_sample_type,primary disease or tissue,OS,OS.time
+sample,study,EIF4A1,EIF4E,EIF4G1,EIF4EBP1,RPS6KB1,MYC,sample_type,primary_disease_or_tissue,OS,OS.time
 GTEX-ZYFD-1026-SM-5E43Z,GTEX,16.6549,12.1007,14.8498,9.5213,11.3909,13.2887,Normal Tissue,Adipose - Visceral (Omentum),,
 GTEX-U412-0006-SM-3DB8J,GTEX,16.5428,10.2741,12.3982,10.5402,9.0813,9.9038,Normal Tissue,Whole Blood,,
 GTEX-13NYB-0926-SM-5IFFA,GTEX,16.2618,12.2481,14.1509,11.4309,10.9888,11.1783,Normal Tissue,Esophagus - Mucosa,,
