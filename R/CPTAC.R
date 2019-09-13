@@ -7,38 +7,38 @@ library(ggpubr)
 library(ggsignif)
 
 BRCA_Proteome_sample <- read_delim(
-  "Documents/translation/CPTAC/TCGA_Breast_BI_Phosphoproteome.sample.csv", 
+  "TCGA_Breast_BI_Phosphoproteome.sample.csv", 
   "\t", 
   escape_double = FALSE, 
   trim_ws = TRUE
   )
 
 BRCA_Proteome_summary <- read_delim(
-  "~/Documents/translation/CPTAC/TCGA_Breast_BI_Proteome.summary.csv", 
+  "TCGA_Breast_BI_Proteome.summary.csv", 
   "\t", 
   escape_double = FALSE, 
   trim_ws = TRUE
   )
 
 BRCA_Proteome_itraq <- fread(
-  "Documents/translation/CPTAC/TCGA_Breast_BI_Proteome.itraq.tsv",
+  "TCGA_Breast_BI_Proteome.itraq.tsv",
   header = T
   )
 
 BRCA_Phosphoproteome_summary <- read_delim(
-  "Documents/translation/CPTAC/TCGA_Breast_BI_Phosphoproteome.summary.csv", 
+  "TCGA_Breast_BI_Phosphoproteome.summary.csv", 
   "\t", 
   escape_double = FALSE, 
   trim_ws = TRUE
   )
 
 BRCA_Phosphopeptide_itraq <- fread(
-  "Documents/translation/CPTAC/TCGA_Breast_BI_Phosphoproteome.phosphopeptide.itraq-1.tsv",
+  "TCGA_Breast_BI_Phosphoproteome.phosphopeptide.itraq-1.tsv",
   header = T
   )
 
 BRCA_Phosphosite_itraq <- fread(
-  "Documents/translation/CPTAC/TCGA_Breast_BI_Phosphoproteome.phosphosite.itraq-1.tsv", 
+  "TCGA_Breast_BI_Phosphoproteome.phosphosite.itraq-1.tsv", 
   header = T
   )
 

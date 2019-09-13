@@ -6,35 +6,80 @@ GENES = ['FOXM1', 'TP53']
 def get_codes(host, dataset, fields, data):
     "get codes for enumerations"
     codes = xena.field_codes(host, dataset, fields)
-    codes_idx = dict([(x['name'], x['code'].split('\t')) for x in codes if x['code'] is not None])
+    codes_idx = dict([(x['name'], 
+                       x['code'].split('\t')) for x in codes if x['code'] is not None])
     for i in range(len(fields)):
         if fields[i] in codes_idx:
             data[i] = [None if v == 'NaN' else codes_idx[fields[i]][int(v)] for v in data[i]]
     return data
 
+
 def get_fields(host, dataset, samples, fields):
-    "get field values"
+    "get field values, column names in the spreadsheet"
     data = xena.dataset_fetch(host, dataset, samples, fields)
     return data
 
+
 def get_fields_and_codes(host, dataset, samples, fields):
-    "get fields and resolve codes"
-    return get_codes( host, dataset, fields, get_fields( host, dataset, samples, fields))
+    "get fields and resolve NA in the value"
+    return get_codes(host, dataset, fields, get_fields( host, dataset, samples, fields))
+
+# dictionary with all hub links
+xena.PUBLIC_HUBS  
+# pancanAtlas cohort
+cohort = 'TCGA PanCanAtlas'
+host = xena.PUBLIC_HUBS['pancanAtlasHub']
+
+    
+# get expression for GENES
+expression_dataset = 'EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena'
+samples = xena.dataset_samples(host, expression_dataset, None)
+samples[0: 10]
+expression = get_fields_and_codes(host, 
+                                  expression_dataset, 
+                                  samples, 
+                                  GENES) # list of lists.
+expression_by_gene = dict(zip(GENES, expression))      # index by gene.
+[expression_by_gene.keys(), GENES[0], expression_by_gene[GENES[0]][0:10]]
+# note that missing data is returned as 'NaN'. One might want to remap this to None or NaN, depending on the later analysis tools.
+
+
+# get disease type and survival columns
+survival_dataset = 'Survival_SupplementalTable_S1_20171025_xena_sp'
+fields = ['cancer type abbreviation', 'OS', 'OS.time']
+values = get_fields_and_codes(host, 
+                              survival_dataset, 
+                              samples, 
+                              fields) # list of lists
+phenotypes = dict(zip(fields, values)) # index by phenotype
+# show all unique variable in the list phenotypes['cancer type abbreviation']
+phenotype_index = set(phenotypes['cancer type abbreviation'])
+print(phenotype_index)
+
+
+# get sample type. TCGA includes a few "normal" tissue samples. These normals are of
+# limited value because there are few of them, and they are not entirely normal, being
+# taken from disease tissue, outside of the visible tumor. It's often best to omit them.
+sampletype_dataset = 'TCGA_phenotype_denseDataOnlyDownload.tsv'
+fields = ['sample_type']
+values = get_fields_and_codes(host, 
+                              sampletype_dataset, 
+                              samples, 
+                              fields)
+set(values[0])
 
 
 
-## extract exon expression data from TCGA pan-cancer studies
-xena.PUBLIC_HUBS  # list all hub links
-hub = 'https://tcga.xenahubs.net' # or hub = xena.PUBLIC_HUBS['tcgaHub']
 ## has to use ['None'] to list all cohorts within the hub
 ## all_cohorts(host, exclude)
 xena.all_cohorts(hub, ['None']) 
-cohort = 'TCGA Pan-Cancer (PANCAN)'
+cohort = 'https://pancanatlas.xenahubs.net'
+
 xena.cohort_summary(hub, ['None']) # count datasets per cohort
 ## Dataset metadata for datasets in the given cohorts
 xena.dataset_list(hub, ['TCGA Pan-Cancer (PANCAN)'])
 ## use dataset ID in Xena website
-dataset = 'TCGA.PANCAN.sampleMap/HiSeqV2_exon'
+dataset = 'EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena'
 gene = ["VEGFA"]
 ## samples = xena.dataset_samples(hub, dataset, None)
 samples = xena.dataset_samples(hub, dataset, 10)
