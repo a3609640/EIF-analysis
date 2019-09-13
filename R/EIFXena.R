@@ -1,6 +1,7 @@
 library(AnnotationDbi)
 library(data.table)
 library(eulerr)
+library(EnhancedVolcano)
 library(EnvStats)
 library(ggfortify)
 library(ggplot2)
@@ -19,12 +20,10 @@ library(survminer)
 library(tidyverse)
 
 
-EIF.gene <- c(
-  "EIF4E",
-  "EIF4G1",
-  "EIF4A1",
-  "EIF4EBP1"
-)
+EIF.gene <- c("EIF4E",
+              "EIF4G1",
+              "EIF4A1",
+              "EIF4EBP1")
 names(EIF.gene) <- EIF.gene
 
 meta.data <- function(){
@@ -44,14 +43,14 @@ meta.data <- function(){
   TCGA.sampletype$sample <- NULL
   TCGA.sampletype$sample_type_id <- NULL
   TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose, 
-    TCGA.sampletype, 
-    by    = "row.names",
-    all.x = TRUE)
+                                  TCGA.sampletype, 
+                                  by    = "row.names",
+                                  all.x = TRUE)
   TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
   return(TCGA.RNAseq.sampletype)
 }
 
-TCGA.RNAseq.sampletype <- meta.data()
+TCGA.RNAseq.sampletype.all <- meta.data()
 
 genes <- function(){
   TCGA.pancancer <- fread("/home/wagner/suwu/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
@@ -73,8 +72,8 @@ genes <- function(){
 gene.name <- genes()
 
 plot.EIF.correlation.pathway <- function() {
-  TCGA.RNAseq.sampletype <- TCGA.RNAseq.sampletype[
-    TCGA.RNAseq.sampletype$sample_type == "Solid Tissue Normal", ]
+  TCGA.RNAseq.sampletype <- TCGA.RNAseq.sampletype.all[
+    TCGA.RNAseq.sampletype.all$sample_type != "Solid Tissue Normal", ]
   EIF.correlation <- function (x, y) {
     result <- cor.test(TCGA.RNAseq.sampletype[[x]], 
                        TCGA.RNAseq.sampletype[[y]], 
@@ -86,107 +85,172 @@ plot.EIF.correlation.pathway <- function() {
     }
 # find all genes positively correlate with EIF4F expression
 # lapply function gives a large list, need to convert it to a dataframe
-  DT <- do.call(rbind.data.frame, 
-                lapply(gene.name, 
-                       EIF.correlation, 
-                       y = "EIF4E"))
-  DT1 <- do.call(rbind.data.frame, 
-                 lapply(gene.name, 
-                        EIF.correlation, 
-                        y = "EIF4G1"))
-  DT2 <- do.call(rbind.data.frame, 
-                 lapply(gene.name, 
-                        EIF.correlation, 
-                        y = "EIF4A1"))
-  EIF4E <- na.omit(DT[DT$estimate > 0.3, ])
-  EIF4E.neg <- na.omit(DT[DT$estimate < -0.3, ])
-  EIF4G1 <- na.omit(DT1[DT1$estimate > 0.3, ])
-  EIF4G1.neg <- na.omit(DT1[DT1$estimate < -0.3, ])
-  EIF4A1 <- na.omit(DT2[DT2$estimate > 0.3, ])
-  EIF4A1.neg <- na.omit(DT2[DT2$estimate < -0.3, ])
-  c3 <- cbind(DT$estimate > 0.3, DT1$estimate > 0.3, DT2$estimate > 0.3)
-  c4 <- cbind(DT$estimate < -0.3, DT1$estimate < -0.3, DT2$estimate < -0.3)
-  a <- vennCounts(c3)
-  b <- vennCounts(c4)
-  vennDiagram(a)
-  vennDiagram(b)
+  EIF.cor.list <- function(x) {
+    cor.data <- do.call(rbind.data.frame, 
+                        lapply(gene.name, 
+                               EIF.correlation, 
+                               y = x))}
+  EIF4E.cor <- EIF.cor.list("EIF4E")  
+  EIF4G1.cor <- EIF.cor.list("EIF4G1")
+  EIF4A1.cor <- EIF.cor.list("EIF4A1")
+
+  EIF4E.un <- na.omit(EIF4E.cor[
+    EIF4E.cor$estimate < 0.1 & EIF4E.cor$estimate > -0.1, ])
+  EIF4G1.un <- na.omit(
+    EIF4G1.cor[EIF4G1.cor$estimate < 0.1 & EIF4G1.cor$estimate > -0.1, ])
+  EIF4A1.un <- na.omit(
+    EIF4A1.cor[EIF4A1.cor$estimate < 0.1 & EIF4A1.cor$estimate > -0.1, ])
+  
+  PABPC1.cor <- EIF.cor.list("PABPC1")
+  PABPC1.pos <- na.omit(PABPC1.cor[PABPC1.cor$estimate > 0.3, ])
+  PABPC1.neg <- na.omit(PABPC1.cor[PABPC1.cor$estimate < -0.3, ])
+  PABPC1.un <- na.omit(
+    PABPC1.cor[PABPC1.cor$estimate < 0.1 & PABPC1.cor$estimate > -0.1, ])
+  
+  plot.pos.Venn <- function(){
+    c3 <- cbind(EIF4E.cor$estimate > 0.3, 
+                EIF4G1.cor$estimate > 0.3, 
+                EIF4A1.cor$estimate > 0.3)
+    a <- vennCounts(c3)
+    colnames(a) <- c("EIF4E", 
+                     "EIF4G1", 
+                     "EIF4A1",
+                     "Counts")
+    vennDiagram(a)
   ## draw Venn diagram for overlapping genes
-  pos.Venn <- euler(c(A       = nrow(EIF4E),
-                    B       = nrow(EIF4G1),
-                    C       = nrow(EIF4A1),
-                    "A&B"   = a[7, "Counts"], 
-                    "A&C"   = a[6, "Counts"],
-                    "B&C"   = a[4, "Counts"],
-                    "A&B&C" = a[8, "Counts"]))
-  p1 <- plot(pos.Venn, 
-       #key = TRUE, 
-             lwd = 0, 
-             fill = c("#999999", "#E69F00", "#56B4E9"),
-             quantities = list(cex = 1.25),
-             labels = list(labels = c("EIF4E positive corr",
-                                      "EIF4G1 positive corr",
-                                      "EIF4A1 positive corr"), 
-                           cex = 1.25))
-  neg.Venn <- euler(c(A       = nrow(EIF4E.neg),
-                      B       = nrow(EIF4G1.neg),
-                      C       = nrow(EIF4A1.neg),
-                      "A&B"   = b[7, "Counts"], 
-                      "A&C"   = b[6, "Counts"],
-                      "B&C"   = b[4, "Counts"],
-                      "A&B&C" = b[8, "Counts"]))
-  p2 <- plot(neg.Venn, 
-    #key = TRUE, 
-             lwd = 0, 
-             fill = c("#999999", "#E69F00", "#56B4E9"),
-             quantities = list(cex = 1.25),
-             labels = list(labels = c("EIF4E negative corr",
-                                      "EIF4G1 negative corr",
-                                      "EIF4A1 negative corr"), 
-                           cex    = 1.25))
-  print(p1)
-  print(p2)
+    pos.Venn <- euler(c(A       = a[5, "Counts"],
+                        B       = a[3, "Counts"],
+                        C       = a[2, "Counts"],
+                        "A&B"   = a[7, "Counts"], 
+                        "A&C"   = a[6, "Counts"],
+                        "B&C"   = a[4, "Counts"],
+                        "A&B&C" = a[8, "Counts"]))
+    p1 <- plot(pos.Venn, 
+         #key = TRUE, 
+               lwd = 0, 
+               fill = c("#999999", "#E69F00", "#56B4E9"),
+               quantities = list(cex = 1.25),
+               labels = list(labels = c("EIF4E posCOR",
+                                        "EIF4G1 posCOR",
+                                        "EIF4A1 posCOR"), 
+                             cex = 1.25))
+    print(p1)}
+  plot.pos.Venn()
+  plot.neg.Venn <- function(){
+    c4 <- cbind(EIF4E.cor$estimate < -0.3,
+                EIF4G1.cor$estimate < -0.3, 
+                EIF4A1.cor$estimate < -0.3)
+    b <- vennCounts(c4)
+    colnames(b) <- c("EIF4E", 
+                     "EIF4G1", 
+                     "EIF4A1",
+                     "Counts")
+    vennDiagram(b)
+    neg.Venn <- euler(c(A       = b[5, "Counts"],
+                        B       = b[3, "Counts"],
+                        C       = b[2, "Counts"],
+                        "A&B"   = b[7, "Counts"], 
+                        "A&C"   = b[6, "Counts"],
+                        "B&C"   = b[4, "Counts"],
+                        "A&B&C" = b[8, "Counts"]))
+    p2 <- plot(neg.Venn, 
+      #key = TRUE, 
+               lwd = 0, 
+               fill = c("#999999", "#E69F00", "#56B4E9"),
+               quantities = list(cex = 1.25),
+               labels = list(labels = c("EIF4E negCOR",
+                                        "EIF4G1 negCOR",
+                                        "EIF4A1 negCOR"), 
+                             cex    = 1.25))
+  print(p2)}
+  plot.neg.Venn()
 # perform pathway analysis on overlapping genes
-  pos.overlap <- merge(EIF4G1, EIF4A1, by.x = "x", by.y = "x")
-  neg.overlap <- merge(EIF4G1.neg, EIF4A1.neg, by.x = "x", by.y = "x")
+  plot.pos.pathway <- function(){
+    EIF4E.pos <- na.omit(EIF4E.cor[EIF4E.cor$estimate > 0.3, ])
+    EIF4G1.pos <- na.omit(EIF4G1.cor[EIF4G1.cor$estimate > 0.3, ])
+    EIF4A1.pos <- na.omit(EIF4A1.cor[EIF4A1.cor$estimate > 0.3, ])
+    pos.overlap <- merge(EIF4G1.pos, EIF4A1.pos, by.x = "x", by.y = "x")
   # overlap <- merge(EIF4G1.neg, EIF4A1.neg, by.x = "x", by.y = "x")
-  pos.overlap$entrez = mapIds(org.Hs.eg.db,
-                              keys      = pos.overlap$x, 
-                              column    = "ENTREZID",
-                              keytype   = "SYMBOL",
-                              multiVals = "first")
-  neg.overlap$entrez = mapIds(org.Hs.eg.db,
-                              keys      = neg.overlap$x, 
-                              column    = "ENTREZID",
-                              keytype   = "SYMBOL",
-                              multiVals = "first")
-  x <- enrichPathway(gene = pos.overlap$entrez, readable = T)
-  z <- enrichPathway(gene = neg.overlap$entrez, readable = T)
-  p3 <- barplot(x, showCategory = 8)
-  p4 <- dotplot(x, font.size = 16, title = "pos correlating with EIF4A1, EIF4G1")
-  p5 <- emapplot(x, font.size = 18) + geom_node_text(label.size = 5)
-  p6 <- cnetplot(x)
-  print(p3)
-  print(p4)
-  print(p5)
-  print(p6)
-  allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE), 
-                     list(EIF4E, EIF4G1, EIF4A1))
-  allthree <- na.omit(allthree)
-  allthree$entrez = mapIds(org.Hs.eg.db,
-                           keys      = allthree$x, 
-                           column    = "ENTREZID",
-                           keytype   = "SYMBOL",
-                           multiVals = "first")
-  y <- enrichPathway(gene = allthree$entrez, readable = T)
-  p7 <- barplot(y)
-  p8 <- emapplot(y, font.size = 18)
-  p9 <- dotplot(y, font.size = 16)
-  p10 <- cnetplot(y)
-  print(p7)
-  print(p8)
-  print(p9)
-  print(p10)
-}
+    pos.overlap$entrez = mapIds(org.Hs.eg.db,
+                                keys      = pos.overlap$x, 
+                                column    = "ENTREZID",
+                                keytype   = "SYMBOL",
+                                multiVals = "first")
+    x <- enrichPathway(gene = pos.overlap$entrez, readable = T)
+    p3 <- barplot(x, showCategory = 8)
+    p4 <- dotplot(x, font.size = 16, title = "posCOR with EIF4A1 & EIF4G1")
+    p5 <- emapplot(x, font.size = 18)
+    p6 <- cnetplot(x)
+    print(p3)
+    print(p4)
+    print(p5)
+    print(p6)
+    
+    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE), 
+      list(EIF4E.pos, EIF4G1.pos, EIF4A1.pos))
+    allthree <- na.omit(allthree)
+    allthree$entrez = mapIds(org.Hs.eg.db,
+                             keys      = allthree$x, 
+                             column    = "ENTREZID",
+                             keytype   = "SYMBOL",
+                             multiVals = "first")
+    y <- enrichPathway(gene = allthree$entrez, readable = T)
+    p7 <- barplot(y, showCategory = 8)
+    p8 <- emapplot(y, 
+                   font.size = 18)
+    p9 <- dotplot(y, 
+                  font.size = 16, 
+                  title = "posCOR with EIF4E & EIF4A1 & EIF4G1")
+    p10 <- cnetplot(y)
+    print(p7)
+    print(p8)
+    print(p9)
+    print(p10)
+    }
+  plot.pos.pathway()
+  plot.neg.pathway <- function(){
+    EIF4E.neg <- na.omit(EIF4E.cor[EIF4E.cor$estimate < -0.3, ])
+    EIF4G1.neg <- na.omit(EIF4G1.cor[EIF4G1.cor$estimate < -0.3, ])
+    EIF4A1.neg <- na.omit(EIF4A1.cor[EIF4A1.cor$estimate < -0.3, ])
+    neg.overlap <- merge(EIF4G1.neg, EIF4A1.neg, by.x = "x", by.y = "x")
+    neg.overlap$entrez = mapIds(org.Hs.eg.db,
+                                keys      = neg.overlap$x, 
+                                column    = "ENTREZID",
+                                keytype   = "SYMBOL",
+                                multiVals = "first")
+    x <- enrichPathway(gene = neg.overlap$entrez, readable = T)
+    p3 <- barplot(x, showCategory = 8)
+    p4 <- dotplot(x, font.size = 16, title = "negCOR with EIF4A1 & EIF4G1")
+    p5 <- emapplot(x, font.size = 18)
+    p6 <- cnetplot(x)
+    print(p3)
+    print(p4)
+    print(p5)
+    print(p6)
+    
+    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE), 
+      list(EIF4E.neg, EIF4G1.neg, EIF4A1.neg))
+    allthree <- na.omit(allthree)
+    allthree$entrez = mapIds(org.Hs.eg.db,
+                             keys      = allthree$x, 
+                             column    = "ENTREZID",
+                             keytype   = "SYMBOL",
+                             multiVals = "first")
+    y <- enrichPathway(gene = allthree$entrez, readable = T)
+    p7 <- barplot(y, showCategory = 8)
+    p8 <- emapplot(y, 
+      font.size = 18)
+    p9 <- dotplot(y, 
+      font.size = 16, 
+      title = "negCOR with EIF4E & EIF4A1 & EIF4G1")
+    p10 <- cnetplot(y)
+    print(p7)
+    print(p8)
+    print(p9)
+    print(p10)
+  }
+  plot.neg.pathway()
+  }
 plot.EIF.correlation.pathway()
 
 plot.correlation.scatter <- function(x){
