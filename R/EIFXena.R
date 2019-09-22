@@ -19,6 +19,7 @@ library(igraph)
 library(KEGG.db)
 library(limma)
 library(org.Hs.eg.db)
+library(pheatmap)
 library(RColorBrewer)
 library(ReactomePA)
 library(readr)
@@ -36,9 +37,9 @@ names(EIF.gene) <- EIF.gene
 
 pan.TCGA.data <- function(){
   # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
-  TCGA.pancancer <- fread("/home/wagner/suwu/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
+  TCGA.pancancer <- fread("~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
   # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
-  TCGA.sampletype <- read_tsv("/home/wagner/suwu/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+  TCGA.sampletype <- read_tsv("~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
   TCGA.pancancer1 <- as.data.frame(TCGA.pancancer)
   TCGA.pancancer1 <- TCGA.pancancer1[!duplicated(TCGA.pancancer1$sample), ]
   TCGA.pancancer1 <- TCGA.pancancer1[ ,!duplicated(colnames(TCGA.pancancer1))]
@@ -57,16 +58,16 @@ pan.TCGA.data <- function(){
                                   all.x = TRUE)
   TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
   return(TCGA.RNAseq.sampletype)
-}
+  }
 TCGA.sampletype.all <- pan.TCGA.data()
 
 
 lung.gtex.tcga.data <- function(){
   # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
-  descr::file.head("/home/wagner/suwu/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", n = 5)
-  TCGA.GTEX <- fread("/home/wagner/suwu/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count")
+  descr::file.head("~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", n = 5)
+  TCGA.GTEX <- fread("~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count")
   # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-  Sampletype <- read_tsv("/home/wagner/suwu/Downloads/TcgaTargetGTEX_phenotype.tsv")
+  Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
   Lung <- Sampletype[Sampletype$`_primary_site` == "Lung",]
   Lung.ID <- as.vector(Lung$sample)
   Lung.ID <- na.omit(Lung.ID) # NA in the vector
@@ -88,10 +89,10 @@ lung.gtex.tcga.data <- function(){
   TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.Lung.t, 
                                      Lung, 
                                      by    = "row.names",
-                                     all.x = TRUE)https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
+                                     all.x = TRUE)
   TCGA.GTEX.Lung.sampletype <- as.data.frame(TCGA.GTEX.Lung.sampletype)
   return(TCGA.GTEX.Lung.sampletype)
-}
+  }
 TCGA.GTEX.sampletype.lung <- lung.gtex.tcga.data()
 
 ###
@@ -196,13 +197,13 @@ plot.heatmap.all <- function () {
 plot.heatmap.all()
 
 ###
-plot.heatmap.lung <- function () {
+plot.heatmap.lung <- function() {
   sample.type.list <- levels(as.factor(TCGA.GTEX.sampletype.lung$`_sample_type`))
-  EIF.cor.tumor <- function (){
+  EIF.cor.tumor <- function(){
     tumor.sample <- c("Primary Tumor", "Recurrent Tumor")
     TCGA.GTEX.tumor.lung <- TCGA.GTEX.sampletype.lung[
       TCGA.GTEX.sampletype.lung$`_sample_type` %in% tumor.sample, ]
-    EIF.correlation <- function (x, y) {
+    EIF.correlation <- function(x, y) {
       result <- cor.test(TCGA.GTEX.tumor.lung[[x]], 
                          TCGA.GTEX.tumor.lung[[y]], 
                          method = "pearson")
@@ -216,7 +217,7 @@ plot.heatmap.lung <- function () {
       }
     # find all genes positively correlate with EIF4F expression
     # lapply function gives a large list, need to convert it to a dataframe
-    Sampletype <- read_tsv("/home/wagner/suwu/Downloads/TcgaTargetGTEX_phenotype.tsv")
+    Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
     Lung <- Sampletype[Sampletype$`_primary_site` == "Lung",]
     geneID <- colnames(Lung)
     TCGA.GTEX.tumor.lung <- TCGA.GTEX.tumor.lung[ ,
@@ -256,7 +257,7 @@ plot.heatmap.lung <- function () {
     }
     # find all genes positively correlate with EIF4F expression
     # lapply function gives a large list, need to convert it to a dataframe
-    Sampletype <- read_tsv("/home/wagner/suwu/Downloads/TcgaTargetGTEX_phenotype.tsv")
+    Sampletype <- read_tsv("/home/wagner/suwu/Downloads/TcgaTargetGTEX_phenotype.txt")
     Lung <- Sampletype[Sampletype$`_primary_site` == "Lung",]
     geneID <- colnames(Lung)
     TCGA.GTEX.normal.lung <- TCGA.GTEX.normal.lung[ ,
