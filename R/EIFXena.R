@@ -35,10 +35,9 @@ EIF.gene <- c("EIF4E",
 names(EIF.gene) <- EIF.gene
 
 pan.TCGA.data <- function(){
-  # TCGA.gtex.tcga <- fread("/home/wagner/suwu/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count")
-  # TCGA.sampletype <- read_tsv("/home/wagner/suwu/Downloads/TcgaTargetGTEX_phenotype.tsv")
+  # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
   TCGA.pancancer <- fread("/home/wagner/suwu/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
-  # test datasets
+  # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
   TCGA.sampletype <- read_tsv("/home/wagner/suwu/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
   TCGA.pancancer1 <- as.data.frame(TCGA.pancancer)
   TCGA.pancancer1 <- TCGA.pancancer1[!duplicated(TCGA.pancancer1$sample), ]
@@ -63,16 +62,15 @@ TCGA.sampletype.all <- pan.TCGA.data()
 
 
 lung.gtex.tcga.data <- function(){
+  # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
   descr::file.head("/home/wagner/suwu/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", n = 5)
   TCGA.GTEX <- fread("/home/wagner/suwu/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count")
+  # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
   Sampletype <- read_tsv("/home/wagner/suwu/Downloads/TcgaTargetGTEX_phenotype.tsv")
   Lung <- Sampletype[Sampletype$`_primary_site` == "Lung",]
   Lung.ID <- as.vector(Lung$sample)
   Lung.ID <- na.omit(Lung.ID) # NA in the vector
   TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)  
-  # TCGA.pancancer <- fread("/home/wagner/suwu/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
-  # test datasets
-  # TCGA.sampletype <- read.csv.ffdf("/home/wagner/suwu/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
   TCGA.GTEX.Lung1 <- as.data.frame(TCGA.GTEX.Lung)
   TCGA.GTEX.Lung1 <- TCGA.GTEX.Lung1[!duplicated(TCGA.GTEX.Lung1$sample), 
                                      !duplicated(colnames(TCGA.GTEX.Lung1))]
@@ -90,7 +88,7 @@ lung.gtex.tcga.data <- function(){
   TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.Lung.t, 
                                      Lung, 
                                      by    = "row.names",
-                                     all.x = TRUE)
+                                     all.x = TRUE)https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
   TCGA.GTEX.Lung.sampletype <- as.data.frame(TCGA.GTEX.Lung.sampletype)
   return(TCGA.GTEX.Lung.sampletype)
 }
@@ -354,14 +352,12 @@ plot.heatmap.lung <- function () {
 }
 plot.heatmap.lung()
 
-data(gcSample)
-res <- compareCluster(gcSample, fun="enrichPathway")
-dotplot(res)
+
 ###
 plot.EIF.cor.pathway.all <- function() {
   TCGA.RNAseq.sampletype <- TCGA.sampletype.all[
     TCGA.sampletype.all$sample_type != "Solid Tissue Normal", ]
-  EIF.correlation <- function (x, y) {
+  EIF.correlation <- function(x, y) {
     result <- cor.test(TCGA.RNAseq.sampletype[[x]], 
                        TCGA.RNAseq.sampletype[[y]], 
                        method = "pearson")
@@ -371,7 +367,7 @@ plot.EIF.cor.pathway.all <- function() {
                                "p.value",
                                "statistic",
                                "method")], 
-                      stringsAsFactors=FALSE)
+                      stringsAsFactors = FALSE)
     }
 # find all genes positively correlate with EIF4F expression
 # lapply function gives a large list, need to convert it to a dataframe
