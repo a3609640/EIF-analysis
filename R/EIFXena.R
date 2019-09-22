@@ -257,7 +257,7 @@ plot.heatmap.lung <- function() {
     }
     # find all genes positively correlate with EIF4F expression
     # lapply function gives a large list, need to convert it to a dataframe
-    Sampletype <- read_tsv("/home/wagner/suwu/Downloads/TcgaTargetGTEX_phenotype.txt")
+    Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
     Lung <- Sampletype[Sampletype$`_primary_site` == "Lung",]
     geneID <- colnames(Lung)
     TCGA.GTEX.normal.lung <- TCGA.GTEX.normal.lung[ ,
