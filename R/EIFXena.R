@@ -7,8 +7,7 @@ library(descr)
 library(dplyr)
 library(EnvStats)
 library(eulerr)
-library(ff)
-library(ffbase)
+
 library(ggfortify)
 library(ggplot2)
 library(ggpubr)
@@ -551,7 +550,7 @@ plot.EIF.cor.pathway.lung <- function() {
     }
   # find all genes positively correlate with EIF4F expression
   # lapply function gives a large list, need to convert it to a dataframe
-  Sampletype <- read_tsv("/home/wagner/suwu/Downloads/TcgaTargetGTEX_phenotype.tsv")
+  Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
   Lung <- Sampletype[Sampletype$`_primary_site` == "Lung",]
   geneID <- colnames(Lung)
   TCGA.RNAseq.sampletype <- TCGA.RNAseq.sampletype[ ,
