@@ -42,22 +42,217 @@ black_bold_tahoma_12 <- element_text(color  = "black",
                                      family = "Tahoma",
                                      size   = 12)
 
+
+###
+plot.heatmap.total <- function() {
+  Lung <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  Sample.ID <- na.omit(colnames(TCGA.GTEX)) # NA in the vector
+  tissue.GTEX.TCGA.gene <- function(){
+    # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
+    TCGA.GTEX <- fread(
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      data.table = FALSE) # data.table = FALSE gives data.frame
+    # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
+    TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
+      !duplicated(colnames(TCGA.GTEX))]
+    row.names(TCGA.GTEX) <- TCGA.GTEX$sample
+    TCGA.GTEX$sample <- NULL
+    TCGA.GTEX.t <- data.table::transpose(TCGA.GTEX)
+    rownames(TCGA.GTEX.t) <- colnames(TCGA.GTEX)
+    colnames(TCGA.GTEX.t) <- rownames(TCGA.GTEX)
+    
+    Lung <- Lung[!duplicated(Lung$sample), ]
+    Lung <- Lung[Lung$`_sample_type` %in% Sample.ID, ]
+    Lung <- na.omit(Lung)
+    row.names(Lung) <- Lung$sample
+    Lung$sample <- NULL
+    TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.t,
+      Lung$`_sample_type`,
+      by    = "row.names",
+      all.x = TRUE)
+    TCGA.GTEX.Lung.sampletype <- as.data.frame(TCGA.GTEX.Lung.sampletype)
+    return(TCGA.GTEX.Lung.sampletype)
+  }
+  TCGA.GTEX.sampletype.lung <- tissue.GTEX.TCGA.gene()
+  TCGA.GTEX.lung <- TCGA.GTEX.sampletype.lung[ ,
+    !names(TCGA.GTEX.sampletype.lung) %in% c("Row.names", Sample.ID)]
+  gene.name <- names(TCGA.GTEX.lung)
+  EIF.correlation <- function(y){
+    TCGA.GTEX.tumor.lung <- TCGA.GTEX.sampletype.lung[
+      TCGA.GTEX.sampletype.lung$`_sample_type` %in% y, ]
+    correlation.coefficient <- function(x, y) {
+      result <- cor.test(TCGA.GTEX.tumor.lung[[x]],
+        TCGA.GTEX.tumor.lung[[y]],
+        method = "pearson")
+      res <- data.frame(x,
+        y,
+        result[c("estimate",
+          "p.value",
+          "statistic",
+          "method")],
+        stringsAsFactors=FALSE)
+    }
+    # find all genes positively correlate with EIF4F expression
+    # lapply function gives a large list, need to convert it to a dataframe
+    EIF.cor.list <- function(x) {
+      cor.data <- do.call(rbind.data.frame,
+        lapply(gene.name,
+          correlation.coefficient,
+          y = x))
+      rownames(cor.data) <- cor.data[,1]
+      return(cor.data)
+    }
+    EIF4E.cor <- EIF.cor.list("EIF4E")
+    EIF4G1.cor <- EIF.cor.list("EIF4G1")
+    EIF4A1.cor <- EIF.cor.list("EIF4A1")
+    cor.data <- cbind(setNames(data.frame(EIF4E.cor[3]), c('EIF4E')),
+      setNames(data.frame(EIF4G1.cor[3]), c('EIF4G1')),
+      setNames(data.frame(EIF4A1.cor[3]), c('EIF4A1')))
+    return(cor.data)
+  }
+  EIF.cor.tumor <- EIF.correlation(y = c("Primary Tumor", 
+    "Metastatic", 
+    "Recurrent Tumor"))
+  EIF.cor.normal <- EIF.correlation(y = c("Normal Tissue"))
+  cor.data <- cbind(setNames(data.frame(EIF.cor.tumor[1:3]),
+    c('EIF4E.tumor',
+      'EIF4G1.tumor',
+      'EIF4A1.tumor')),
+    setNames(data.frame(EIF.cor.normal[1:3]),
+      c('EIF4E.normal',
+        'EIF4G1.normal',
+        'EIF4A1.normal')))
+  DF <- as.matrix(na.omit(cor.data[cor.data$EIF4E.tumor > 0.3 |
+      cor.data$EIF4G1.tumor > 0.3 |
+      cor.data$EIF4A1.tumor > 0.3 |
+      cor.data$EIF4E.normal > 0.3 |
+      cor.data$EIF4G1.normal > 0.3 |
+      cor.data$EIF4A1.normal > 0.3 ,  ]))
+  ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options
+  ht1 = Heatmap(DF,
+    name                 = "Correlation Coefficient",
+    heatmap_legend_param = list(direction = "horizontal"),
+    show_row_names       = FALSE,
+    show_column_names    = FALSE,
+    bottom_annotation    = HeatmapAnnotation(
+      annotation_legend_param = list(direction = "horizontal"),
+      type     = c("tumor", "tumor","tumor",
+        "normal","normal","normal"),
+      col      = list(type = c("tumor"  = "pink", 
+        "normal" = "royalblue")),
+      cn       = anno_text(gsub("\\..*","",colnames(DF)),
+        location = 1,
+        rot      = 45,
+        just     = "right",
+        gp       = gpar(fontsize = 14,
+          fontface = "bold"))),
+    row_km         = 3,
+    row_km_repeats = 100,
+    row_title      = "cluster_%s",
+    row_title_gp   = gpar(fontsize = 14,
+      fontface = "bold"),
+    border         = TRUE,
+    col            = circlize::colorRamp2(seq(min(DF), max(DF), length = 3),
+      c("blue", "#EEEEEE", "red")))
+  ht = draw(ht1,
+    merge_legends       = TRUE,
+    heatmap_legend_side = "top")
+  ## try to extract clusters from heatmap
+  # Saving row names of cluster one  
+  plot.cluster.pathway <- function() {
+    cluster.geneID.list <- function(x) {
+      c1 <- t(t(row.names(DF[row_order(ht1)[[x]],])))
+      c1 <- as.data.frame(c1)
+      c1$V1 <- as.character(c1$V1)
+      c1$entrez = mapIds(org.Hs.eg.db,
+        keys      = c1$V1,
+        column    = "ENTREZID",
+        keytype   = "SYMBOL",
+        multiVals = "first")
+      # c1 <- c1[!is.na(c1)]
+      c1 <- na.omit(c1)
+      return(c1$entrez)
+    }
+    cluster.num <- as.character(c(1:3))
+    names(cluster.num) <- paste("cluster", 1:3)
+    cluster.data <- lapply(cluster.num, cluster.geneID.list)
+    ck.GO <- compareCluster(geneCluster = cluster.data,
+      fun         = "enrichGO",
+      OrgDb       = 'org.Hs.eg.db')
+    ck.KEGG <- compareCluster(geneCluster = cluster.data,
+      fun         = "enrichKEGG")
+    ck.REACTOME <- compareCluster(geneCluster = cluster.data,
+      fun         = "enrichPathway")
+    print(dotplot(ck.GO,
+      title        = "The Most Enriched GO Pathways",
+      showCategory = 8,
+      font.size    = 18,
+      includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title   = black_bold_tahoma_16,
+          axis.title   = black_bold_tahoma_16,
+          axis.text.x  = black_bold_tahoma_16,
+          axis.text.y  = black_bold_tahoma_16,
+          axis.line.x  = element_line(color = "black"),
+          axis.line.y  = element_line(color = "black"),
+          panel.grid   = element_blank(),
+          legend.title = black_bold_tahoma_16,
+          legend.text  = black_bold_tahoma_16,
+          strip.text   = black_bold_tahoma_16))
+    print(dotplot(ck.KEGG,
+      title        = "The Most Enriched KEGG Pathways",
+      showCategory = 8,
+      font.size    = 18,
+      includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title   = black_bold_tahoma_16,
+          axis.title   = black_bold_tahoma_16,
+          axis.text.x  = black_bold_tahoma_16,
+          axis.text.y  = black_bold_tahoma_16,
+          axis.line.x  = element_line(color = "black"),
+          axis.line.y  = element_line(color = "black"),
+          panel.grid   = element_blank(),
+          legend.title = black_bold_tahoma_16,
+          legend.text  = black_bold_tahoma_16,
+          strip.text   = black_bold_tahoma_16))
+    print(dotplot(ck.REACTOME,
+      title        = "The Most Enriched REACTOME Pathways",
+      showCategory = 8,
+      font.size    = 16,
+      includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title   = black_bold_tahoma_16,
+          axis.title   = black_bold_tahoma_16,
+          axis.text.x  = black_bold_tahoma_16,
+          axis.text.y  = black_bold_tahoma_16,
+          axis.line.x  = element_line(color = "black"),
+          axis.line.y  = element_line(color = "black"),
+          panel.grid   = element_blank(),
+          legend.title = black_bold_tahoma_16,
+          legend.text  = black_bold_tahoma_16,
+          strip.text   = black_bold_tahoma_16))
+  }
+  plot.cluster.pathway()
+}
+plot.heatmap.total()
+
 ###
 plot.heatmap.all.TCGA <- function () {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
-    TCGA.pancancer <- fread("~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
+    TCGA.pancancer <- fread(
+      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv("~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
-    TCGA.pancancer1 <- as.data.frame(TCGA.pancancer)
-    TCGA.pancancer1 <- TCGA.pancancer1[!duplicated(TCGA.pancancer1$sample), ]
-    TCGA.pancancer1 <- TCGA.pancancer1[ ,!duplicated(colnames(TCGA.pancancer1))]
-    TCGA.pancancer2 <- TCGA.pancancer1
-    row.names(TCGA.pancancer2) <- TCGA.pancancer1$sample
-    TCGA.pancancer2$sample <- NULL
-    TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer2)
-    rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer2)
-    colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer2)
+    # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
+    TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
+                                      !duplicated(colnames(TCGA.pancancer))]
+    row.names(TCGA.pancancer1) <- TCGA.pancancer1$sample
+    TCGA.pancancer1$sample <- NULL
+    TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer1)
+    rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer1)
+    colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer1)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
@@ -71,9 +266,9 @@ plot.heatmap.all.TCGA <- function () {
   TCGA.sampletype.all <- pan.TCGA.gene()
   sample.type.list <- levels(as.factor(TCGA.sampletype.all$sample_type))
   EIF.cor.tumor <- function (){
-    Tumors <- sample.type.list[! sample.type.list %in% "Solid Tissue Normal"]
+    # Tumors <- sample.type.list[! sample.type.list %in% "Solid Tissue Normal"]
     TCGA.RNAseq.sampletype <- TCGA.sampletype.all[
-      TCGA.sampletype.all$sample_type %in% Tumors, ]
+      !TCGA.sampletype.all$sample_type %in% "Solid Tissue Normal", ]
     EIF.correlation <- function (x, y) {
       result <- cor.test(TCGA.RNAseq.sampletype[[x]],
                          TCGA.RNAseq.sampletype[[y]],
@@ -158,12 +353,14 @@ plot.heatmap.all.TCGA <- function () {
                bottom_annotation    = HeatmapAnnotation(
                 cn   = anno_text(colnames(DF),
                                  location = 0,
-                                 rot  = 0,
-                                 just = "center",
-                                 gp   = gpar(fontsize = 14,
-                                             fontface = "bold"))),
+                                 rot      = 0,
+                                 just     = "center",
+                                 gp       = gpar(fontsize = 14,
+                                                 fontface = "bold"))),
                row_km           = 3,
                row_title        = "cluster_%s",
+               row_title_gp     = gpar(fontsize = 14,
+                                       fontface = "bold"),
                border           = TRUE,
                col              = colorRamp2(c(-1, 0, 1),
                                              c("blue", "white", "red")))
@@ -187,61 +384,61 @@ plot.heatmap.all.TCGA <- function () {
     cluster.num <- as.character(c(1:3))
     names(cluster.num) <- paste("cluster", 1:3)
     cluster.data <- lapply(cluster.num, cluster.gene.list)
-    ck.GO <- compareCluster(geneCluster = cluster.data,
-                            fun         = "enrichGO",
-                            OrgDb       = 'org.Hs.eg.db')
-    ck.KEGG <- compareCluster(geneCluster = cluster.data,
-                              fun         = "enrichKEGG")
-    ck.REACTOM <- compareCluster(geneCluster = cluster.data,
-                                 fun         = "enrichPathway")
+    ck.GO <- compareCluster(geneCluster       = cluster.data,
+                            fun               = "enrichGO",
+                            OrgDb             = 'org.Hs.eg.db')
+    ck.KEGG <- compareCluster(geneCluster     = cluster.data,
+                              fun             = "enrichKEGG")
+    ck.REACTOME <- compareCluster(geneCluster = cluster.data,
+                                  fun         = "enrichPathway")
     print(dotplot(ck.GO,
                   title        = "The Most Enriched GO Pathways",
                   showCategory = 8,
                   font.size    = 18,
                   includeAll   = FALSE) +
         theme_bw() +
-        theme(plot.title      = black_bold_tahoma_16,
-              axis.title      = black_bold_tahoma_16,
-              axis.text.x     = black_bold_tahoma_16,
-              axis.text.y     = black_bold_tahoma_16,
-              axis.line.x     = element_line(color = "black"),
-              axis.line.y     = element_line(color = "black"),
-              panel.grid      = element_blank(),
-              legend.title    = black_bold_tahoma_16,
-              legend.text     = black_bold_tahoma_16,
-              strip.text      = black_bold_tahoma_16))
+        theme(plot.title       = black_bold_tahoma_16,
+              axis.title       = black_bold_tahoma_16,
+              axis.text.x      = black_bold_tahoma_16,
+              axis.text.y      = black_bold_tahoma_16,
+              axis.line.x      = element_line(color = "black"),
+              axis.line.y      = element_line(color = "black"),
+              panel.grid       = element_blank(),
+              legend.title     = black_bold_tahoma_16,
+              legend.text      = black_bold_tahoma_16,
+              strip.text       = black_bold_tahoma_16))
     print(dotplot(ck.KEGG,
                   title        = "The Most Enriched KEGG Pathways",
                   showCategory = 8,
                   font.size    = 18,
                   includeAll   = FALSE) +
         theme_bw() +
-        theme(plot.title      = black_bold_tahoma_16,
-              axis.title      = black_bold_tahoma_16,
-              axis.text.x     = black_bold_tahoma_16,
-              axis.text.y     = black_bold_tahoma_16,
-              axis.line.x     = element_line(color = "black"),
-              axis.line.y     = element_line(color = "black"),
-              panel.grid      = element_blank(),
-              legend.title    = black_bold_tahoma_16,
-              legend.text     = black_bold_tahoma_16,
-              strip.text      = black_bold_tahoma_16))
-    print(dotplot(ck.REACTOM,
+        theme(plot.title       = black_bold_tahoma_16,
+              axis.title       = black_bold_tahoma_16,
+              axis.text.x      = black_bold_tahoma_16,
+              axis.text.y      = black_bold_tahoma_16,
+              axis.line.x      = element_line(color = "black"),
+              axis.line.y      = element_line(color = "black"),
+              panel.grid       = element_blank(),
+              legend.title     = black_bold_tahoma_16,
+              legend.text      = black_bold_tahoma_16,
+              strip.text       = black_bold_tahoma_16))
+    print(dotplot(ck.REACTOME,
                   title        = "The Most Enriched REACTOME Pathways",
                   showCategory = 8,
                   font.size    = 16,
                   includeAll   = FALSE) +
         theme_bw() +
-        theme(plot.title      = black_bold_tahoma_16,
-              axis.title      = black_bold_tahoma_16,
-              axis.text.x     = black_bold_tahoma_16,
-              axis.text.y     = black_bold_tahoma_16,
-              axis.line.x     = element_line(color = "black"),
-              axis.line.y     = element_line(color = "black"),
-              panel.grid      = element_blank(),
-              legend.title    = black_bold_tahoma_16,
-              legend.text     = black_bold_tahoma_16,
-              strip.text      = black_bold_tahoma_16))
+        theme(plot.title       = black_bold_tahoma_16,
+              axis.title       = black_bold_tahoma_16,
+              axis.text.x      = black_bold_tahoma_16,
+              axis.text.y      = black_bold_tahoma_16,
+              axis.line.x      = element_line(color = "black"),
+              axis.line.y      = element_line(color = "black"),
+              panel.grid       = element_blank(),
+              legend.title     = black_bold_tahoma_16,
+              legend.text      = black_bold_tahoma_16,
+              strip.text       = black_bold_tahoma_16))
   }
   plot.cluster.pathway()
     }
@@ -250,18 +447,17 @@ plot.heatmap.all.TCGA()
 ###
 plot.heatmap.all.GTEx <- function () {
     # download https://toil.xenahubs.net/download/gtex_RSEM_Hugo_norm_count.gz
-    TCGA.pancancer <- fread("~/Downloads/gtex_RSEM_Hugo_norm_count.tsv")
+    TCGA.pancancer <- fread("~/Downloads/gtex_RSEM_Hugo_norm_count.tsv", data.table=FALSE)
     # download https://toil.xenahubs.net/download/GTEX_phenotype.gz
     TCGA.sampletype <- read_tsv("~/Downloads/GTEX_phenotype.tsv")
-    TCGA.pancancer1 <- as.data.frame(TCGA.pancancer)
-    TCGA.pancancer1 <- TCGA.pancancer1[!duplicated(TCGA.pancancer1$sample), 
-                                       !duplicated(colnames(TCGA.pancancer1))]
-    TCGA.pancancer2 <- TCGA.pancancer1
-    row.names(TCGA.pancancer2) <- TCGA.pancancer1$sample
-    TCGA.pancancer2$sample <- NULL
-    TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer2)
-    rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer2)
-    colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer2)
+    # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
+    TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
+                                      !duplicated(colnames(TCGA.pancancer))]
+    row.names(TCGA.pancancer1) <- TCGA.pancancer1$sample
+    TCGA.pancancer1$sample <- NULL
+    TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer1)
+    rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer1)
+    colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer1)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
@@ -402,10 +598,10 @@ plot.heatmap.all.GTEx <- function () {
       c1 <- as.data.frame(c1)
       c1$V1 <- as.character(c1$V1)
       c1$entrez = mapIds(org.Hs.eg.db,
-        keys      = c1$V1,
-        column    = "ENTREZID",
-        keytype   = "SYMBOL",
-        multiVals = "first")
+                         keys      = c1$V1,
+                         column    = "ENTREZID",
+                         keytype   = "SYMBOL",
+                         multiVals = "first")
       # c1 <- c1[!is.na(c1)]
       c1 <- na.omit(c1)
       return(c1$entrez)
@@ -418,56 +614,56 @@ plot.heatmap.all.GTEx <- function () {
                             OrgDb       = 'org.Hs.eg.db')
     ck.KEGG <- compareCluster(geneCluster = cluster.data,
                               fun         = "enrichKEGG")
-    ck.REACTOM <- compareCluster(geneCluster = cluster.data,
-                                 fun         = "enrichPathway")
+    ck.REACTOME <- compareCluster(geneCluster = cluster.data,
+                                  fun         = "enrichPathway")
     print(dotplot(ck.GO,
-      title        = "The Most Enriched GO Pathways",
-      showCategory = 8,
-      font.size    = 18,
-      includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title      = black_bold_tahoma_16,
-          axis.title      = black_bold_tahoma_16,
-          axis.text.x     = black_bold_tahoma_16,
-          axis.text.y     = black_bold_tahoma_16,
-          axis.line.x     = element_line(color = "black"),
-          axis.line.y     = element_line(color = "black"),
-          panel.grid      = element_blank(),
-          legend.title    = black_bold_tahoma_16,
-          legend.text     = black_bold_tahoma_16,
-          strip.text      = black_bold_tahoma_16))
+                  title         = "The Most Enriched GO Pathways",
+                  showCategory  = 8,
+                  font.size     = 18,
+                  includeAll    = FALSE) +
+          theme_bw() +
+          theme(plot.title      = black_bold_tahoma_16,
+                axis.title      = black_bold_tahoma_16,
+                axis.text.x     = black_bold_tahoma_16,
+                axis.text.y     = black_bold_tahoma_16,
+                axis.line.x     = element_line(color = "black"),
+                axis.line.y     = element_line(color = "black"),
+                panel.grid      = element_blank(),
+                legend.title    = black_bold_tahoma_16,
+                legend.text     = black_bold_tahoma_16,
+                strip.text      = black_bold_tahoma_16))
     print(dotplot(ck.KEGG,
-      title        = "The Most Enriched KEGG Pathways",
-      showCategory = 8,
-      font.size    = 18,
-      includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title      = black_bold_tahoma_16,
-          axis.title      = black_bold_tahoma_16,
-          axis.text.x     = black_bold_tahoma_16,
-          axis.text.y     = black_bold_tahoma_16,
-          axis.line.x     = element_line(color = "black"),
-          axis.line.y     = element_line(color = "black"),
-          panel.grid      = element_blank(),
-          legend.title    = black_bold_tahoma_16,
-          legend.text     = black_bold_tahoma_16,
-          strip.text      = black_bold_tahoma_16))
-    print(dotplot(ck.REACTOM,
-      title        = "The Most Enriched REACTOME Pathways",
-      showCategory = 8,
-      font.size    = 16,
-      includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title      = black_bold_tahoma_16,
-          axis.title      = black_bold_tahoma_16,
-          axis.text.x     = black_bold_tahoma_16,
-          axis.text.y     = black_bold_tahoma_16,
-          axis.line.x     = element_line(color = "black"),
-          axis.line.y     = element_line(color = "black"),
-          panel.grid      = element_blank(),
-          legend.title    = black_bold_tahoma_16,
-          legend.text     = black_bold_tahoma_16,
-          strip.text      = black_bold_tahoma_16))
+                  title         = "The Most Enriched KEGG Pathways",
+                  showCategory  = 8,
+                  font.size     = 18,
+                  includeAll    = FALSE) +
+          theme_bw() +
+          theme(plot.title      = black_bold_tahoma_16,
+                axis.title      = black_bold_tahoma_16,
+                axis.text.x     = black_bold_tahoma_16,
+                axis.text.y     = black_bold_tahoma_16,
+                axis.line.x     = element_line(color = "black"),
+                axis.line.y     = element_line(color = "black"),
+                panel.grid      = element_blank(),
+                legend.title    = black_bold_tahoma_16,
+                legend.text     = black_bold_tahoma_16,
+                strip.text      = black_bold_tahoma_16))
+    print(dotplot(ck.REACTOME,
+                  title         = "The Most Enriched REACTOME Pathways",
+                  showCategory  = 8,
+                  font.size     = 16,
+                  includeAll    = FALSE) +
+          theme_bw() +
+          theme(plot.title      = black_bold_tahoma_16,
+                axis.title      = black_bold_tahoma_16,
+                axis.text.x     = black_bold_tahoma_16,
+                axis.text.y     = black_bold_tahoma_16,
+                axis.line.x     = element_line(color = "black"),
+                axis.line.y     = element_line(color = "black"),
+                panel.grid      = element_blank(),
+                legend.title    = black_bold_tahoma_16,
+                legend.text     = black_bold_tahoma_16,
+                strip.text      = black_bold_tahoma_16))
   }
   plot.cluster.pathway()
 }
@@ -475,38 +671,38 @@ plot.heatmap.all.GTEx()
 
 ### plot heatmap, Venn diagram and pathway analysis on clusters ###
 plot.heatmap.lung <- function(x) {
+  # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
+  Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
   tissue.GTEX.TCGA.gene <- function(x){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
-    TCGA.GTEX <- fread("~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count")
-    # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-    Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+    TCGA.GTEX <- fread(
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      data.table = FALSE)
     Lung <- Sampletype[Sampletype$`_primary_site` == x,]
     Lung.ID <- as.vector(Lung$sample)
     Lung.ID <- na.omit(Lung.ID) # NA in the vector
     TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)
-    TCGA.GTEX.Lung1 <- as.data.frame(TCGA.GTEX.Lung)
-    TCGA.GTEX.Lung1 <- TCGA.GTEX.Lung1[!duplicated(TCGA.GTEX.Lung1$sample),
-      !duplicated(colnames(TCGA.GTEX.Lung1))]
-    TCGA.GTEX.Lung2 <- TCGA.GTEX.Lung1
-    row.names(TCGA.GTEX.Lung2) <- TCGA.GTEX.Lung2$sample
-    TCGA.GTEX.Lung2$sample <- NULL
-    TCGA.GTEX.Lung.t <- data.table::transpose(TCGA.GTEX.Lung2)
-    rownames(TCGA.GTEX.Lung.t) <- colnames(TCGA.GTEX.Lung2)
-    colnames(TCGA.GTEX.Lung.t) <- rownames(TCGA.GTEX.Lung2)
+    #   TCGA.GTEX.Lung1 <- as.data.frame(TCGA.GTEX.Lung)
+    TCGA.GTEX.Lung <- TCGA.GTEX.Lung[!duplicated(TCGA.GTEX.Lung$sample), 
+                                     !duplicated(colnames(TCGA.GTEX.Lung))]
+    row.names(TCGA.GTEX.Lung) <- TCGA.GTEX.Lung$sample
+    TCGA.GTEX.Lung$sample <- NULL
+    TCGA.GTEX.Lung.t <- data.table::transpose(TCGA.GTEX.Lung)
+    rownames(TCGA.GTEX.Lung.t) <- colnames(TCGA.GTEX.Lung)
+    colnames(TCGA.GTEX.Lung.t) <- rownames(TCGA.GTEX.Lung)
     
     Lung <- Lung[!duplicated(Lung$sample), ]
     Lung <- na.omit(Lung)
     row.names(Lung) <- Lung$sample
     Lung$sample <- NULL
     TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.Lung.t,
-      Lung,
-      by    = "row.names",
-      all.x = TRUE)
+                                       Lung,
+                                       by    = "row.names",
+                                       all.x = TRUE)
     TCGA.GTEX.Lung.sampletype <- as.data.frame(TCGA.GTEX.Lung.sampletype)
     return(TCGA.GTEX.Lung.sampletype)
   }
   TCGA.GTEX.sampletype.lung <- tissue.GTEX.TCGA.gene(x)
-  Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
   geneID <- colnames(Sampletype[Sampletype$`_primary_site` == x,])
   TCGA.GTEX.lung <- TCGA.GTEX.sampletype.lung[ ,
     !names(TCGA.GTEX.sampletype.lung) %in% c("Row.names", geneID)]
@@ -587,13 +783,9 @@ plot.heatmap.lung <- function(x) {
                                                 EIF.cor.normal$EIF4G1 > 0.3 |
                                                 EIF.cor.normal$EIF4A1 > 0.3 , ]))
   cor.data <- cbind(setNames(data.frame(EIF.cor.tumor[1:3]),
-                                        c('EIF4E.tumor',
-                                          'EIF4G1.tumor',
-                                          'EIF4A1.tumor')),
+                             c('EIF4E.tumor','EIF4G1.tumor','EIF4A1.tumor')),
                     setNames(data.frame(EIF.cor.normal[1:3]),
-                                        c('EIF4E.normal',
-                                          'EIF4G1.normal',
-                                          'EIF4A1.normal')))
+                             c('EIF4E.normal','EIF4G1.normal','EIF4A1.normal')))
   DF <- as.matrix(na.omit(cor.data[cor.data$EIF4E.tumor > 0.3 |
                                    cor.data$EIF4G1.tumor > 0.3 |
                                    cor.data$EIF4A1.tumor > 0.3 |
@@ -631,7 +823,7 @@ plot.heatmap.lung <- function(x) {
     row_title      = "cluster_%s",
     row_title_gp   = gpar(fontsize = 14,
                           fontface = "bold"),
-    border         = TRUE,
+    #border         = TRUE,
     col            = circlize::colorRamp2(seq(min(DF), max(DF), length = 3),
                                           c("blue", "#EEEEEE", "red")))
   ht = draw(ht1,
@@ -714,7 +906,7 @@ plot.heatmap.lung <- function(x) {
     }
   plot.cluster.pathway()
 }
-plot.heatmap.lung(x = "Lung")
+plot.heatmap.lung(x = "Pancreas")
 
 ###
 plot.EIF.cor.pathway.all <- function() {
@@ -2645,7 +2837,6 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
   #  print(tst)
 }
 
-
 ######################
 ## plot correlation ##
 ######################
@@ -2919,8 +3110,8 @@ lapply(EIF.gene, plot.km.EIF.all.tumors)
 
 plot.km.EIF.each.tumor("MYC", "Breast Invasive Carcinoma")
 lapply(get.disease.list("EIF4E"),
-  plot.km.EIF.each.tumor,
-  EIF = "MYC")
+       plot.km.EIF.each.tumor,
+       EIF = "MYC")
 
 lapply(EIF.gene,
   plot.km.EIF.each.tumor,
