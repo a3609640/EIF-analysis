@@ -1,13 +1,12 @@
 library(AnnotationDbi)
 library(clusterProfiler)
-library(circlize) ## For color options
+library(circlize) ## for color options
 library(ComplexHeatmap)
 library(data.table)
 library(descr)
 library(dplyr)
 library(EnvStats)
 library(eulerr)
-
 library(ggfortify)
 library(ggplot2)
 library(ggpubr)
@@ -34,83 +33,57 @@ EIF.gene <- c("EIF4E",
               "EIF4EBP1")
 names(EIF.gene) <- EIF.gene
 
-pan.TCGA.data <- function(){
-  # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
-  TCGA.pancancer <- fread("~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
-  # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
-  TCGA.sampletype <- read_tsv("~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
-  TCGA.pancancer1 <- as.data.frame(TCGA.pancancer)
-  TCGA.pancancer1 <- TCGA.pancancer1[!duplicated(TCGA.pancancer1$sample), ]
-  TCGA.pancancer1 <- TCGA.pancancer1[ ,!duplicated(colnames(TCGA.pancancer1))]
-  TCGA.pancancer2 <- TCGA.pancancer1
-  row.names(TCGA.pancancer2) <- TCGA.pancancer1$sample
-  TCGA.pancancer2$sample <- NULL
-  TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer2)
-  rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer2)
-  colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer2)
-  row.names(TCGA.sampletype) <- TCGA.sampletype$sample
-  TCGA.sampletype$sample <- NULL
-  TCGA.sampletype$sample_type_id <- NULL
-  TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose, 
-                                  TCGA.sampletype, 
-                                  by    = "row.names",
-                                  all.x = TRUE)
-  TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
-  return(TCGA.RNAseq.sampletype)
-  }
-TCGA.sampletype.all <- pan.TCGA.data()
-
-
-lung.gtex.tcga.data <- function(){
-  # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
-  descr::file.head("~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", n = 5)
-  TCGA.GTEX <- fread("~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count")
-  # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-  Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
-  Lung <- Sampletype[Sampletype$`_primary_site` == "Lung",]
-  Lung.ID <- as.vector(Lung$sample)
-  Lung.ID <- na.omit(Lung.ID) # NA in the vector
-  TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)  
-  TCGA.GTEX.Lung1 <- as.data.frame(TCGA.GTEX.Lung)
-  TCGA.GTEX.Lung1 <- TCGA.GTEX.Lung1[!duplicated(TCGA.GTEX.Lung1$sample), 
-                                     !duplicated(colnames(TCGA.GTEX.Lung1))]
-  TCGA.GTEX.Lung2 <- TCGA.GTEX.Lung1
-  row.names(TCGA.GTEX.Lung2) <- TCGA.GTEX.Lung2$sample
-  TCGA.GTEX.Lung2$sample <- NULL
-  TCGA.GTEX.Lung.t <- data.table::transpose(TCGA.GTEX.Lung2)
-  rownames(TCGA.GTEX.Lung.t) <- colnames(TCGA.GTEX.Lung2)
-  colnames(TCGA.GTEX.Lung.t) <- rownames(TCGA.GTEX.Lung2)
-  
-  Lung <- Lung[!duplicated(Lung$sample), ]
-  Lung <- na.omit(Lung)
-  row.names(Lung) <- Lung$sample
-  Lung$sample <- NULL
-  TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.Lung.t, 
-                                     Lung, 
-                                     by    = "row.names",
-                                     all.x = TRUE)
-  TCGA.GTEX.Lung.sampletype <- as.data.frame(TCGA.GTEX.Lung.sampletype)
-  return(TCGA.GTEX.Lung.sampletype)
-  }
-TCGA.GTEX.sampletype.lung <- lung.gtex.tcga.data()
+black_bold_tahoma_16 <- element_text(color  = "black",
+                                     face   = "bold",
+                                     family = "Tahoma",
+                                     size   = 16)
+black_bold_tahoma_12 <- element_text(color  = "black",
+                                     face   = "bold",
+                                     family = "Tahoma",
+                                     size   = 12)
 
 ###
-plot.heatmap.all <- function () {
+plot.heatmap.all.TCGA <- function () {
+  pan.TCGA.gene <- function(){
+    # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
+    TCGA.pancancer <- fread("~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena")
+    # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
+    TCGA.sampletype <- read_tsv("~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+    TCGA.pancancer1 <- as.data.frame(TCGA.pancancer)
+    TCGA.pancancer1 <- TCGA.pancancer1[!duplicated(TCGA.pancancer1$sample), ]
+    TCGA.pancancer1 <- TCGA.pancancer1[ ,!duplicated(colnames(TCGA.pancancer1))]
+    TCGA.pancancer2 <- TCGA.pancancer1
+    row.names(TCGA.pancancer2) <- TCGA.pancancer1$sample
+    TCGA.pancancer2$sample <- NULL
+    TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer2)
+    rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer2)
+    colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer2)
+    row.names(TCGA.sampletype) <- TCGA.sampletype$sample
+    TCGA.sampletype$sample <- NULL
+    TCGA.sampletype$sample_type_id <- NULL
+    TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose,
+      TCGA.sampletype,
+      by    = "row.names",
+      all.x = TRUE)
+    TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
+    return(TCGA.RNAseq.sampletype)
+  }
+  TCGA.sampletype.all <- pan.TCGA.gene()
   sample.type.list <- levels(as.factor(TCGA.sampletype.all$sample_type))
   EIF.cor.tumor <- function (){
     Tumors <- sample.type.list[! sample.type.list %in% "Solid Tissue Normal"]
     TCGA.RNAseq.sampletype <- TCGA.sampletype.all[
       TCGA.sampletype.all$sample_type %in% Tumors, ]
     EIF.correlation <- function (x, y) {
-      result <- cor.test(TCGA.RNAseq.sampletype[[x]], 
-                         TCGA.RNAseq.sampletype[[y]], 
+      result <- cor.test(TCGA.RNAseq.sampletype[[x]],
+                         TCGA.RNAseq.sampletype[[y]],
                          method = "pearson")
-      res <- data.frame(x, 
-                        y, 
+      res <- data.frame(x,
+                        y,
                         result[c("estimate",
                                  "p.value",
                                  "statistic",
-                                 "method")], 
+                                 "method")],
                         stringsAsFactors=FALSE)
       }
   # find all genes positively correlate with EIF4F expression
@@ -120,26 +93,54 @@ plot.heatmap.all <- function () {
                                                "sample_type",
                                                "_primary_disease")]
     EIF.cor.list <- function(x) {
-      cor.data <- do.call(rbind.data.frame, 
-                          lapply(gene.name, 
-                                 EIF.correlation, 
+      cor.data <- do.call(rbind.data.frame,
+                          lapply(gene.name,
+                                 EIF.correlation,
                                  y = x))
       rownames(cor.data) <- cor.data[,1]
         return(cor.data)
       }
-    EIF4E.cor <- EIF.cor.list("EIF4E")  
+    EIF4E.cor <- EIF.cor.list("EIF4E")
     EIF4G1.cor <- EIF.cor.list("EIF4G1")
     EIF4A1.cor <- EIF.cor.list("EIF4A1")
-    cor.data <- cbind(setNames(data.frame(EIF4E.cor[3]), c('EIF4E')), 
+    plot.pos.Venn <- function(){
+      c3 <- cbind(EIF4E.cor$estimate > 0.3,
+                  EIF4G1.cor$estimate > 0.3,
+                  EIF4A1.cor$estimate > 0.3)
+      a <- vennCounts(c3)
+      colnames(a) <- c("EIF4E",
+                       "EIF4G1",
+                       "EIF4A1",
+                       "Counts")
+      vennDiagram(a)
+      ## draw Venn diagram for overlapping genes
+      pos.Venn <- euler(c(A       = a[5, "Counts"],
+                          B       = a[3, "Counts"],
+                          C       = a[2, "Counts"],
+                          "A&B"   = a[7, "Counts"],
+                          "A&C"   = a[6, "Counts"],
+                          "B&C"   = a[4, "Counts"],
+                          "A&B&C" = a[8, "Counts"]))
+      p1 <- plot(pos.Venn,
+                #key = TRUE,
+                 lwd = 0,
+                 fill = c("#999999", "#E69F00", "#56B4E9"),
+                 quantities = list(cex = 1.25),
+                 labels = list(labels = c("EIF4E posCOR",
+                                          "EIF4G1 posCOR",
+                                          "EIF4A1 posCOR"),
+                 cex    = 1.25))
+      print(p1)}
+    plot.pos.Venn()
+    cor.data <- cbind(setNames(data.frame(EIF4E.cor[3]), c('EIF4E')),
                       setNames(data.frame(EIF4G1.cor[3]), c('EIF4G1')),
                       setNames(data.frame(EIF4A1.cor[3]), c('EIF4A1')))
+    return(cor.data)
     }
   EIF.cor.tumor <- EIF.cor.tumor()
-  cor.data.tumor <- EIF.cor.tumor[EIF.cor.tumor$EIF4E  >  0.3 |
-                                  EIF.cor.tumor$EIF4G1 >  0.3 |
-                                  EIF.cor.tumor$EIF4A1 >  0.3 ,  ]
-  cor.data <- na.omit(cor.data.tumor)
-  DF <- as.matrix(cor.data)
+  DF  <- as.matrix(na.omit(EIF.cor.tumor[EIF.cor.tumor$EIF4E  > 0.3 |
+                                         EIF.cor.tumor$EIF4G1 > 0.3 |
+                                         EIF.cor.tumor$EIF4A1 > 0.3 , ]))
   pheatmap::pheatmap(DF,
                      # main = "Correlation Coefficient Heatmap",
                      angle_col     = c("0"),
@@ -149,176 +150,25 @@ plot.heatmap.all <- function () {
                      show_rownames = FALSE,
                      show_colnames = TRUE)
   ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options)
-  ht = Heatmap(DF, 
-               name                 = "Correlation Coefficient", 
+  ht1 = Heatmap(DF,
+               name                 = "Correlation Coefficient",
                heatmap_legend_param = list(direction = "horizontal"),
                show_row_names       = FALSE,
                show_column_names    = FALSE,
                bottom_annotation    = HeatmapAnnotation(
-                cn   = anno_text(colnames(DF), 
-                                 location = 0, 
+                cn   = anno_text(colnames(DF),
+                                 location = 0,
                                  rot  = 0,
                                  just = "center",
-                                 gp   = gpar(fontsize = 14, 
+                                 gp   = gpar(fontsize = 14,
                                              fontface = "bold"))),
-               row_km           = 3, 
+               row_km           = 3,
                row_title        = "cluster_%s",
                border           = TRUE,
-               col              = colorRamp2(c(min(DF), 0, max(DF)), 
+               col              = colorRamp2(c(-1, 0, 1),
                                              c("blue", "white", "red")))
-  ht = draw(ht, heatmap_legend_side = "top")
-  ## try to extract clusters from heatmap  
-  # Saving row names of cluster one
-  plot.cluster.pathway <- function(x) {
-    c1 <- t(t(row.names(DF[row_order(ht)[[x]],])))
-    c1 <- as.data.frame(c1)
-    c1$V1 <- as.character(c1$V1)
-    c1$entrez = mapIds(org.Hs.eg.db,
-                       keys      = c1$V1, 
-                       column    = "ENTREZID",
-                       keytype   = "SYMBOL",
-                       multiVals = "first")
-    reac <- enrichPathway(gene = c1$entrez, readable = T)
-    p1 <- barplot(reac, 
-                  showCategory = 8, 
-                  font.size    = 18)
-    p2 <- dotplot(reac, 
-                  x         = "count", 
-                  font.size = 18, 
-                  title     = paste0("cluster", x))
-    print(p1)
-    print(p2)
-    }
-  plot.cluster.pathway(x = "3")
-  three <- c("1","2","3")
-  lapply(three, plot.cluster.pathway)
-    }
-plot.heatmap.all()
-
-###
-plot.heatmap.lung <- function() {
-  sample.type.list <- levels(as.factor(TCGA.GTEX.sampletype.lung$`_sample_type`))
-  EIF.cor.tumor <- function(){
-    tumor.sample <- c("Primary Tumor", "Recurrent Tumor")
-    TCGA.GTEX.tumor.lung <- TCGA.GTEX.sampletype.lung[
-      TCGA.GTEX.sampletype.lung$`_sample_type` %in% tumor.sample, ]
-    EIF.correlation <- function(x, y) {
-      result <- cor.test(TCGA.GTEX.tumor.lung[[x]], 
-                         TCGA.GTEX.tumor.lung[[y]], 
-                         method = "pearson")
-      res <- data.frame(x, 
-                        y, 
-                        result[c("estimate",
-                                 "p.value",
-                                 "statistic",
-                                 "method")], 
-                        stringsAsFactors=FALSE)
-      }
-    # find all genes positively correlate with EIF4F expression
-    # lapply function gives a large list, need to convert it to a dataframe
-    Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
-    Lung <- Sampletype[Sampletype$`_primary_site` == "Lung",]
-    geneID <- colnames(Lung)
-    TCGA.GTEX.tumor.lung <- TCGA.GTEX.tumor.lung[ ,
-      !names(TCGA.GTEX.tumor.lung) %in% c("Row.names", geneID)]
-    gene.name <- names(TCGA.GTEX.tumor.lung)
-    EIF.cor.list <- function(x) {
-      cor.data <- do.call(rbind.data.frame, 
-                          lapply(gene.name, 
-                            EIF.correlation, 
-                            y = x))
-      rownames(cor.data) <- cor.data[,1]
-      return(cor.data)
-    }
-    EIF4E.cor <- EIF.cor.list("EIF4E")  
-    EIF4G1.cor <- EIF.cor.list("EIF4G1")
-    EIF4A1.cor <- EIF.cor.list("EIF4A1")
-    cor.data <- cbind(setNames(data.frame(EIF4E.cor[3]), c('EIF4E')), 
-                      setNames(data.frame(EIF4G1.cor[3]), c('EIF4G1')),
-                      setNames(data.frame(EIF4A1.cor[3]), c('EIF4A1')))
-  }
-  EIF.cor.tumor <- EIF.cor.tumor()
-  EIF.cor.normal <- function (){
-    normal.sample <- c("Normal Tissue")
-    TCGA.GTEX.normal.lung <- TCGA.GTEX.sampletype.lung[
-      TCGA.GTEX.sampletype.lung$`_sample_type` %in% normal.sample, ]
-    EIF.correlation <- function (x, y) {
-      result <- cor.test(TCGA.GTEX.normal.lung[[x]], 
-                         TCGA.GTEX.normal.lung[[y]], 
-                         method = "pearson")
-      res <- data.frame(x, 
-        y, 
-        result[c("estimate",
-                 "p.value",
-                 "statistic",
-                 "method")], 
-              stringsAsFactors=FALSE)
-    }
-    # find all genes positively correlate with EIF4F expression
-    # lapply function gives a large list, need to convert it to a dataframe
-    Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
-    Lung <- Sampletype[Sampletype$`_primary_site` == "Lung",]
-    geneID <- colnames(Lung)
-    TCGA.GTEX.normal.lung <- TCGA.GTEX.normal.lung[ ,
-      !names(TCGA.GTEX.normal.lung) %in% c("Row.names", geneID)]
-    gene.name <- names(TCGA.GTEX.normal.lung)
-    EIF.cor.list <- function(x) {
-      cor.data <- do.call(rbind.data.frame, 
-        lapply(gene.name, 
-          EIF.correlation, 
-          y = x))
-      rownames(cor.data) <- cor.data[,1]
-      return(cor.data)
-    }
-    EIF4E.cor <- EIF.cor.list("EIF4E")  
-    EIF4G1.cor <- EIF.cor.list("EIF4G1")
-    EIF4A1.cor <- EIF.cor.list("EIF4A1")
-    cor.data <- cbind(setNames(data.frame(EIF4E.cor[3]), c('EIF4E')), 
-                      setNames(data.frame(EIF4G1.cor[3]), c('EIF4G1')),
-                      setNames(data.frame(EIF4A1.cor[3]), c('EIF4A1')))
-  }
-  EIF.cor.normal <- EIF.cor.normal()
-  DF.tumor  <- as.matrix(na.omit(EIF.cor.tumor[EIF.cor.tumor$EIF4E  > 0.3 |
-                                               EIF.cor.tumor$EIF4G1 > 0.3 |
-                                               EIF.cor.tumor$EIF4A1 > 0.3 , ]))
-  DF.normal <- as.matrix(na.omit(EIF.cor.normal[EIF.cor.normal$EIF4E > 0.3 |
-                                                EIF.cor.normal$EIF4G1 > 0.3 |
-                                                EIF.cor.normal$EIF4A1 > 0.3 , ]))
-  cor.data <- cbind(setNames(data.frame(EIF.cor.tumor[1:3]), 
-                             c('EIF4E.tumor',
-                               'EIF4G1.tumor',
-                               'EIF4A1.tumor')), 
-                    setNames(data.frame(EIF.cor.normal[1:3]), 
-                             c('EIF4E.normal',
-                               'EIF4G1.normal',
-                               'EIF4A1.normal')))
-  DF <- as.matrix(na.omit(cor.data[cor.data$EIF4E.tumor > 0.3 |
-                                   cor.data$EIF4G1.tumor > 0.3 |
-                                   cor.data$EIF4A1.tumor > 0.3 |
-                                   cor.data$EIF4E.normal > 0.3 &
-                                   cor.data$EIF4G1.normal > 0.3 &
-                                   cor.data$EIF4A1.normal > 0.3 ,  ]))
-  ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options)
-  ht1 = Heatmap(DF, 
-    name                 = "Correlation Coefficient", 
-    heatmap_legend_param = list(direction = "horizontal"),
-    show_row_names       = FALSE,
-    show_column_names    = FALSE,
-    bottom_annotation    = HeatmapAnnotation(
-      cn   = anno_text(colnames(DF), 
-                       location = 1, 
-                       rot      = 45,
-                       just     = "right",
-                       gp       = gpar(fontsize = 14, 
-                                       fontface = "bold"))),
-      row_km           = 6, 
-      row_km_repeats   = 100,
-      row_title        = "cluster_%s",
-      border           = TRUE,
-      col              = circlize::colorRamp2(seq(min(DF), max(DF), length = 3), 
-                                              c("blue", "#EEEEEE", "red")))
   ht = draw(ht1, heatmap_legend_side = "top")
-  ## try to extract clusters from heatmap  
+  ## try to extract clusters from heatmap
   # Saving row names of cluster one
   plot.cluster.pathway <- function() {
     cluster.gene.list <- function(x) {
@@ -326,7 +176,7 @@ plot.heatmap.lung <- function() {
       c1 <- as.data.frame(c1)
       c1$V1 <- as.character(c1$V1)
       c1$entrez = mapIds(org.Hs.eg.db,
-                         keys      = c1$V1, 
+                         keys      = c1$V1,
                          column    = "ENTREZID",
                          keytype   = "SYMBOL",
                          multiVals = "first")
@@ -334,64 +184,577 @@ plot.heatmap.lung <- function() {
       c1 <- na.omit(c1)
       return(c1$entrez)
       }
-      cluster.num <- as.character(c(1:6))
-      names(cluster.num) <- paste("cluster", 1:6)
+    cluster.num <- as.character(c(1:3))
+    names(cluster.num) <- paste("cluster", 1:3)
     cluster.data <- lapply(cluster.num, cluster.gene.list)
-    ck.GO <- compareCluster(geneCluster = cluster.data, 
+    ck.GO <- compareCluster(geneCluster = cluster.data,
                             fun         = "enrichGO",
                             OrgDb       = 'org.Hs.eg.db')
-    ck.KEGG <- compareCluster(geneCluster = cluster.data, 
+    ck.KEGG <- compareCluster(geneCluster = cluster.data,
                               fun         = "enrichKEGG")
-    ck.REACTOM <- compareCluster(geneCluster = cluster.data, 
+    ck.REACTOM <- compareCluster(geneCluster = cluster.data,
                                  fun         = "enrichPathway")
-    print(dotplot(ck.GO, title = "GO"))
-    print(dotplot(ck.KEGG, title = "KEGG"))
-    print(dotplot(ck.REACTOM, title = "REACTOMPA"))
+    print(dotplot(ck.GO,
+                  title        = "The Most Enriched GO Pathways",
+                  showCategory = 8,
+                  font.size    = 18,
+                  includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title      = black_bold_tahoma_16,
+              axis.title      = black_bold_tahoma_16,
+              axis.text.x     = black_bold_tahoma_16,
+              axis.text.y     = black_bold_tahoma_16,
+              axis.line.x     = element_line(color = "black"),
+              axis.line.y     = element_line(color = "black"),
+              panel.grid      = element_blank(),
+              legend.title    = black_bold_tahoma_16,
+              legend.text     = black_bold_tahoma_16,
+              strip.text      = black_bold_tahoma_16))
+    print(dotplot(ck.KEGG,
+                  title        = "The Most Enriched KEGG Pathways",
+                  showCategory = 8,
+                  font.size    = 18,
+                  includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title      = black_bold_tahoma_16,
+              axis.title      = black_bold_tahoma_16,
+              axis.text.x     = black_bold_tahoma_16,
+              axis.text.y     = black_bold_tahoma_16,
+              axis.line.x     = element_line(color = "black"),
+              axis.line.y     = element_line(color = "black"),
+              panel.grid      = element_blank(),
+              legend.title    = black_bold_tahoma_16,
+              legend.text     = black_bold_tahoma_16,
+              strip.text      = black_bold_tahoma_16))
+    print(dotplot(ck.REACTOM,
+                  title        = "The Most Enriched REACTOME Pathways",
+                  showCategory = 8,
+                  font.size    = 16,
+                  includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title      = black_bold_tahoma_16,
+              axis.title      = black_bold_tahoma_16,
+              axis.text.x     = black_bold_tahoma_16,
+              axis.text.y     = black_bold_tahoma_16,
+              axis.line.x     = element_line(color = "black"),
+              axis.line.y     = element_line(color = "black"),
+              panel.grid      = element_blank(),
+              legend.title    = black_bold_tahoma_16,
+              legend.text     = black_bold_tahoma_16,
+              strip.text      = black_bold_tahoma_16))
+  }
+  plot.cluster.pathway()
+    }
+plot.heatmap.all.TCGA()
+
+###
+plot.heatmap.all.GTEx <- function () {
+    # download https://toil.xenahubs.net/download/gtex_RSEM_Hugo_norm_count.gz
+    TCGA.pancancer <- fread("~/Downloads/gtex_RSEM_Hugo_norm_count.tsv")
+    # download https://toil.xenahubs.net/download/GTEX_phenotype.gz
+    TCGA.sampletype <- read_tsv("~/Downloads/GTEX_phenotype.tsv")
+    TCGA.pancancer1 <- as.data.frame(TCGA.pancancer)
+    TCGA.pancancer1 <- TCGA.pancancer1[!duplicated(TCGA.pancancer1$sample), 
+                                       !duplicated(colnames(TCGA.pancancer1))]
+    TCGA.pancancer2 <- TCGA.pancancer1
+    row.names(TCGA.pancancer2) <- TCGA.pancancer1$sample
+    TCGA.pancancer2$sample <- NULL
+    TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer2)
+    rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer2)
+    colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer2)
+    row.names(TCGA.sampletype) <- TCGA.sampletype$sample
+    TCGA.sampletype$sample <- NULL
+    TCGA.sampletype$sample_type_id <- NULL
+    TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose,
+                                    TCGA.sampletype,
+                                    by    = "row.names",
+                                    all.x = TRUE)
+    TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
+
+  EIF.cor.all <- function (){
+    EIF.correlation <- function (x, y) {
+      result <- cor.test(TCGA.RNAseq.sampletype[[x]],
+                         TCGA.RNAseq.sampletype[[y]],
+                         method = "pearson")
+      res <- data.frame(x,
+                        y,
+                        result[c("estimate",
+                                 "p.value",
+                                 "statistic",
+                                 "method")],
+                        stringsAsFactors=FALSE)
+      }
+    # find all genes positively correlate with EIF4F expression
+    # lapply function gives a large list, need to convert it to a dataframe
+    gene.name <- names(TCGA.RNAseq.sampletype)
+    gene.name <- gene.name [! gene.name %in% c("Row.names",
+                                               names(TCGA.sampletype))]
+    EIF.cor.list <- function(x) {
+      cor.data <- do.call(rbind.data.frame,
+                          lapply(gene.name,
+                                 EIF.correlation,
+                                 y = x))
+      rownames(cor.data) <- cor.data[,1]
+      return(cor.data)
+      }
+    EIF4E.cor <- EIF.cor.list("EIF4E")
+    EIF4G1.cor <- EIF.cor.list("EIF4G1")
+    EIF4A1.cor <- EIF.cor.list("EIF4A1")
+    plot.pos.Venn <- function(){
+      c3 <- cbind(EIF4E.cor$estimate > 0.3,
+                  EIF4G1.cor$estimate > 0.3,
+                  EIF4A1.cor$estimate > 0.3)
+      a <- vennCounts(c3)
+      colnames(a) <- c("EIF4E",
+                       "EIF4G1",
+                       "EIF4A1",
+                       "Counts")
+      vennDiagram(a)
+      ## draw Venn diagram for overlapping genes
+      pos.Venn <- euler(c(A       = a[5, "Counts"],
+                          B       = a[3, "Counts"],
+                          C       = a[2, "Counts"],
+                          "A&B"   = a[7, "Counts"],
+                          "A&C"   = a[6, "Counts"],
+                          "B&C"   = a[4, "Counts"],
+                          "A&B&C" = a[8, "Counts"]))
+      p1 <- plot(pos.Venn,
+        #key = TRUE,
+                 lwd = 0,
+                 fill = c("#999999", "#E69F00", "#56B4E9"),
+                 quantities = list(cex = 1.25),
+                 labels = list(labels = c("EIF4E posCOR",
+                                          "EIF4G1 posCOR",
+                                          "EIF4A1 posCOR"),
+                               cex    = 1.25))
+      print(p1)}
+    plot.pos.Venn()
+    plot.neg.Venn <- function(){
+      c3 <- cbind(EIF4E.cor$estimate < -0.3,
+                  EIF4G1.cor$estimate < -0.3,
+                  EIF4A1.cor$estimate < -0.3)
+      a <- vennCounts(c3)
+      colnames(a) <- c("EIF4E",
+                       "EIF4G1",
+                       "EIF4A1",
+                       "Counts")
+      vennDiagram(a)
+      ## draw Venn diagram for overlapping genes
+      pos.Venn <- euler(c(A       = a[5, "Counts"],
+                          B       = a[3, "Counts"],
+                          C       = a[2, "Counts"],
+                          "A&B"   = a[7, "Counts"],
+                          "A&C"   = a[6, "Counts"],
+                          "B&C"   = a[4, "Counts"],
+                          "A&B&C" = a[8, "Counts"]))
+      p1 <- plot(pos.Venn,
+                 #key = TRUE,
+                 lwd = 0,
+                 fill = c("#999999", "#E69F00", "#56B4E9"),
+                 quantities = list(cex = 1.25),
+                 labels = list(labels = c("EIF4E negCOR",
+                                          "EIF4G1 negCOR",
+                                          "EIF4A1 negCOR"),
+                               cex    = 1.25))
+      print(p1)}
+    plot.neg.Venn()
+    cor.data <- cbind(setNames(data.frame(EIF4E.cor[3]), c('EIF4E')),
+                      setNames(data.frame(EIF4G1.cor[3]), c('EIF4G1')),
+                      setNames(data.frame(EIF4A1.cor[3]), c('EIF4A1')))
+    return(cor.data)
+  }
+  EIF.cor.all <- EIF.cor.all()
+  DF  <- as.matrix(na.omit(EIF.cor.all[EIF.cor.all$EIF4E  > 0.3 |
+                                       EIF.cor.all$EIF4G1 > 0.3 |
+                                       EIF.cor.all$EIF4A1 > 0.3 , ]))
+  pheatmap::pheatmap(DF,
+    # main = "Correlation Coefficient Heatmap",
+    angle_col     = c("0"),
+    fontsize      = 12,
+    fontface      = "bold",
+    color         = colorRampPalette(rev(brewer.pal(n = 7, name = "RdYlBu")))(100),
+    show_rownames = FALSE,
+    show_colnames = TRUE)
+  ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options)
+  ht1 = Heatmap(DF,
+    name                 = "Correlation Coefficient",
+    heatmap_legend_param = list(direction = "horizontal"),
+    show_row_names       = FALSE,
+    show_column_names    = FALSE,
+    bottom_annotation    = HeatmapAnnotation(
+      cn   = anno_text(colnames(DF),
+                       location = 0,
+                       rot  = 0,
+                       just = "center",
+                       gp   = gpar(fontsize = 14,
+                                   fontface = "bold"))),
+    row_km           = 3,
+    row_title        = "cluster_%s",
+    border           = TRUE,
+    col              = colorRamp2(seq(-1, 1, length = 3),
+                                  c("blue", "white", "red")))
+  ht = draw(ht1, heatmap_legend_side = "top")
+  ## try to extract clusters from heatmap
+  # Saving row names of cluster one
+  plot.cluster.pathway <- function() {
+    cluster.gene.list <- function(x) {
+      c1 <- t(t(row.names(DF[row_order(ht1)[[x]],])))
+      c1 <- as.data.frame(c1)
+      c1$V1 <- as.character(c1$V1)
+      c1$entrez = mapIds(org.Hs.eg.db,
+        keys      = c1$V1,
+        column    = "ENTREZID",
+        keytype   = "SYMBOL",
+        multiVals = "first")
+      # c1 <- c1[!is.na(c1)]
+      c1 <- na.omit(c1)
+      return(c1$entrez)
+    }
+    cluster.num <- as.character(c(1:3))
+    names(cluster.num) <- paste("cluster", 1:3)
+    cluster.data <- lapply(cluster.num, cluster.gene.list)
+    ck.GO <- compareCluster(geneCluster = cluster.data,
+                            fun         = "enrichGO",
+                            OrgDb       = 'org.Hs.eg.db')
+    ck.KEGG <- compareCluster(geneCluster = cluster.data,
+                              fun         = "enrichKEGG")
+    ck.REACTOM <- compareCluster(geneCluster = cluster.data,
+                                 fun         = "enrichPathway")
+    print(dotplot(ck.GO,
+      title        = "The Most Enriched GO Pathways",
+      showCategory = 8,
+      font.size    = 18,
+      includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title      = black_bold_tahoma_16,
+          axis.title      = black_bold_tahoma_16,
+          axis.text.x     = black_bold_tahoma_16,
+          axis.text.y     = black_bold_tahoma_16,
+          axis.line.x     = element_line(color = "black"),
+          axis.line.y     = element_line(color = "black"),
+          panel.grid      = element_blank(),
+          legend.title    = black_bold_tahoma_16,
+          legend.text     = black_bold_tahoma_16,
+          strip.text      = black_bold_tahoma_16))
+    print(dotplot(ck.KEGG,
+      title        = "The Most Enriched KEGG Pathways",
+      showCategory = 8,
+      font.size    = 18,
+      includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title      = black_bold_tahoma_16,
+          axis.title      = black_bold_tahoma_16,
+          axis.text.x     = black_bold_tahoma_16,
+          axis.text.y     = black_bold_tahoma_16,
+          axis.line.x     = element_line(color = "black"),
+          axis.line.y     = element_line(color = "black"),
+          panel.grid      = element_blank(),
+          legend.title    = black_bold_tahoma_16,
+          legend.text     = black_bold_tahoma_16,
+          strip.text      = black_bold_tahoma_16))
+    print(dotplot(ck.REACTOM,
+      title        = "The Most Enriched REACTOME Pathways",
+      showCategory = 8,
+      font.size    = 16,
+      includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title      = black_bold_tahoma_16,
+          axis.title      = black_bold_tahoma_16,
+          axis.text.x     = black_bold_tahoma_16,
+          axis.text.y     = black_bold_tahoma_16,
+          axis.line.x     = element_line(color = "black"),
+          axis.line.y     = element_line(color = "black"),
+          panel.grid      = element_blank(),
+          legend.title    = black_bold_tahoma_16,
+          legend.text     = black_bold_tahoma_16,
+          strip.text      = black_bold_tahoma_16))
+  }
+  plot.cluster.pathway()
+}
+plot.heatmap.all.GTEx()
+
+### plot heatmap, Venn diagram and pathway analysis on clusters ###
+plot.heatmap.lung <- function(x) {
+  tissue.GTEX.TCGA.gene <- function(x){
+    # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
+    TCGA.GTEX <- fread("~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count")
+    # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
+    Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+    Lung <- Sampletype[Sampletype$`_primary_site` == x,]
+    Lung.ID <- as.vector(Lung$sample)
+    Lung.ID <- na.omit(Lung.ID) # NA in the vector
+    TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)
+    TCGA.GTEX.Lung1 <- as.data.frame(TCGA.GTEX.Lung)
+    TCGA.GTEX.Lung1 <- TCGA.GTEX.Lung1[!duplicated(TCGA.GTEX.Lung1$sample),
+      !duplicated(colnames(TCGA.GTEX.Lung1))]
+    TCGA.GTEX.Lung2 <- TCGA.GTEX.Lung1
+    row.names(TCGA.GTEX.Lung2) <- TCGA.GTEX.Lung2$sample
+    TCGA.GTEX.Lung2$sample <- NULL
+    TCGA.GTEX.Lung.t <- data.table::transpose(TCGA.GTEX.Lung2)
+    rownames(TCGA.GTEX.Lung.t) <- colnames(TCGA.GTEX.Lung2)
+    colnames(TCGA.GTEX.Lung.t) <- rownames(TCGA.GTEX.Lung2)
+    
+    Lung <- Lung[!duplicated(Lung$sample), ]
+    Lung <- na.omit(Lung)
+    row.names(Lung) <- Lung$sample
+    Lung$sample <- NULL
+    TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.Lung.t,
+      Lung,
+      by    = "row.names",
+      all.x = TRUE)
+    TCGA.GTEX.Lung.sampletype <- as.data.frame(TCGA.GTEX.Lung.sampletype)
+    return(TCGA.GTEX.Lung.sampletype)
+  }
+  TCGA.GTEX.sampletype.lung <- tissue.GTEX.TCGA.gene(x)
+  Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  geneID <- colnames(Sampletype[Sampletype$`_primary_site` == x,])
+  TCGA.GTEX.lung <- TCGA.GTEX.sampletype.lung[ ,
+    !names(TCGA.GTEX.sampletype.lung) %in% c("Row.names", geneID)]
+  gene.name <- names(TCGA.GTEX.lung)
+  EIF.correlation <- function(y){
+    TCGA.GTEX.tumor.lung <- TCGA.GTEX.sampletype.lung[
+      TCGA.GTEX.sampletype.lung$`_sample_type` %in% y, ]
+    correlation.coefficient <- function(x, y) {
+      result <- cor.test(TCGA.GTEX.tumor.lung[[x]],
+                         TCGA.GTEX.tumor.lung[[y]],
+                         method = "pearson")
+      res <- data.frame(x,
+                        y,
+                        result[c("estimate",
+                                 "p.value",
+                                 "statistic",
+                                 "method")],
+                        stringsAsFactors=FALSE)
+      }
+    # find all genes positively correlate with EIF4F expression
+    # lapply function gives a large list, need to convert it to a dataframe
+    EIF.cor.list <- function(x) {
+      cor.data <- do.call(rbind.data.frame,
+                          lapply(gene.name,
+                                 correlation.coefficient,
+                                 y = x))
+      rownames(cor.data) <- cor.data[,1]
+      return(cor.data)
+      }
+    EIF4E.cor <- EIF.cor.list("EIF4E")
+    EIF4G1.cor <- EIF.cor.list("EIF4G1")
+    EIF4A1.cor <- EIF.cor.list("EIF4A1")
+    plot.pos.Venn <- function(y){
+      c3 <- cbind(EIF4E.cor$estimate > 0.3,
+                  EIF4G1.cor$estimate > 0.3,
+                  EIF4A1.cor$estimate > 0.3)
+      a <- vennCounts(c3)
+      colnames(a) <- c("EIF4E",
+                       "EIF4G1",
+                       "EIF4A1",
+                       "Counts")
+      vennDiagram(a)
+      ## draw Venn diagram for overlapping genes
+      pos.Venn <- euler(c(A       = a[5, "Counts"],
+                          B       = a[3, "Counts"],
+                          C       = a[2, "Counts"],
+                          "A&B"   = a[7, "Counts"],
+                          "A&C"   = a[6, "Counts"],
+                          "B&C"   = a[4, "Counts"],
+                          "A&B&C" = a[8, "Counts"]))
+      p1 <- plot(pos.Venn,
+                #key = TRUE,
+                 lwd        = 0,
+                 border     = "black",
+                 fill       = c("#999999", "#E69F00", "#56B4E9"),
+                 quantities = list(cex = 1.5),
+                 main       = y,
+                 labels     = list(labels = c("EIF4E posCOR",
+                                              "EIF4G1 posCOR",
+                                              "EIF4A1 posCOR"),
+                 cex        = 1.5))
+      print(p1)
+    }
+    plot.pos.Venn(y)
+    cor.data <- cbind(setNames(data.frame(EIF4E.cor[3]), c('EIF4E')),
+                      setNames(data.frame(EIF4G1.cor[3]), c('EIF4G1')),
+                      setNames(data.frame(EIF4A1.cor[3]), c('EIF4A1')))
+    return(cor.data)
+    }
+  EIF.cor.tumor <- EIF.correlation(y = c("Primary Tumor", 
+                                         "Metastatic", 
+                                         "Recurrent Tumor"))
+  EIF.cor.normal <- EIF.correlation(y = c("Normal Tissue"))
+  DF.tumor  <- as.matrix(na.omit(EIF.cor.tumor[EIF.cor.tumor$EIF4E  > 0.3 |
+                                               EIF.cor.tumor$EIF4G1 > 0.3 |
+                                               EIF.cor.tumor$EIF4A1 > 0.3 , ]))
+  DF.normal <- as.matrix(na.omit(EIF.cor.normal[EIF.cor.normal$EIF4E > 0.3 |
+                                                EIF.cor.normal$EIF4G1 > 0.3 |
+                                                EIF.cor.normal$EIF4A1 > 0.3 , ]))
+  cor.data <- cbind(setNames(data.frame(EIF.cor.tumor[1:3]),
+                                        c('EIF4E.tumor',
+                                          'EIF4G1.tumor',
+                                          'EIF4A1.tumor')),
+                    setNames(data.frame(EIF.cor.normal[1:3]),
+                                        c('EIF4E.normal',
+                                          'EIF4G1.normal',
+                                          'EIF4A1.normal')))
+  DF <- as.matrix(na.omit(cor.data[cor.data$EIF4E.tumor > 0.3 |
+                                   cor.data$EIF4G1.tumor > 0.3 |
+                                   cor.data$EIF4A1.tumor > 0.3 |
+                                   cor.data$EIF4E.normal > 0.3 |
+                                   cor.data$EIF4G1.normal > 0.3 |
+                                   cor.data$EIF4A1.normal > 0.3 ,  ]))
+  ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options)
+  pheatmap::pheatmap(DF,
+    # main = "Correlation Coefficient Heatmap",
+    angle_col     = c("0"),
+    fontsize      = 12,
+    fontface      = "bold",
+    color         = colorRampPalette(rev(brewer.pal(n = 7, name = "RdYlBu")))(100),
+    show_rownames = FALSE,
+    show_colnames = TRUE)
+  ht1 = Heatmap(DF,
+    name                 = "Correlation Coefficient",
+    heatmap_legend_param = list(direction = "horizontal"),
+    show_row_names       = FALSE,
+    show_column_names    = FALSE,
+    bottom_annotation    = HeatmapAnnotation(
+      annotation_legend_param = list(direction = "horizontal"),
+      type     = c("tumor", "tumor","tumor",
+                   "normal","normal","normal"),
+      col      = list(type = c("tumor"  = "pink", 
+                               "normal" = "royalblue")),
+      cn       = anno_text(gsub("\\..*","",colnames(DF)),
+      location = 1,
+      rot      = 45,
+      just     = "right",
+      gp       = gpar(fontsize = 14,
+                      fontface = "bold"))),
+    row_km         = 3,
+    row_km_repeats = 100,
+    row_title      = "cluster_%s",
+    row_title_gp   = gpar(fontsize = 14,
+                          fontface = "bold"),
+    border         = TRUE,
+    col            = circlize::colorRamp2(seq(min(DF), max(DF), length = 3),
+                                          c("blue", "#EEEEEE", "red")))
+  ht = draw(ht1,
+            merge_legends       = TRUE,
+            heatmap_legend_side = "top")
+  ## try to extract clusters from heatmap
+  # Saving row names of cluster one  
+  plot.cluster.pathway <- function() {
+    cluster.geneID.list <- function(x) {
+      c1 <- t(t(row.names(DF[row_order(ht1)[[x]],])))
+      c1 <- as.data.frame(c1)
+      c1$V1 <- as.character(c1$V1)
+      c1$entrez = mapIds(org.Hs.eg.db,
+                         keys      = c1$V1,
+                         column    = "ENTREZID",
+                         keytype   = "SYMBOL",
+                         multiVals = "first")
+      # c1 <- c1[!is.na(c1)]
+      c1 <- na.omit(c1)
+      return(c1$entrez)
+      }
+      cluster.num <- as.character(c(1:3))
+      names(cluster.num) <- paste("cluster", 1:3)
+    cluster.data <- lapply(cluster.num, cluster.geneID.list)
+    ck.GO <- compareCluster(geneCluster = cluster.data,
+                            fun         = "enrichGO",
+                            OrgDb       = 'org.Hs.eg.db')
+    ck.KEGG <- compareCluster(geneCluster = cluster.data,
+                              fun         = "enrichKEGG")
+    ck.REACTOME <- compareCluster(geneCluster = cluster.data,
+                                 fun         = "enrichPathway")
+    print(dotplot(ck.GO,
+                  title        = "The Most Enriched GO Pathways",
+                  showCategory = 8,
+                  font.size    = 18,
+                  includeAll   = FALSE) +
+          theme_bw() +
+          theme(plot.title   = black_bold_tahoma_16,
+                axis.title   = black_bold_tahoma_16,
+                axis.text.x  = black_bold_tahoma_16,
+                axis.text.y  = black_bold_tahoma_16,
+                axis.line.x  = element_line(color = "black"),
+                axis.line.y  = element_line(color = "black"),
+                panel.grid   = element_blank(),
+                legend.title = black_bold_tahoma_16,
+                legend.text  = black_bold_tahoma_16,
+                strip.text   = black_bold_tahoma_16))
+    print(dotplot(ck.KEGG,
+          title        = "The Most Enriched KEGG Pathways",
+          showCategory = 8,
+          font.size    = 18,
+          includeAll   = FALSE) +
+          theme_bw() +
+          theme(plot.title   = black_bold_tahoma_16,
+                axis.title   = black_bold_tahoma_16,
+                axis.text.x  = black_bold_tahoma_16,
+                axis.text.y  = black_bold_tahoma_16,
+                axis.line.x  = element_line(color = "black"),
+                axis.line.y  = element_line(color = "black"),
+                panel.grid   = element_blank(),
+                legend.title = black_bold_tahoma_16,
+                legend.text  = black_bold_tahoma_16,
+                strip.text   = black_bold_tahoma_16))
+    print(dotplot(ck.REACTOME,
+                  title        = "The Most Enriched REACTOME Pathways",
+                  showCategory = 8,
+                  font.size    = 16,
+                  includeAll   = FALSE) +
+          theme_bw() +
+          theme(plot.title   = black_bold_tahoma_16,
+                axis.title   = black_bold_tahoma_16,
+                axis.text.x  = black_bold_tahoma_16,
+                axis.text.y  = black_bold_tahoma_16,
+                axis.line.x  = element_line(color = "black"),
+                axis.line.y  = element_line(color = "black"),
+                panel.grid   = element_blank(),
+                legend.title = black_bold_tahoma_16,
+                legend.text  = black_bold_tahoma_16,
+                strip.text   = black_bold_tahoma_16))
     }
   plot.cluster.pathway()
 }
-plot.heatmap.lung()
-
+plot.heatmap.lung(x = "Lung")
 
 ###
 plot.EIF.cor.pathway.all <- function() {
   TCGA.RNAseq.sampletype <- TCGA.sampletype.all[
     TCGA.sampletype.all$sample_type != "Solid Tissue Normal", ]
   EIF.correlation <- function(x, y) {
-    result <- cor.test(TCGA.RNAseq.sampletype[[x]], 
-                       TCGA.RNAseq.sampletype[[y]], 
+    result <- cor.test(TCGA.RNAseq.sampletype[[x]],
+                       TCGA.RNAseq.sampletype[[y]],
                        method = "pearson")
-    res <- data.frame(x, 
-                      y, 
+    res <- data.frame(x,
+                      y,
                       result[c("estimate",
                                "p.value",
                                "statistic",
-                               "method")], 
+                               "method")],
                       stringsAsFactors = FALSE)
     }
 # find all genes positively correlate with EIF4F expression
 # lapply function gives a large list, need to convert it to a dataframe
   TCGA.RNAseq.sampletype <- TCGA.RNAseq.sampletype[ ,
-    !names(TCGA.RNAseq.sampletype) %in% c("Row.names", 
-                                          "sample_type", 
+    !names(TCGA.RNAseq.sampletype) %in% c("Row.names",
+                                          "sample_type",
                                           "_primary_disease")]
   gene.name <- names(TCGA.RNAseq.sampletype)
   EIF.cor.list <- function(x) {
-    cor.data <- do.call(rbind.data.frame, 
-                        lapply(gene.name, 
-                               EIF.correlation, 
+    cor.data <- do.call(rbind.data.frame,
+                        lapply(gene.name,
+                               EIF.correlation,
                                y = x))}
-  EIF4E.cor <- EIF.cor.list("EIF4E")  
+  EIF4E.cor <- EIF.cor.list("EIF4E")
   EIF4G1.cor <- EIF.cor.list("EIF4G1")
   EIF4A1.cor <- EIF.cor.list("EIF4A1")
 
   plot.pos.Venn <- function(){
-    c3 <- cbind(EIF4E.cor$estimate > 0.3, 
-                EIF4G1.cor$estimate > 0.3, 
+    c3 <- cbind(EIF4E.cor$estimate > 0.3,
+                EIF4G1.cor$estimate > 0.3,
                 EIF4A1.cor$estimate > 0.3)
     a <- vennCounts(c3)
-    colnames(a) <- c("EIF4E", 
-                     "EIF4G1", 
+    colnames(a) <- c("EIF4E",
+                     "EIF4G1",
                      "EIF4A1",
                      "Counts")
     vennDiagram(a)
@@ -399,46 +762,46 @@ plot.EIF.cor.pathway.all <- function() {
     pos.Venn <- euler(c(A       = a[5, "Counts"],
                         B       = a[3, "Counts"],
                         C       = a[2, "Counts"],
-                        "A&B"   = a[7, "Counts"], 
+                        "A&B"   = a[7, "Counts"],
                         "A&C"   = a[6, "Counts"],
                         "B&C"   = a[4, "Counts"],
                         "A&B&C" = a[8, "Counts"]))
-    p1 <- plot(pos.Venn, 
-         #key = TRUE, 
-               lwd = 0, 
+    p1 <- plot(pos.Venn,
+         #key = TRUE,
+               lwd = 0,
                fill = c("#999999", "#E69F00", "#56B4E9"),
                quantities = list(cex = 1.25),
                labels = list(labels = c("EIF4E posCOR",
                                         "EIF4G1 posCOR",
-                                        "EIF4A1 posCOR"), 
+                                        "EIF4A1 posCOR"),
                              cex = 1.25))
     print(p1)}
   plot.pos.Venn()
   plot.neg.Venn <- function(){
     c4 <- cbind(EIF4E.cor$estimate < -0.3,
-                EIF4G1.cor$estimate < -0.3, 
+                EIF4G1.cor$estimate < -0.3,
                 EIF4A1.cor$estimate < -0.3)
     b <- vennCounts(c4)
-    colnames(b) <- c("EIF4E", 
-                     "EIF4G1", 
+    colnames(b) <- c("EIF4E",
+                     "EIF4G1",
                      "EIF4A1",
                      "Counts")
     vennDiagram(b)
     neg.Venn <- euler(c(A       = b[5, "Counts"],
                         B       = b[3, "Counts"],
                         C       = b[2, "Counts"],
-                        "A&B"   = b[7, "Counts"], 
+                        "A&B"   = b[7, "Counts"],
                         "A&C"   = b[6, "Counts"],
                         "B&C"   = b[4, "Counts"],
                         "A&B&C" = b[8, "Counts"]))
-    p2 <- plot(neg.Venn, 
-      #key = TRUE, 
-               lwd = 0, 
+    p2 <- plot(neg.Venn,
+      #key = TRUE,
+               lwd = 0,
                fill = c("#999999", "#E69F00", "#56B4E9"),
                quantities = list(cex = 1.25),
                labels = list(labels = c("EIF4E negCOR",
                                         "EIF4G1 negCOR",
-                                        "EIF4A1 negCOR"), 
+                                        "EIF4A1 negCOR"),
                              cex    = 1.25))
   print(p2)}
   plot.neg.Venn()
@@ -450,15 +813,15 @@ plot.EIF.cor.pathway.all <- function() {
     pos.overlap <- merge(EIF4G1.pos, EIF4A1.pos, by.x = "x", by.y = "x")
   # overlap <- merge(EIF4G1.neg, EIF4A1.neg, by.x = "x", by.y = "x")
     pos.overlap$entrez = mapIds(org.Hs.eg.db,
-                                keys      = pos.overlap$x, 
+                                keys      = pos.overlap$x,
                                 column    = "ENTREZID",
                                 keytype   = "SYMBOL",
                                 multiVals = "first")
     reac <- enrichPathway(gene = pos.overlap$entrez, readable = T)
     p3 <- barplot(reac, showCategory = 8)
-    p4 <- dotplot(reac, 
-                  x = "count", 
-                  font.size = 18, 
+    p4 <- dotplot(reac,
+                  x = "count",
+                  font.size = 18,
                   title = "posCOR EIF4A1 & EIF4G1")
     p5 <- emapplot(reac, font.size = 18)
     p6 <- cnetplot(reac)
@@ -466,21 +829,21 @@ plot.EIF.cor.pathway.all <- function() {
     print(p4)
     print(p5)
     print(p6)
-    
-    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE), 
+
+    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE),
       list(EIF4E.pos, EIF4G1.pos, EIF4A1.pos))
     allthree <- na.omit(allthree)
     allthree$entrez = mapIds(org.Hs.eg.db,
-                             keys      = allthree$x, 
+                             keys      = allthree$x,
                              column    = "ENTREZID",
                              keytype   = "SYMBOL",
                              multiVals = "first")
     y <- enrichPathway(gene = allthree$entrez, readable = T)
     p7 <- barplot(y, showCategory = 8)
     p8 <- emapplot(y, font.size = 18)
-    p9 <- dotplot(y, x = "count", font.size = 18, 
+    p9 <- dotplot(y, x = "count", font.size = 18,
                   title = "posCOR EIF4E & EIF4A1 & EIF4G1")
-    p10 <- cnetplot(y, circular = TRUE, colorEdge = TRUE)  + 
+    p10 <- cnetplot(y, circular = TRUE, colorEdge = TRUE)  +
            theme(legend.position="none")
     print(p7)
     print(p8)
@@ -494,33 +857,33 @@ plot.EIF.cor.pathway.all <- function() {
     EIF4A1.neg <- na.omit(EIF4A1.cor[EIF4A1.cor$estimate < -0.3, ])
     neg.overlap <- merge(EIF4G1.neg, EIF4A1.neg, by.x = "x", by.y = "x")
     neg.overlap$entrez = mapIds(org.Hs.eg.db,
-                                keys      = neg.overlap$x, 
+                                keys      = neg.overlap$x,
                                 column    = "ENTREZID",
                                 keytype   = "SYMBOL",
                                 multiVals = "first")
     x <- enrichPathway(gene = neg.overlap$entrez, readable = T)
     p3 <- barplot(x, showCategory = 8)
     p4 <- dotplot(x, font.size = 18, title = "negCOR with EIF4A1 & EIF4G1")
-    p5 <- emapplot(x, font.size = 18)
+    # p5 <- emapplot(x, font.size = 18)
     p6 <- cnetplot(x)
     print(p3)
     print(p4)
     print(p5)
     print(p6)
-    
-    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE), 
+
+    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE),
       list(EIF4E.neg, EIF4G1.neg, EIF4A1.neg))
     allthree <- na.omit(allthree)
     allthree$entrez = mapIds(org.Hs.eg.db,
-                             keys      = allthree$x, 
+                             keys      = allthree$x,
                              column    = "ENTREZID",
                              keytype   = "SYMBOL",
                              multiVals = "first")
     y <- enrichPathway(gene = allthree$entrez, readable = T)
     p7 <- barplot(y, showCategory = 8)
-    p8 <- emapplot(y, font.size = 18)
-    p9 <- dotplot(y, 
-                  font.size = 18, 
+    # p8 <- emapplot(y, font.size = 18)
+    p9 <- dotplot(y,
+                  font.size = 18,
                   title = "negCOR with EIF4E & EIF4A1 & EIF4G1")
     p10 <- cnetplot(y)
     print(p7)
@@ -532,20 +895,19 @@ plot.EIF.cor.pathway.all <- function() {
   }
 plot.EIF.cor.pathway.all()
 
-
 plot.EIF.cor.pathway.lung <- function() {
   TCGA.RNAseq.sampletype <- TCGA.GTEX.sampletype.lung[
-    TCGA.GTEX.sampletype.lung$`_sample_type` != "Normal Tissue", ]
+    TCGA.GTEX.sampletype.lung$`_sample_type` == "Normal Tissue", ]
   EIF.correlation <- function (x, y) {
-    result <- cor.test(TCGA.RNAseq.sampletype[[x]], 
-                       TCGA.RNAseq.sampletype[[y]], 
+    result <- cor.test(TCGA.RNAseq.sampletype[[x]],
+                       TCGA.RNAseq.sampletype[[y]],
                        method = "pearson")
-    res <- data.frame(x, 
-                      y, 
+    res <- data.frame(x,
+                      y,
                       result[c("estimate",
                                "p.value",
                                "statistic",
-                               "method")], 
+                               "method")],
                       stringsAsFactors=FALSE)
     }
   # find all genes positively correlate with EIF4F expression
@@ -557,20 +919,20 @@ plot.EIF.cor.pathway.lung <- function() {
     !names(TCGA.RNAseq.sampletype) %in% c("Row.names", geneID)]
   gene.name <- names(TCGA.RNAseq.sampletype)
   EIF.cor.list <- function(x) {
-    cor.data <- do.call(rbind.data.frame, 
-                        lapply(gene.name, 
-                               EIF.correlation, 
+    cor.data <- do.call(rbind.data.frame,
+                        lapply(gene.name,
+                               EIF.correlation,
                                y = x))}
-  EIF4E.cor <- EIF.cor.list("EIF4E")  
+  EIF4E.cor <- EIF.cor.list("EIF4E")
   EIF4G1.cor <- EIF.cor.list("EIF4G1")
   EIF4A1.cor <- EIF.cor.list("EIF4A1")
   plot.pos.Venn <- function(){
-    c3 <- cbind(EIF4E.cor$estimate > 0.3, 
-                EIF4G1.cor$estimate > 0.3, 
+    c3 <- cbind(EIF4E.cor$estimate > 0.3,
+                EIF4G1.cor$estimate > 0.3,
                 EIF4A1.cor$estimate > 0.3)
     a <- vennCounts(c3)
-    colnames(a) <- c("EIF4E", 
-                     "EIF4G1", 
+    colnames(a) <- c("EIF4E",
+                     "EIF4G1",
                      "EIF4A1",
                      "Counts")
     vennDiagram(a)
@@ -578,46 +940,50 @@ plot.EIF.cor.pathway.lung <- function() {
     pos.Venn <- euler(c(A       = a[5, "Counts"],
                         B       = a[3, "Counts"],
                         C       = a[2, "Counts"],
-                        "A&B"   = a[7, "Counts"], 
+                        "A&B"   = a[7, "Counts"],
                         "A&C"   = a[6, "Counts"],
                         "B&C"   = a[4, "Counts"],
                         "A&B&C" = a[8, "Counts"]))
-    p1 <- plot(pos.Venn, 
-      #key = TRUE, 
-               lwd = 0, 
+    p1 <- plot(pos.Venn,
+      #key = TRUE,
+               lwd = 0,
+               border = "black",
                fill = c("#999999", "#E69F00", "#56B4E9"),
-               quantities = list(cex = 1.25),
+               quantities = list(cex = 1.5),
+               main = "Normal Lung Tissues",
                labels = list(labels = c("EIF4E posCOR",
                                         "EIF4G1 posCOR",
-                                        "EIF4A1 posCOR"), 
-                             cex    = 1.25))
-    print(p1)}
+                                        "EIF4A1 posCOR"),
+                             cex    = 1.5))
+    print(p1)
+    }
   plot.pos.Venn()
+
   plot.neg.Venn <- function(){
     c4 <- cbind(EIF4E.cor$estimate < -0.3,
-                EIF4G1.cor$estimate < -0.3, 
+                EIF4G1.cor$estimate < -0.3,
                 EIF4A1.cor$estimate < -0.3)
     b <- vennCounts(c4)
-    colnames(b) <- c("EIF4E", 
-                     "EIF4G1", 
+    colnames(b) <- c("EIF4E",
+                     "EIF4G1",
                      "EIF4A1",
                      "Counts")
     vennDiagram(b)
     neg.Venn <- euler(c(A       = b[5, "Counts"],
                         B       = b[3, "Counts"],
                         C       = b[2, "Counts"],
-                        "A&B"   = b[7, "Counts"], 
+                        "A&B"   = b[7, "Counts"],
                         "A&C"   = b[6, "Counts"],
                         "B&C"   = b[4, "Counts"],
                         "A&B&C" = b[8, "Counts"]))
-    p2 <- plot(neg.Venn, 
-      #key = TRUE, 
-               lwd = 0, 
+    p2 <- plot(neg.Venn,
+      #key = TRUE,
+               lwd = 0,
                fill = c("#999999", "#E69F00", "#56B4E9"),
                quantities = list(cex = 1.25),
                labels = list(labels = c("EIF4E negCOR",
                                         "EIF4G1 negCOR",
-                                        "EIF4A1 negCOR"), 
+                                        "EIF4A1 negCOR"),
                              cex    = 1.25))
     print(p2)}
   plot.neg.Venn()
@@ -629,15 +995,15 @@ plot.EIF.cor.pathway.lung <- function() {
     pos.overlap <- merge(EIF4G1.pos, EIF4A1.pos, by.x = "x", by.y = "x")
     # overlap <- merge(EIF4G1.neg, EIF4A1.neg, by.x = "x", by.y = "x")
     pos.overlap$entrez = mapIds(org.Hs.eg.db,
-      keys      = pos.overlap$x, 
-      column    = "ENTREZID",
-      keytype   = "SYMBOL",
-      multiVals = "first")
+                                keys      = pos.overlap$x,
+                                column    = "ENTREZID",
+                                keytype   = "SYMBOL",
+                                multiVals = "first")
     reac <- enrichPathway(gene = pos.overlap$entrez, readable = T)
     p3 <- barplot(reac, showCategory = 8)
-    p4 <- dotplot(reac, 
-                  x         = "count", 
-                  font.size = 18, 
+    p4 <- dotplot(reac,
+                  x         = "count",
+                  font.size = 18,
                   title     = "posCOR EIF4A1 & EIF4G1")
     p5 <- emapplot(reac, font.size = 18)
     p6 <- cnetplot(reac)
@@ -645,21 +1011,21 @@ plot.EIF.cor.pathway.lung <- function() {
     print(p4)
     print(p5)
     #print(p6)
-    
-    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE), 
+
+    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE),
       list(EIF4E.pos, EIF4G1.pos, EIF4A1.pos))
     allthree <- na.omit(allthree)
     allthree$entrez <- mapIds(org.Hs.eg.db,
-                              keys      = allthree$x, 
+                              keys      = allthree$x,
                               column    = "ENTREZID",
                               keytype   = "SYMBOL",
                               multiVals = "first")
     y <- enrichPathway(gene = allthree$entrez, readable = T)
     p7 <- barplot(y, showCategory = 8)
     p8 <- emapplot(y, font.size = 18)
-    p9 <- dotplot(y, 
-                  x         = "count", 
-                  font.size = 18, 
+    p9 <- dotplot(y,
+                  x         = "count",
+                  font.size = 18,
                   title     = "posCOR EIF4E & EIF4A1 & EIF4G1")
     p10 <- cnetplot(y)
     print(p7)
@@ -674,10 +1040,10 @@ plot.EIF.cor.pathway.lung <- function() {
     EIF4A1.neg <- na.omit(EIF4A1.cor[EIF4A1.cor$estimate < -0.3, ])
     neg.overlap <- merge(EIF4G1.neg, EIF4A1.neg, by.x = "x", by.y = "x")
     neg.overlap$entrez = mapIds(org.Hs.eg.db,
-      keys      = neg.overlap$x, 
-      column    = "ENTREZID",
-      keytype   = "SYMBOL",
-      multiVals = "first")
+                                keys      = neg.overlap$x,
+                                column    = "ENTREZID",
+                                keytype   = "SYMBOL",
+                                multiVals = "first")
     x <- enrichPathway(gene = neg.overlap$entrez, readable = T)
     p3 <- barplot(x, showCategory = 8)
     p4 <- dotplot(x, font.size = 16, title = "negCOR EIF4A1 & EIF4G1")
@@ -687,21 +1053,21 @@ plot.EIF.cor.pathway.lung <- function() {
     print(p4)
     print(p5)
     #print(p6)
-    
-    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE), 
+
+    allthree <- Reduce(function(x, y) merge(x, y, by = "x", all=TRUE),
       list(EIF4E.neg, EIF4G1.neg, EIF4A1.neg))
     allthree <- na.omit(allthree)
     allthree$entrez = mapIds(org.Hs.eg.db,
-      keys      = allthree$x, 
-      column    = "ENTREZID",
-      keytype   = "SYMBOL",
-      multiVals = "first")
+                             keys      = allthree$x,
+                             column    = "ENTREZID",
+                             keytype   = "SYMBOL",
+                             multiVals = "first")
     y <- enrichPathway(gene = allthree$entrez, readable = T)
     p7 <- barplot(y, showCategory = 8)
-    p8 <- emapplot(y, 
+    p8 <- emapplot(y,
       font.size = 18)
-    p9 <- dotplot(y, 
-      font.size = 18, 
+    p9 <- dotplot(y,
+      font.size = 18,
       title = "negCOR EIF4E & EIF4A1 & EIF4G1")
     p10 <- cnetplot(y)
     print(p7)
@@ -713,20 +1079,19 @@ plot.EIF.cor.pathway.lung <- function() {
   }
 plot.EIF.cor.pathway.lung()
 
-
 plot.cor.scatter <- function(x){
   tumor.type <- c("Primary Tumor", "Metastatic")
   TCGA.sampletype.all <- TCGA.sampletype.all[
     TCGA.sampletype.all$sample_type %in% tumor.type, ]
   TCGA.sampletype.all$sample_type <- as.factor(
     TCGA.sampletype.all$sample_type)
-  TCGA.sampletype.all$sample_type <- factor(TCGA.sampletype.all$sample_type, 
+  TCGA.sampletype.all$sample_type <- factor(TCGA.sampletype.all$sample_type,
     levels = c("Primary Tumor", "Metastatic"))
   TCGA.sampletype.all$`_primary_disease` <- as.factor(
     TCGA.sampletype.all$`_primary_disease`)
   levels(TCGA.sampletype.all$sample_type)
   levels(TCGA.sampletype.all$`_primary_disease`)
-  plotdata <- TCGA.sampletype.all %>% select(x, 
+  plotdata <- TCGA.sampletype.all %>% select(x,
     c("EIF4E", "EIF4G1", "EIF4A1"), "sample_type")
   black_bold_tahoma_16 <- element_text(
                                        color  = "black",
@@ -734,26 +1099,26 @@ plot.cor.scatter <- function(x){
                                        family = "Tahoma",
                                        size   = 16
                                       )
-  p1 <- ggscatter(data = plotdata, 
-                  x          = x, 
-                  y          = c("EIF4E", "EIF4G1", "EIF4A1"), 
+  p1 <- ggscatter(data = plotdata,
+                  x          = x,
+                  y          = c("EIF4E", "EIF4G1", "EIF4A1"),
                   # ylim      = c(4, 18),
-                  combine    = TRUE, 
+                  combine    = TRUE,
                   ylab       = "log2(RNA expression)",
                   size       = 1,
-                  color      = "sample_type", 
+                  color      = "sample_type",
                   palette    = "aaas",
                   # facet.by = "sample_type", #scales = "free_x",
                   add        = "reg.line", # Add regression line
                   fullrange  = TRUE, # Extending the regression line
                   font.label = "bold",
                   repel      = TRUE, # repel labels to avoid overlapping
-                  shape      = "sample_type", # Change point shape by sample_type 
+                  shape      = "sample_type", # Change point shape by sample_type
                   rug        = TRUE,    # Add marginal rug
                   conf.int   = TRUE,
                   cor.coef   = TRUE, # Add correlation coefficient. see ?stat_cor
-                  cor.coeff.args = list(aes(color       = sample_type), 
-                                            method      = "pearson",  
+                  cor.coeff.args = list(aes(color       = sample_type),
+                                            method      = "pearson",
                                             label.y.npc = "bottom",
                                             size        = 6)) +
                   theme_bw() +
@@ -769,11 +1134,11 @@ plot.cor.scatter <- function(x){
                     legend.title    = element_blank(),
                     legend.text     = black_bold_tahoma_16,
                     strip.text      = black_bold_tahoma_16
-                  ) 
+                  )
   print(p1)
       }
-plot.cor.scatter(x = "MYC")
-  lapply(EIF.gene, plot.cor.scatter, y = "CCNB1")
+plot.cor.scatter(x = "CCNB1")
+lapply(EIF.gene, plot.cor.scatter, y = "CCNB1")
 
 ## read.csv will transform characters into factors
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
@@ -1039,7 +1404,7 @@ get.EIF.TCGA.score.long <- function (x) {
     EIF.TCGA.score.long[EIF.TCGA.score.long$sample.type %in% tumor.type, ]
   EIF.TCGA.score.long <- droplevels(EIF.TCGA.score.long)
   EIF.TCGA.score.long$sample.type <- factor(
-    EIF.TCGA.score.long$sample.type, 
+    EIF.TCGA.score.long$sample.type,
     levels = tumor.type
   )
   return(EIF.TCGA.score.long)
@@ -1116,14 +1481,14 @@ plot.EIF.correlation <- function(x, y){
     family = "Tahoma",
     size   = 16
   )
-  p1 <- ggscatter(EIF.TCGA.GTEX, 
-            x        = x, 
-            y        = y, 
+  p1 <- ggscatter(EIF.TCGA.GTEX,
+            x        = x,
+            y        = y,
             size     = 0.3,
-            color    = "sample_type", 
+            color    = "sample_type",
             # palette  = "jco",
             facet.by = "sample_type", #scales = "free_x",
-            add      = "reg.line", 
+            add      = "reg.line",
             conf.int = TRUE) +
     theme_bw() +
     theme(
@@ -1136,18 +1501,18 @@ plot.EIF.correlation <- function(x, y){
       panel.grid      = element_blank(),
       legend.position = "none",
       strip.text      = black_bold_tahoma_16
-    ) + 
-    stat_cor(#aes(color   = "sample_type"), 
-                 method  = "pearson", 
+    ) +
+    stat_cor(#aes(color   = "sample_type"),
+                 method  = "pearson",
                  label.y = 6)
-  p2 <- ggscatter(EIF.TCGA, 
-            x        = x, 
-            y        = y, 
+  p2 <- ggscatter(EIF.TCGA,
+            x        = x,
+            y        = y,
             size     = 0.3,
-            color    = "primary_disease_or_tissue", 
+            color    = "primary_disease_or_tissue",
             #palette  = "nrc",
             facet.by = "primary_disease_or_tissue", #scales = "free_x",
-            add      = "reg.line", 
+            add      = "reg.line",
             conf.int = TRUE) +
     theme_bw() +
     theme(
@@ -1160,17 +1525,17 @@ plot.EIF.correlation <- function(x, y){
       panel.grid      = element_blank(),
       legend.position = "none",
       strip.text      = black_bold_tahoma_16
-    ) + 
+    ) +
     # discrete_scale("fill", "manual", palette_Dark2)+
-    stat_cor(#aes(color   = "primary_disease_or_tissue"), 
-                 method  = "pearson", 
+    stat_cor(#aes(color   = "primary_disease_or_tissue"),
+                 method  = "pearson",
                  label.y = 6)
   print(p1)
   print(p2)
   }
 
 ##
-plotEIF.RNAseq.TCGA.GTEX <-  function (x) {
+plotEIF.RNAseq.TCGA.GTEX <- function (x) {
   name <- deparse(substitute(x))
   black_bold_tahoma_12 <- element_text(
     color  = "black",
@@ -1191,11 +1556,11 @@ plotEIF.RNAseq.TCGA.GTEX <-  function (x) {
         y     = value,
         fill = sample.type,
         color = sample.type)) +
-    stat_n_text(size = 6, fontface = "bold") + 
+    stat_n_text(size = 6, fontface = "bold") +
     facet_grid(~ variable,
                scales = "free",
                space  = "free") +
-    facet_wrap(~ variable, 
+    facet_wrap(~ variable,
                ncol = 6) +
     geom_violin(trim = FALSE) +
     geom_boxplot(
@@ -1230,7 +1595,7 @@ plotEIF.RNAseq.TCGA.GTEX <-  function (x) {
     aes(x     = variable,
         y     = value,
         color = variable)) +
-    stat_n_text() + 
+    stat_n_text() +
     facet_grid(~ sample.type,
       scales = "free",
       space  = "free") +
@@ -1264,13 +1629,13 @@ plotEIF.RNAseq.TCGA.GTEX <-  function (x) {
                       c("RPS6KB1", "EIF4E"),
                       c("MYC", "EIF4E")
                       ),
-    method = "t.test", 
+    method = "t.test",
     label = "p.signif")
   print(p2)
 }
 
 ##
-plotEIF.RNAseq.TCGA.GTEX.tissue <-  function (tissue) {
+plotEIF.RNAseq.TCGA.GTEX.tissue <- function (tissue) {
   get.EIF.TCGA.GTEX.RNAseq.tissue <- function (tissue) {
     EIF.TCGA.GTEX <- read_csv("project-data/EIFTCGAGTEX.csv")
     EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:10])
@@ -1317,7 +1682,7 @@ plotEIF.RNAseq.TCGA.GTEX.tissue <-  function (tissue) {
     aes(x     = sample.type,
         y     = value,
         color = sample.type)) +
-    stat_n_text() + 
+    stat_n_text() +
     facet_grid(~ variable,
                scales = "free",
                space  = "free") +
@@ -1356,7 +1721,7 @@ plotEIF.RNAseq.TCGA.GTEX.tissue <-  function (tissue) {
     aes(x     = variable,
         y     = value,
         color = variable)) +
-    stat_n_text() + 
+    stat_n_text() +
     facet_grid(~ sample.type,
       scales = "free",
       space  = "free") +
@@ -1390,13 +1755,13 @@ plotEIF.RNAseq.TCGA.GTEX.tissue <-  function (tissue) {
       c("RPS6KB1", "EIF4E"),
       c("MYC", "EIF4E")
     ),
-    method = "t.test", 
+    method = "t.test",
     label = "p.signif")
   print(p2)
 }
 
 ##
-plot.box.EIF.RNAseq.TCGA <-  function (x) {
+plot.box.EIF.RNAseq.TCGA <- function (x) {
   x <- x[x$value != 0, ]
   # name <- deparse(substitute(x))
   # y <- x[x$variable == "EIF4E", ]
@@ -1414,19 +1779,19 @@ plot.box.EIF.RNAseq.TCGA <-  function (x) {
     angle  = 45,
     hjust  = 1
   )
-  # reorder bars by explicitly ordering factor levels 
+  # reorder bars by explicitly ordering factor levels
   x$primary.disease <- as.factor(x$primary.disease)
   mean <- within(x[x$variable == "EIF4E", ], # TCGAstudy is one column in df2
     primary.disease <- reorder(primary.disease, value, median))
   mean$primary.disease <- as.factor(mean$primary.disease)
   neworder <- levels(mean$primary.disease)
   x.ordered <- factor(x$primary.disease, levels = neworder)
-  
+
   p1 <- ggplot(data = x,
     aes(x     = x.ordered,
         y     = value,
         color = variable)) +
-    stat_n_text(size = 5, fontface = "bold", hjust = 0) + 
+    stat_n_text(size = 5, fontface = "bold", hjust = 0) +
     # geom_violin(trim = FALSE) +
     geom_boxplot(
       alpha    = .01,
@@ -1457,7 +1822,7 @@ plot.box.EIF.RNAseq.TCGA <-  function (x) {
 }
 
 ##
-plotEIF.RNAseq.TCGA <-  function (x) {
+plotEIF.RNAseq.TCGA <- function (x) {
   name <- deparse(substitute(x))
   tumor.type <- c(
     "Metastatic",
@@ -1495,7 +1860,7 @@ plotEIF.RNAseq.TCGA <-  function (x) {
         y     = value,
         fill  = sample.type,
         color = sample.type)) +
-    stat_n_text(size = 6, fontface = "bold",angle = 90, hjust = 0) + 
+    stat_n_text(size = 6, fontface = "bold",angle = 90, hjust = 0) +
     facet_grid(. ~ variable,
                scales = "free",
                space  = "free") +
@@ -1509,8 +1874,8 @@ plotEIF.RNAseq.TCGA <-  function (x) {
     ) +
     labs(x = "sample type",
          y = paste("log2(RNA counts)")) +
-    scale_x_discrete(labels = c("Metastatic", 
-                                "Primary Tumor", 
+    scale_x_discrete(labels = c("Metastatic",
+                                "Primary Tumor",
                                 "Solid Tissue \n (Normal)")
     ) +
     theme_bw() +
@@ -1533,13 +1898,13 @@ plotEIF.RNAseq.TCGA <-  function (x) {
         c("Metastatic", "Primary Tumor")
     ),
       method = "t.test", label = "p.signif", size = 6)
-  
+
   p2 <- ggplot(data = x,
     aes(x     = variable,
         y     = value,
         fill  = variable,
         color = variable)) +
-    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) + 
+    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
     facet_grid(~ sample.type,
                scales = "free",
                space  = "free") +
@@ -1577,7 +1942,7 @@ plotEIF.RNAseq.TCGA <-  function (x) {
 plotEIF.RNAseq.TCGA (get.EIF.TCGA.RNAseq.long(EIF.gene))
 
   ##
-plot.box.EIF.score.TCGA <-  function (x) {
+plot.box.EIF.score.TCGA <- function (x) {
   x <- x[x$value != 0, ]
   name <- deparse(substitute(x))
   ratio <- c("EIF4A1:EIF4E", "EIF4G1:EIF4E", "EIF4EBP1:EIF4E")
@@ -1597,19 +1962,19 @@ plot.box.EIF.score.TCGA <-  function (x) {
     angle  = 45,
     hjust  = 1
   )
-  # reorder bars by explicitly ordering factor levels 
+  # reorder bars by explicitly ordering factor levels
   x$primary.disease <- as.factor(x$primary.disease)
   mean <- within(x[x$variable == "EIF4EBP1:EIF4E", ], # TCGAstudy is one column in df2
     primary.disease <- reorder(primary.disease, value, median))
   mean$primary.disease <- as.factor(mean$primary.disease)
   neworder <- levels(mean$primary.disease)
   x.ordered <- factor(x$primary.disease, levels = neworder)
-  
+
   p1 <- ggplot(data = x,
     aes(x     = x.ordered,
         y     = value, fill  = variable,
         color = variable)) +
-    stat_n_text(size = 5, fontface = "bold", hjust = 0) + 
+    stat_n_text(size = 5, fontface = "bold", hjust = 0) +
     # geom_violin(trim = FALSE) +
     geom_boxplot(
       alpha    = .01,
@@ -1636,11 +2001,11 @@ plot.box.EIF.score.TCGA <-  function (x) {
       strip.text      = black_bold_tahoma_12
     )
   print(p1)
-  
+
 }
 
 ##
-plotEIF.score.TCGA <-  function (x) {
+plotEIF.score.TCGA <- function (x) {
   name <- deparse(substitute(x))
   ratio <- c("EIF4A1:EIF4E", "EIF4G1:EIF4E", "EIF4EBP1:EIF4E", "EIF4G1:EIF4EBP1")
   x <- x[x$variable %in% ratio, ]
@@ -1670,7 +2035,7 @@ plotEIF.score.TCGA <-  function (x) {
         y     = value,
         fill  = sample.type,
         color = sample.type)) +
-    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) + 
+    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
     facet_grid(~ variable,
       scales = "free",
       space  = "free") +
@@ -1684,8 +2049,8 @@ plotEIF.score.TCGA <-  function (x) {
     ) +
     labs(x = "sample type",
       y = paste("log2(ratio)")) +
-    scale_x_discrete(labels = c("Metastatic", 
-      "Primary Tumor", 
+    scale_x_discrete(labels = c("Metastatic",
+      "Primary Tumor",
       "Solid Tissue \n (Normal)")
     ) +
     geom_hline(yintercept = 0, linetype = "dashed") +
@@ -1708,13 +2073,13 @@ plotEIF.score.TCGA <-  function (x) {
       c("Metastatic", "Primary Tumor")
     ),
       method = "t.test", label = "p.signif", size = 6, hjust = 0)
-  
+
   p2 <- ggplot(data = x,
     aes(x     = variable,
       y     = value,
       fill  = variable,
       color = variable)) +
-    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) + 
+    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
     facet_grid(~ sample.type,
       scales = "free",
       space  = "free") +
@@ -1754,7 +2119,7 @@ plotEIF.score.TCGA <-  function (x) {
 }
 
 ##
-plotEIF.score.TCGA.GTEX.tissue <-  function (tissue) {
+plotEIF.score.TCGA.GTEX.tissue <- function (tissue) {
   get.EIF.TCGA.GTEX.score.tissue <- function (tissue) {
     EIF.TCGA.GTEX <- read.csv(file.path("project-data",
       "EIFTCGAGTEX.csv"),
@@ -1763,8 +2128,8 @@ plotEIF.score.TCGA.GTEX.tissue <-  function (tissue) {
     EIF.TCGA.GTEX.tissue <- EIF.TCGA.GTEX[grep(tissue,
       EIF.TCGA.GTEX$primary_disease_or_tissue), ]
     EIF.TCGA.GTEX.score <- EIF.TCGA.GTEX.tissue
-    EIF.TCGA.GTEX.score <- tibble::add_column(EIF.TCGA.GTEX.score, 
-                                              EIF4F = NA, 
+    EIF.TCGA.GTEX.score <- tibble::add_column(EIF.TCGA.GTEX.score,
+                                              EIF4F = NA,
                                               .after = "EIF4EBP1")
     EIF.TCGA.GTEX.score$EIF4A1 <-
       (EIF.TCGA.GTEX.tissue$EIF4A1 - EIF.TCGA.GTEX.tissue$EIF4E)
@@ -1938,12 +2303,12 @@ plotEIF.score.TCGA.GTEX.tissue <-  function (tissue) {
 }
 
 ##
-plotEIF.GTEX <-  function (x) {
+plotEIF.GTEX <- function (x) {
   name <- deparse(substitute(x))
   gene.number <- nlevels(x$variable)
-  cell.line.number <- 
+  cell.line.number <-
     nrow(x[x$sample.type == "Cell Line", ])/gene.number
-  normal.tissue.number <- 
+  normal.tissue.number <-
     nrow(x[x$sample.type == "Normal Tissue", ])/gene.number
   black_bold_tahoma_12 <- element_text(
     color  = "black",
@@ -2028,7 +2393,7 @@ plot.EIF.seq.each.tumor <- function(x, y) {
     aes(x     = sample.type,
         y     = value,
         color = sample.type)) +
-    stat_n_text() + 
+    stat_n_text() +
     facet_grid(~ variable,
                scales = "free",
                space  = "free") +
@@ -2057,14 +2422,14 @@ plot.EIF.seq.each.tumor <- function(x, y) {
     scale_x_discrete(limit = c("Primary Tumor", "Solid Tissue Normal"),
       labels = c("Tumor","Normal")) +
     stat_compare_means(comparisons = list(
-      c("Primary Tumor", 
+      c("Primary Tumor",
         "Solid Tissue Normal")),
       method = "t.test", label = "p.signif")
   p2 <- ggplot(data = m,
     aes(x     = variable,
         y     = value,
         color = variable)) +
-    stat_n_text() + 
+    stat_n_text() +
     facet_grid(~ sample.type,
                scales = "free",
                space  = "free") +
@@ -2120,8 +2485,8 @@ plot.EIF.seq.all.normal <- function(x) {
 #########################################################################
 plot.km.EIF.all.tumors <- function(EIF) {
   EIF.TCGA.GTEX <- read_csv(
-    "project-data/EIFTCGAGTEX.csv", 
-    col_types = cols(OS      = col_number(), 
+    "project-data/EIFTCGAGTEX.csv",
+    col_types = cols(OS      = col_number(),
       OS.time = col_number())
   )
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA', ]
@@ -2149,7 +2514,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
   )
   print(
     ggplot2::autoplot(
-      km, 
+      km,
       xlab = "Days",
       ylab = "Survival Probability",
       main = paste0("All TCGA cancer studies (",
@@ -2174,7 +2539,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
         values = c("red", "blue"),
         name   = paste(EIF, "mRNA expression"),
         breaks = c("Bottom 20%", "Top 20%"),
-        labels = c(paste("Bottom 20%, n = ", sub), 
+        labels = c(paste("Bottom 20%, n = ", sub),
           paste("Top 20%, n = ", sub))
       ) +
       geom_point(size = 0.25) +
@@ -2199,8 +2564,8 @@ plot.km.EIF.all.tumors <- function(EIF) {
 ##
 plot.km.EIF.each.tumor <- function(EIF, tumor) {
   EIF.TCGA.GTEX <- read_csv(
-    "project-data/EIFTCGAGTEX.csv", 
-    col_types = cols(OS      = col_number(), 
+    "project-data/EIFTCGAGTEX.csv",
+    col_types = cols(OS      = col_number(),
       OS.time = col_number())
   )
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA', ]
@@ -2313,29 +2678,29 @@ plot.EIF.TCGA.GTEX.PCA.all <- function () {
   PCA <- prcomp(df1)
   # Extract PC axes for plotting
   PCAvalues <- data.frame(Sample.type = EIF.TCGA.GTEX$X_sample_type, PCA$x)
-  PCAvalues$Sample.type <- factor(PCAvalues$Sample.type, 
-    levels=c("Normal Tissue", "Solid Tissue Normal", "Primary Tumor", "Metastatic"), 
-    labels=c("Healthy Tissue (GTEx)", "Solid Normal Tissue (TCGA)", 
+  PCAvalues$Sample.type <- factor(PCAvalues$Sample.type,
+    levels=c("Normal Tissue", "Solid Tissue Normal", "Primary Tumor", "Metastatic"),
+    labels=c("Healthy Tissue (GTEx)", "Solid Normal Tissue (TCGA)",
       "Primary Tumor (TCGA)", "Metastatic Tumor (TCGA)"))
   # Extract loadings of the variables
   PCAloadings <- data.frame(Variables = rownames(PCA$rotation), PCA$rotation)
   # Plot
-  p <- ggplot(PCAvalues, 
-         aes(x      = PC1, 
-             y      = PC2, 
+  p <- ggplot(PCAvalues,
+         aes(x      = PC1,
+             y      = PC2,
              colour = Sample.type)) +
     geom_point(size = 2) +
-    geom_segment(data     = PCAloadings, 
-                 aes(x    = 0, 
-                     y    = 0, 
+    geom_segment(data     = PCAloadings,
+                 aes(x    = 0,
+                     y    = 0,
                      xend = (PC1*5),
-                     yend = (PC2*5)), 
+                     yend = (PC2*5)),
                  arrow    = arrow(length = unit(1/3, "picas")),
                  color    = "black") +
     annotate("text",
              size     = 6,
              fontface = "bold",
-             x        = (PCAloadings$PC1*5), 
+             x        = (PCAloadings$PC1*5),
              y        = (PCAloadings$PC2*5),
              label    = PCAloadings$Variables) +
     stat_n_text(geom = "label") +
@@ -2367,7 +2732,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function () {
   print(p)
     }
 plot.EIF.TCGA.GTEX.PCA.all()
-  
+
 ##
 plot.EIF.TCGA.GTEX.PCA.each.tissue <- function (x) {
   EIF.TCGA.GTEX <- read.csv(file = "project-data/EIFTCGAGTEX2.csv",
@@ -2391,28 +2756,28 @@ plot.EIF.TCGA.GTEX.PCA.each.tissue <- function (x) {
   PCA <- prcomp(df1)
   # Extract PC axes for plotting
   PCAvalues <- data.frame(Sample.type = EIF.TCGA.GTEX$X_sample_type, PCA$x)
-  PCAvalues$Sample.type <- factor(PCAvalues$Sample.type, 
-    levels=c("Normal Tissue", "Solid Tissue Normal", "Primary Tumor", "Metastatic"), 
-    labels=c("Healthy Tissue (GTEx)", "Solid Normal Tissue (TCGA)", 
+  PCAvalues$Sample.type <- factor(PCAvalues$Sample.type,
+    levels=c("Normal Tissue", "Solid Tissue Normal", "Primary Tumor", "Metastatic"),
+    labels=c("Healthy Tissue (GTEx)", "Solid Normal Tissue (TCGA)",
       "Primary Tumor (TCGA)", "Metastatic Tumor (TCGA)"))
   # Extract loadings of the variables
   PCAloadings <- data.frame(Variables = rownames(PCA$rotation), PCA$rotation)
   # Plot
-  p <- ggplot(PCAvalues, aes(x      = PC1, 
-                        y      = PC2, 
+  p <- ggplot(PCAvalues, aes(x      = PC1,
+                        y      = PC2,
                         colour = Sample.type)) +
-    geom_segment(data     = PCAloadings, 
-                 aes(x    = 0, 
-                     y    = 0, 
+    geom_segment(data     = PCAloadings,
+                 aes(x    = 0,
+                     y    = 0,
                      xend = (PC1*3),
-                     yend = (PC2*3)), 
+                     yend = (PC2*3)),
                  arrow    = arrow(length = unit(1/3, "picas")),
                  color    = "black") +
     geom_point(size = 2) +
     annotate("text",
               size     = 6,
               fontface = "bold",
-              x        = (PCAloadings$PC1*3), 
+              x        = (PCAloadings$PC1*3),
               y        = (PCAloadings$PC2*3),
               label    = PCAloadings$Variables) +
     ggtitle (x) +
@@ -2522,7 +2887,7 @@ plot.EIF.PCA <- function () {
 }
 
 ####################################################
-####################################################    
+####################################################
 plot.EIF.correlation(x = "EIF4A1", y = "MYC")
 
 plotEIF.RNAseq.TCGA.GTEX (get.EIF.TCGA.GTEX.RNAseq.long())
@@ -2564,6 +2929,5 @@ lapply(EIF.gene,
 ####################################################
 plot.EIF.TCGA.GTEX.PCA.all()
 
-plot.EIF.TCGA.GTEX.PCA.each.tissue ("Lung")    
+plot.EIF.TCGA.GTEX.PCA.each.tissue ("Lung")
 lapply(tissue.list(), plot.EIF.TCGA.GTEX.PCA.each.tissue)
-
