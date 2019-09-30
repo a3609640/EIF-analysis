@@ -68,7 +68,7 @@ plot.heatmap.total <- function() {
     TCGA.GTEX.t <- data.table::transpose(TCGA.GTEX)
     rownames(TCGA.GTEX.t) <- colnames(TCGA.GTEX)
     colnames(TCGA.GTEX.t) <- rownames(TCGA.GTEX)
- # NA in the vector
+    # NA in the vector
     TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.t,
                                        subset,
                                        by    = "row.names",
@@ -116,9 +116,11 @@ plot.heatmap.total <- function() {
                       setNames(data.frame(EIF4A1.cor[3]), c('EIF4A1')))
     return(cor.data)
   }
-  EIF.cor.tumor <- EIF.correlation(y = c("Primary Tumor", 
-                                         "Metastatic", 
-                                         "Recurrent Tumor"))
+  all.sample.type <- levels(subset$sample.type)
+  all.tumor.type <- all.sample.type [! all.sample.type %in% c("Cell Line", 
+                                                              "Normal Tissue", 
+                                                              "Solid Tissue Normal")]
+  EIF.cor.tumor <- EIF.correlation(y = all.tumor.type)
   EIF.cor.normal <- EIF.correlation(y = c("Normal Tissue"))
   cor.data <- cbind(setNames(data.frame(EIF.cor.tumor[1:3]),
                     c('EIF4E.tumor',
@@ -134,8 +136,17 @@ plot.heatmap.total <- function() {
                                    cor.data$EIF4E.normal > 0.3 |
                                    cor.data$EIF4G1.normal > 0.3 |
                                    cor.data$EIF4A1.normal > 0.3 , ]))
+  pheatmap::pheatmap(DF,
+    # main = "Correlation Coefficient Heatmap",
+    annotation_row = my_sample_col[,"_sample_type",drop=FALSE],
+    angle_col     = c("0"),
+    fontsize      = 12,
+    fontface      = "bold",
+    color         = colorRampPalette(rev(brewer.pal(n    = 7, 
+      name = "RdYlBu")))(100),
+    show_rownames = FALSE,
+    show_colnames = FALSE)
   # DF_scaled = t(scale(t(DF)))
-  
   ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options
   ht1 = Heatmap(DF,
     name                 = "Correlation Coefficient",
@@ -159,10 +170,10 @@ plot.heatmap.total <- function() {
      #row_km_repeats = 100,
      #row_title      = "cluster_%s",
     row_title_gp   = gpar(fontsize = 14,
-      fontface = "bold"),
+                          fontface = "bold"),
     border         = TRUE,
-    col            = circlize::colorRamp2(seq(min(DF), max(DF), length = 3),
-      c("blue", "#EEEEEE", "red")))
+    col            = circlize::colorRamp2(c(-1, 0, 1),
+                                          c("blue", "#EEEEEE", "red")))
   ht = draw(ht1,
             merge_legends       = TRUE,
             heatmap_legend_side = "top")
@@ -246,6 +257,208 @@ plot.heatmap.total <- function() {
 plot.heatmap.total()
 
 ###
+plot.heatmap.GTEX <- function() {
+  get.GTEX.annotation <- function(){
+    Sample.type.annotation <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+    Sample.type.annotation <- Sample.type.annotation[
+      !duplicated(Sample.type.annotation$sample), ]
+    Sample.type.annotation <- as.data.frame(Sample.type.annotation)
+    Sample.type.annotation$`_study` <- as.factor(Sample.type.annotation$`_study`)
+  # levels(Sample.type.annotation$`_study`), "GTEX"   "TARGET" "TCGA" 
+    GTEX.annotation <- Sample.type.annotation[Sample.type.annotation$`_study` == "GTEX",]
+    GTEX.annotation$`_study` <- droplevels(GTEX.annotation$`_study`)
+    GTEX.annotation <- na.omit(GTEX.annotation)
+    row.names(GTEX.annotation) <- GTEX.annotation$sample
+    GTEX.annotation$sample <- NULL
+    subset <- as.data.frame(GTEX.annotation$`_sample_type`)
+    row.names(subset) <- row.names(GTEX.annotation)
+    colnames(subset) <- "sample.type"
+    return(subset)
+    }
+  subset <- get.GTEX.annotation()
+  Sample.ID <- row.names(subset)
+  tissue.GTEX.TCGA.gene <- function(){
+    # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
+    TCGA.GTEX <- fread(
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      data.table = FALSE) # data.table = FALSE gives data.frame
+    # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
+    TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
+                           !duplicated(colnames(TCGA.GTEX))]
+    row.names(TCGA.GTEX) <- TCGA.GTEX$sample
+    TCGA.GTEX$sample <- NULL
+    TCGA.GTEX <- TCGA.GTEX[,colnames(TCGA.GTEX) %in% Sample.ID]
+    TCGA.GTEX.t <- data.table::transpose(TCGA.GTEX)
+    rownames(TCGA.GTEX.t) <- colnames(TCGA.GTEX)
+    colnames(TCGA.GTEX.t) <- rownames(TCGA.GTEX)
+    # NA in the vector
+    TCGA.GTEX.sampletype <- merge(TCGA.GTEX.t,
+                                  subset,
+                                  by    = "row.names",
+                                  all.x = TRUE)
+    # check the name of the last column
+    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)] 
+    TCGA.GTEX.sampletype <- na.omit(TCGA.GTEX.sampletype)
+    return(TCGA.GTEX.sampletype)
+  }
+  TCGA.GTEX.sampletype <- tissue.GTEX.TCGA.gene()
+  gene.name <- names(TCGA.GTEX.sampletype)
+  gene.name <- gene.name [! gene.name %in% c("Row.names", "sample.type")]
+  
+  ### TO BE CONTINUED
+  EIF.correlation <- function(y){
+    GTEX.tissue <- TCGA.GTEX.sampletype[
+      TCGA.GTEX.sampletype$sample.type %in% y, ]
+    correlation.coefficient <- function(x, y) {
+      result <- cor.test(GTEX.tissue[[x]],
+                         GTEX.tissue[[y]],
+                         method = "pearson")
+      res <- data.frame(x,
+                        y,
+                        result[c("estimate",
+                                 "p.value",
+                                 "statistic",
+                                 "method")],
+                        stringsAsFactors=FALSE)
+    }
+    # find all genes positively correlate with EIF4F expression
+    # lapply function gives a large list, need to convert it to a dataframe
+    EIF.cor.list <- function(x) {
+      cor.data <- do.call(rbind.data.frame,
+                          lapply(gene.name,
+                                 correlation.coefficient,
+                                 y = x))
+      rownames(cor.data) <- cor.data[,1]
+      return(cor.data)
+    }
+    EIF4E.cor <- EIF.cor.list("EIF4E")
+    EIF4G1.cor <- EIF.cor.list("EIF4G1")
+    EIF4A1.cor <- EIF.cor.list("EIF4A1")
+    cor.data <- cbind(setNames(data.frame(EIF4E.cor[3]), c('EIF4E')),
+      setNames(data.frame(EIF4G1.cor[3]), c('EIF4G1')),
+      setNames(data.frame(EIF4A1.cor[3]), c('EIF4A1')))
+    return(cor.data)
+  }
+  # all.sample.type <- levels(subset$sample.type)
+  EIF.cor.normal <- EIF.correlation(y = c("Normal Tissue"))
+  DF <- as.matrix(na.omit(EIF.cor.normal[EIF.cor.normal$EIF4E > 0.3 |
+                          EIF.cor.normal$EIF4G1 > 0.3 |
+                          EIF.cor.normal$EIF4A1 > 0.3, ]))
+  pheatmap::pheatmap(DF,
+    # main = "Correlation Coefficient Heatmap",
+    angle_col     = c("0"),
+    fontsize      = 12,
+    fontface      = "bold",
+    color         = colorRampPalette(rev(brewer.pal(n    = 7, 
+                                                    name = "RdYlBu")))(100),
+    show_rownames = FALSE,
+    show_colnames = TRUE)
+  ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options
+  ht1 = Heatmap(DF,
+    name                 = "Correlation Coefficient",
+    heatmap_legend_param = list(direction = "horizontal"),
+    # clustering_distance_rows = function(x, y) 1 - cor(x, y),
+    show_row_names       = FALSE,
+    show_column_names    = FALSE,
+    bottom_annotation    = HeatmapAnnotation(
+      annotation_legend_param = list(direction = "horizontal"),
+      cn       = anno_text(gsub("\\..*","",colnames(DF)),
+      location = 1,
+      rot      = 0,
+      just     = "right",
+      gp       = gpar(fontsize = 14,
+                      fontface = "bold"))),
+    #row_km         = 4,
+    #row_km_repeats = 100,
+    #row_title      = "cluster_%s",
+    row_title_gp   = gpar(fontsize = 14,
+                          fontface = "bold"),
+    border         = TRUE,
+    col            = circlize::colorRamp2(c(-1, 0, 1),
+                                          c("blue", "#EEEEEE", "red")))
+  ht = draw(ht1,
+            merge_legends       = TRUE,
+            heatmap_legend_side = "top")
+  ## try to extract clusters from heatmap
+  # Saving row names of cluster one  
+  plot.cluster.pathway <- function() {
+    cluster.geneID.list <- function(x) {
+      c1 <- t(t(row.names(DF[row_order(ht1)[[x]],])))
+      c1 <- as.data.frame(c1)
+      c1$V1 <- as.character(c1$V1)
+      c1$entrez = mapIds(org.Hs.eg.db,
+        keys      = c1$V1,
+        column    = "ENTREZID",
+        keytype   = "SYMBOL",
+        multiVals = "first")
+      # c1 <- c1[!is.na(c1)]
+      c1 <- na.omit(c1)
+      return(c1$entrez)
+    }
+    cluster.num <- as.character(c(1:4))
+    names(cluster.num) <- paste("cluster", 1:4)
+    cluster.data <- lapply(cluster.num, cluster.geneID.list)
+    ck.GO <- compareCluster(geneCluster = cluster.data,
+      fun         = "enrichGO",
+      OrgDb       = 'org.Hs.eg.db')
+    ck.KEGG <- compareCluster(geneCluster = cluster.data,
+      fun         = "enrichKEGG")
+    ck.REACTOME <- compareCluster(geneCluster = cluster.data,
+      fun         = "enrichPathway")
+    print(dotplot(ck.GO,
+      title        = "The Most Enriched GO Pathways",
+      showCategory = 8,
+      font.size    = 18,
+      includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title   = black_bold_tahoma_16,
+          axis.title   = black_bold_tahoma_16,
+          axis.text.x  = black_bold_tahoma_16,
+          axis.text.y  = black_bold_tahoma_16,
+          axis.line.x  = element_line(color = "black"),
+          axis.line.y  = element_line(color = "black"),
+          panel.grid   = element_blank(),
+          legend.title = black_bold_tahoma_16,
+          legend.text  = black_bold_tahoma_16,
+          strip.text   = black_bold_tahoma_16))
+    print(dotplot(ck.KEGG,
+      title        = "The Most Enriched KEGG Pathways",
+      showCategory = 8,
+      font.size    = 18,
+      includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title   = black_bold_tahoma_16,
+          axis.title   = black_bold_tahoma_16,
+          axis.text.x  = black_bold_tahoma_16,
+          axis.text.y  = black_bold_tahoma_16,
+          axis.line.x  = element_line(color = "black"),
+          axis.line.y  = element_line(color = "black"),
+          panel.grid   = element_blank(),
+          legend.title = black_bold_tahoma_16,
+          legend.text  = black_bold_tahoma_16,
+          strip.text   = black_bold_tahoma_16))
+    print(dotplot(ck.REACTOME,
+      title        = "The Most Enriched REACTOME Pathways",
+      showCategory = 8,
+      font.size    = 16,
+      includeAll   = FALSE) +
+        theme_bw() +
+        theme(plot.title   = black_bold_tahoma_16,
+          axis.title   = black_bold_tahoma_16,
+          axis.text.x  = black_bold_tahoma_16,
+          axis.text.y  = black_bold_tahoma_16,
+          axis.line.x  = element_line(color = "black"),
+          axis.line.y  = element_line(color = "black"),
+          panel.grid   = element_blank(),
+          legend.title = black_bold_tahoma_16,
+          legend.text  = black_bold_tahoma_16,
+          strip.text   = black_bold_tahoma_16))
+  }
+  plot.cluster.pathway()
+}
+plot.heatmap.total()
+
+###
 plot.heatmap.all.TCGA <- function () {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
@@ -253,7 +466,8 @@ plot.heatmap.all.TCGA <- function () {
       "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
-    TCGA.sampletype <- read_tsv("~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+    TCGA.sampletype <- read_tsv(
+      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
                                       !duplicated(colnames(TCGA.pancancer))]
@@ -266,9 +480,9 @@ plot.heatmap.all.TCGA <- function () {
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
     TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose,
-      TCGA.sampletype,
-      by    = "row.names",
-      all.x = TRUE)
+                                    TCGA.sampletype,
+                                    by    = "row.names",
+                                    all.x = TRUE)
     TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
     return(TCGA.RNAseq.sampletype)
   }
@@ -355,7 +569,7 @@ plot.heatmap.all.TCGA <- function () {
                      show_colnames = TRUE)
   ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options)
   ht1 = Heatmap(DF,
-               name                 = "Correlation Coefficient",
+               name                 = "Correlation Coefficient Heatmap in TCGA",
                heatmap_legend_param = list(direction = "horizontal"),
                show_row_names       = FALSE,
                show_column_names    = FALSE,
@@ -464,6 +678,7 @@ plot.heatmap.all.GTEx <- function () {
                                       !duplicated(colnames(TCGA.pancancer))]
     row.names(TCGA.pancancer1) <- TCGA.pancancer1$sample
     TCGA.pancancer1$sample <- NULL
+    # TCGA.pancancer1 <- TCGA.pancancer1[,colnames(TCGA.pancancer1) %in% Sample.ID]
     TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer1)
     rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer1)
     colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer1)
@@ -582,7 +797,7 @@ plot.heatmap.all.GTEx <- function () {
     show_colnames = TRUE)
   ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options)
   ht1 = Heatmap(DF,
-    name                 = "Correlation Coefficient",
+    name                 = "Correlation Coefficient Heatmap in GTEx",
     heatmap_legend_param = list(direction = "horizontal"),
     show_row_names       = FALSE,
     show_column_names    = FALSE,
@@ -596,7 +811,7 @@ plot.heatmap.all.GTEx <- function () {
     row_km           = 3,
     row_title        = "cluster_%s",
     border           = TRUE,
-    col              = colorRamp2(seq(-1, 1, length = 3),
+    col              = colorRamp2(c(-1, 0 1),
                                   c("blue", "white", "red")))
   ht = draw(ht1, heatmap_legend_side = "top")
   ## try to extract clusters from heatmap
@@ -712,9 +927,11 @@ plot.heatmap.lung <- function(x) {
     return(TCGA.GTEX.Lung.sampletype)
   }
   TCGA.GTEX.sampletype.lung <- tissue.GTEX.TCGA.gene(x)
+  row.names(TCGA.GTEX.sampletype.lung) <- TCGA.GTEX.sampletype.lung$Row.names
+  TCGA.GTEX.sampletype.lung$Row.names <- NULL
   geneID <- colnames(Sampletype[Sampletype$`_primary_site` == x,])
   TCGA.GTEX.lung <- TCGA.GTEX.sampletype.lung[ ,
-    !names(TCGA.GTEX.sampletype.lung) %in% c("Row.names", geneID)]
+    !names(TCGA.GTEX.sampletype.lung) %in% geneID]
   gene.name <- names(TCGA.GTEX.lung)
   EIF.correlation <- function(y){
     TCGA.GTEX.tumor.lung <- TCGA.GTEX.sampletype.lung[
@@ -785,12 +1002,6 @@ plot.heatmap.lung <- function(x) {
                                          "Metastatic", 
                                          "Recurrent Tumor"))
   EIF.cor.normal <- EIF.correlation(y = c("Normal Tissue"))
-  DF.tumor  <- as.matrix(na.omit(EIF.cor.tumor[EIF.cor.tumor$EIF4E  > 0.3 |
-                                               EIF.cor.tumor$EIF4G1 > 0.3 |
-                                               EIF.cor.tumor$EIF4A1 > 0.3 , ]))
-  DF.normal <- as.matrix(na.omit(EIF.cor.normal[EIF.cor.normal$EIF4E > 0.3 |
-                                                EIF.cor.normal$EIF4G1 > 0.3 |
-                                                EIF.cor.normal$EIF4A1 > 0.3 , ]))
   cor.data <- cbind(setNames(data.frame(EIF.cor.tumor[1:3]),
                              c('EIF4E.tumor','EIF4G1.tumor','EIF4A1.tumor')),
                     setNames(data.frame(EIF.cor.normal[1:3]),
@@ -801,13 +1012,15 @@ plot.heatmap.lung <- function(x) {
                                    cor.data$EIF4E.normal > 0.3 |
                                    cor.data$EIF4G1.normal > 0.3 |
                                    cor.data$EIF4A1.normal > 0.3 ,  ]))
+ 
   ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options)
   pheatmap::pheatmap(DF,
     # main = "Correlation Coefficient Heatmap",
     angle_col     = c("0"),
     fontsize      = 12,
     fontface      = "bold",
-    color         = colorRampPalette(rev(brewer.pal(n = 7, name = "RdYlBu")))(100),
+    color         = colorRampPalette(rev(brewer.pal(n    = 7, 
+                                                    name = "RdYlBu")))(100),
     show_rownames = FALSE,
     show_colnames = TRUE)
   ht1 = Heatmap(DF,
@@ -833,7 +1046,7 @@ plot.heatmap.lung <- function(x) {
     row_title_gp   = gpar(fontsize = 14,
                           fontface = "bold"),
     #border         = TRUE,
-    col            = circlize::colorRamp2(seq(min(DF), max(DF), length = 3),
+    col            = circlize::colorRamp2(c(-1, 0, 1),
                                           c("blue", "#EEEEEE", "red")))
   ht = draw(ht1,
             merge_legends       = TRUE,
@@ -914,8 +1127,53 @@ plot.heatmap.lung <- function(x) {
                 strip.text   = black_bold_tahoma_16))
     }
   plot.cluster.pathway()
+  
+  ### select posCOR for gene expression data ###
+  DF.tumor <- as.matrix(na.omit(cor.data[cor.data$EIF4E.tumor > 0.3 |
+                                         cor.data$EIF4G1.tumor > 0.3 |
+                                         cor.data$EIF4A1.tumor > 0.3 ,  ]))
+  gene.list <- row.names(DF.tumor)
+  TCGA.GTEX.lung.genelist <- TCGA.GTEX.lung[ , colnames(TCGA.GTEX.lung) %in% gene.list]
+  DF2 <- as.matrix(na.omit(TCGA.GTEX.lung.genelist))
+  sample.ID <- row.names(DF2)
+  sample.ID.type <- Sampletype[Sampletype$sample %in% sample.ID, ]
+  
+  my_sample_col <- sample.ID.type[, colnames(sample.ID.type) %in% c("sample", 
+                                                                    "_sample_type")]
+  row.names(my_sample_col) <- my_sample_col$sample
+  my_sample_col$sample <- NULL
+  my_sample_col$`_sample_type` <- as.factor(my_sample_col$`_sample_type`)
+  my_sample_col <- as.data.frame(my_sample_col)
+  pheatmap::pheatmap(DF2,
+    # main = "Correlation Coefficient Heatmap",
+    annotation_row = my_sample_col[,"_sample_type",drop=FALSE],
+    scale          = "column",
+    angle_col      = c("0"),
+    fontsize       = 12,
+    fontface       = "bold",
+    color          = colorRampPalette(rev(brewer.pal(n    = 7, 
+                                                     name = "RdYlBu")))(100),
+    show_rownames  = FALSE,
+    show_colnames  = FALSE)
+  
+  ht1 = Heatmap(DF2,
+    name                 = "Correlation Coefficient",
+    heatmap_legend_param = list(direction = "horizontal"),
+    show_row_names       = FALSE,
+    show_column_names    = FALSE,
+
+    row_title_gp   = gpar(fontsize = 14,
+                          fontface = "bold"),
+    #border         = TRUE,
+    col            = circlize::colorRamp2(seq(min(DF2), max(DF2), length = 3),
+                                          c("blue", "#EEEEEE", "red")))
+  ht = draw(ht1,
+            merge_legends       = TRUE,
+            heatmap_legend_side = "top")
+  ##############################################
+  
 }
-plot.heatmap.lung(x = "Pancreas")
+plot.heatmap.lung(x = "Lung")
 
 ###
 plot.EIF.cor.pathway.all <- function() {
