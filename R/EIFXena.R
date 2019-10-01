@@ -41,7 +41,7 @@ black_bold_tahoma_12 <- element_text(color  = "black",
                                      face   = "bold",
                                      family = "Tahoma",
                                      size   = 12)
-
+x <- "Lung"
 
 ###
 plot.heatmap.total <- function() {
@@ -131,11 +131,17 @@ plot.heatmap.total <- function() {
                       'EIF4G1.normal',
                       'EIF4A1.normal')))
   DF <- as.matrix(na.omit(cor.data[cor.data$EIF4E.tumor > 0.3 |
+                                   cor.data$EIF4E.tumor < -0.3 |
                                    cor.data$EIF4G1.tumor > 0.3 |
+                                   cor.data$EIF4G1.tumor < -0.3 |
                                    cor.data$EIF4A1.tumor > 0.3 |
+                                   cor.data$EIF4A1.tumor < -0.3 |
                                    cor.data$EIF4E.normal > 0.3 |
+                                   cor.data$EIF4E.normal < -0.3 |
                                    cor.data$EIF4G1.normal > 0.3 |
-                                   cor.data$EIF4A1.normal > 0.3 , ]))
+                                   cor.data$EIF4G1.normal < -0.3 |
+                                   cor.data$EIF4A1.normal > 0.3 |
+                                   cor.data$EIF4A1.normal < -0.3, ]))
   pheatmap::pheatmap(DF,
     # main = "Correlation Coefficient Heatmap",
     # annotation_row = my_sample_col[,"_sample_type",drop=FALSE],
@@ -166,9 +172,9 @@ plot.heatmap.total <- function() {
                            just     = "center",
                            gp       = gpar(fontsize = 14,
                                            fontface = "bold"))),
-     #row_km         = 4,
-     #row_km_repeats = 100,
-     #row_title      = "cluster_%s",
+     row_km         = 3,
+     row_km_repeats = 100,
+     row_title      = "cluster_%s",
     row_title_gp   = gpar(fontsize = 14,
                           fontface = "bold"),
     border         = TRUE,
@@ -185,10 +191,10 @@ plot.heatmap.total <- function() {
       c1 <- as.data.frame(c1)
       c1$V1 <- as.character(c1$V1)
       c1$entrez = mapIds(org.Hs.eg.db,
-        keys      = c1$V1,
-        column    = "ENTREZID",
-        keytype   = "SYMBOL",
-        multiVals = "first")
+                         keys      = c1$V1,
+                         column    = "ENTREZID",
+                         keytype   = "SYMBOL",
+                         multiVals = "first")
       # c1 <- c1[!is.na(c1)]
       c1 <- na.omit(c1)
       return(c1$entrez)
@@ -1192,16 +1198,24 @@ plot.heatmap.lung <- function(x) {
   TCGA.GTEX.sampletype.lung <- tissue.GTEX.TCGA.gene(x)
   row.names(TCGA.GTEX.sampletype.lung) <- TCGA.GTEX.sampletype.lung$Row.names
   TCGA.GTEX.sampletype.lung$Row.names <- NULL
+  TCGA.GTEX.sampletype.lung$`_sample_type` <- as.factor(
+    TCGA.GTEX.sampletype.lung$`_sample_type`)
+  # remove Solid Tissue Normal data
+  #TCGA.GTEX.sampletype.lung <- TCGA.GTEX.sampletype.lung[
+  #  !(TCGA.GTEX.sampletype.lung$`_sample_type` %in% "Solid Tissue Normal"), ]
+  
   geneID <- colnames(Sampletype[Sampletype$`_primary_site` == x,])
   TCGA.GTEX.lung <- TCGA.GTEX.sampletype.lung[ ,
     !names(TCGA.GTEX.sampletype.lung) %in% geneID]
   gene.name <- names(TCGA.GTEX.lung)
   EIF.correlation <- function(y){
-    TCGA.GTEX.tumor.lung <- TCGA.GTEX.sampletype.lung[
+    TCGA.GTEX.subset.lung <- TCGA.GTEX.sampletype.lung[
       TCGA.GTEX.sampletype.lung$`_sample_type` %in% y, ]
+    TCGA.GTEX.subset.lung$`_sample_type` <- droplevels(
+      TCGA.GTEX.subset.lung$`_sample_type`)
     correlation.coefficient <- function(x, y) {
-      result <- cor.test(TCGA.GTEX.tumor.lung[[x]],
-                         TCGA.GTEX.tumor.lung[[y]],
+      result <- cor.test(TCGA.GTEX.subset.lung[[x]],
+                         TCGA.GTEX.subset.lung[[y]],
                          method = "pearson")
       res <- data.frame(x,
                         y,
@@ -1275,7 +1289,7 @@ plot.heatmap.lung <- function(x) {
                                    cor.data$EIF4E.normal > 0.3 |
                                    cor.data$EIF4G1.normal > 0.3 |
                                    cor.data$EIF4A1.normal > 0.3 ,  ]))
- 
+  # DF <- as.matrix(na.omit(cor.data))
   ## Creating heatmap with three clusters (See the ComplexHeatmap documentation for more options)
   pheatmap::pheatmap(DF,
     # main = "Correlation Coefficient Heatmap",
@@ -1303,9 +1317,9 @@ plot.heatmap.lung <- function(x) {
       just     = "center",
       gp       = gpar(fontsize = 14,
                       fontface = "bold"))),
-    row_km         = 3,
-    row_km_repeats = 100,
-    row_title      = "cluster_%s",
+    #row_km         = 3,
+    #row_km_repeats = 100,
+    #row_title      = "cluster_%s",
     row_title_gp   = gpar(fontsize = 14,
                           fontface = "bold"),
     #border         = TRUE,
@@ -1398,41 +1412,31 @@ plot.heatmap.lung <- function(x) {
   gene.list <- row.names(DF.tumor)
   TCGA.GTEX.lung.genelist <- TCGA.GTEX.lung[ , colnames(TCGA.GTEX.lung) %in% gene.list]
   DF2 <- as.matrix(na.omit(TCGA.GTEX.lung.genelist))
+  DF2.t <- t(DF2)
+
   sample.ID <- row.names(DF2)
   sample.ID.type <- Sampletype[Sampletype$sample %in% sample.ID, ]
   
-  my_sample_col <- sample.ID.type[, colnames(sample.ID.type) %in% c("sample", 
-                                                                    "_sample_type")]
+  my_sample_col <- sample.ID.type[ ,
+    colnames(sample.ID.type) %in% c("sample", "_sample_type")]
   row.names(my_sample_col) <- my_sample_col$sample
   my_sample_col$sample <- NULL
   my_sample_col$`_sample_type` <- as.factor(my_sample_col$`_sample_type`)
   my_sample_col <- as.data.frame(my_sample_col)
-  pheatmap::pheatmap(DF2,
-    # main = "Correlation Coefficient Heatmap",
-    annotation_row = my_sample_col[,"_sample_type",drop=FALSE],
-    scale          = "column",
+  breaksList = seq(-3, 3, by = 1)
+  pheatmap::pheatmap(DF2.t,
+    main           = "Gene expression Heatmap",
+    annotation_col =  my_sample_col[,"_sample_type",drop=FALSE],
+    scale          = "row",
     angle_col      = c("0"),
     fontsize       = 12,
     fontface       = "bold",
     color          = colorRampPalette(rev(brewer.pal(n    = 7, 
-                                                     name = "RdYlBu")))(100),
+                                                     name = "RdYlBu")))(length(breaksList)),
+    breaks = breaksList,
     show_rownames  = FALSE,
     show_colnames  = FALSE)
   
-  ht1 = Heatmap(DF2,
-    name                 = "Correlation Coefficient",
-    heatmap_legend_param = list(direction = "horizontal"),
-    show_row_names       = FALSE,
-    show_column_names    = FALSE,
-
-    row_title_gp   = gpar(fontsize = 14,
-                          fontface = "bold"),
-    #border         = TRUE,
-    col            = circlize::colorRamp2(seq(min(DF2), max(DF2), length = 3),
-                                          c("blue", "#EEEEEE", "red")))
-  ht = draw(ht1,
-            merge_legends       = TRUE,
-            heatmap_legend_side = "top")
   ##############################################
   
 }
