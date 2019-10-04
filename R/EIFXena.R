@@ -3,6 +3,7 @@ library(clusterProfiler)
 library(circlize) ## for color options
 library(ComplexHeatmap)
 library(data.table)
+library(dendextend)
 library(descr)
 library(dplyr)
 library(EnvStats)
@@ -43,7 +44,9 @@ black_bold_tahoma_12 <- element_text(color  = "black",
                                      size   = 12)
 x <- "Lung"
 
-###
+
+#########################################
+### use TCGA-TARGET-GTEX dataset
 plot.heatmap.total <- function() {
   Lung <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
   Lung <- Lung[!duplicated(Lung$sample), ]
@@ -131,17 +134,18 @@ plot.heatmap.total <- function() {
                       'EIF4G1.normal',
                       'EIF4A1.normal')))
   DF <- as.matrix(na.omit(cor.data[cor.data$EIF4E.tumor > 0.3 |
-                                   cor.data$EIF4E.tumor < -0.3 |
+                                   #cor.data$EIF4E.tumor < -0.3 |
                                    cor.data$EIF4G1.tumor > 0.3 |
-                                   cor.data$EIF4G1.tumor < -0.3 |
+                                   #cor.data$EIF4G1.tumor < -0.3 |
                                    cor.data$EIF4A1.tumor > 0.3 |
-                                   cor.data$EIF4A1.tumor < -0.3 |
+                                   #cor.data$EIF4A1.tumor < -0.3 |
                                    cor.data$EIF4E.normal > 0.3 |
-                                   cor.data$EIF4E.normal < -0.3 |
+                                   #cor.data$EIF4E.normal < -0.3 |
                                    cor.data$EIF4G1.normal > 0.3 |
-                                   cor.data$EIF4G1.normal < -0.3 |
-                                   cor.data$EIF4A1.normal > 0.3 |
-                                   cor.data$EIF4A1.normal < -0.3, ]))
+                                   #cor.data$EIF4G1.normal < -0.3 |
+                                   cor.data$EIF4A1.normal > 0.3 
+                                   #cor.data$EIF4A1.normal < -0.3
+    , ]))
   pheatmap::pheatmap(DF,
     # main = "Correlation Coefficient Heatmap",
     # annotation_row = my_sample_col[,"_sample_type",drop=FALSE],
@@ -172,9 +176,11 @@ plot.heatmap.total <- function() {
                            just     = "center",
                            gp       = gpar(fontsize = 14,
                                            fontface = "bold"))),
-     row_km         = 3,
-     row_km_repeats = 100,
-     row_title      = "cluster_%s",
+     #cluster_rows  = as.dendrogram(hclust(dist(DF))),
+     #row_split     = 3,
+     row_km     = 3,
+     #row_km_repeats = 100,
+     row_title     = "cluster_%s", 
     row_title_gp   = gpar(fontsize = 14,
                           fontface = "bold"),
     border         = TRUE,
@@ -199,8 +205,8 @@ plot.heatmap.total <- function() {
       c1 <- na.omit(c1)
       return(c1$entrez)
     }
-    cluster.num <- as.character(c(1:4))
-    names(cluster.num) <- paste("cluster", 1:4)
+    cluster.num <- as.character(c(1:3))
+    names(cluster.num) <- paste("cluster", 1:3)
     cluster.data <- lapply(cluster.num, cluster.geneID.list)
     ck.GO <- compareCluster(geneCluster = cluster.data,
                             fun         = "enrichGO",
@@ -262,7 +268,7 @@ plot.heatmap.total <- function() {
 }
 plot.heatmap.total()
 
-###
+### use TCGA-TARGET-GTEX dataset
 plot.heatmap.GTEX <- function() {
   get.GTEX.annotation <- function(){
     Sample.type.annotation <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
@@ -360,6 +366,7 @@ plot.heatmap.GTEX <- function() {
                           "A&B&C" = a[8, "Counts"]))
       p1 <- plot(pos.Venn,
                  #key = TRUE,
+                 Title = "Normal Tissues",
                  lwd = 0,
                  fill = c("#999999", "#E69F00", "#56B4E9"),
                  quantities = list(cex = 1.25),
@@ -403,9 +410,9 @@ plot.heatmap.GTEX <- function() {
       just     = "right",
       gp       = gpar(fontsize = 14,
                       fontface = "bold"))),
-    #row_km         = 4,
-    #row_km_repeats = 100,
-    #row_title      = "cluster_%s",
+    row_km         = 4,
+    row_km_repeats = 100,
+    row_title      = "cluster_%s",
     row_title_gp   = gpar(fontsize = 14,
                           fontface = "bold"),
     border         = TRUE,
@@ -493,7 +500,7 @@ plot.heatmap.GTEX <- function() {
 }
 plot.heatmap.GTEX()
 
-###
+### use TCGA-TARGET-GTEX dataset
 plot.heatmap.TCGA <- function() {
   get.GTEX.annotation <- function(){
     Sample.type.annotation <- read_tsv(
@@ -593,6 +600,7 @@ plot.heatmap.TCGA <- function() {
                           "A&B&C" = a[8, "Counts"]))
       p1 <- plot(pos.Venn,
                  #key = TRUE,
+                 Title = "Tumors",
                  lwd = 0,
                  fill = c("#999999", "#E69F00", "#56B4E9"),
                  quantities = list(cex = 1.25),
@@ -636,9 +644,9 @@ plot.heatmap.TCGA <- function() {
                                        just     = "center",
                                        gp       = gpar(fontsize = 14,
                                                        fontface = "bold"))),
-                #row_km         = 4,
-                #row_km_repeats = 100,
-                #row_title      = "cluster_%s",
+                row_km         = 4,
+                row_km_repeats = 100,
+                  row_title      = "cluster_%s",
                 row_title_gp   = gpar(fontsize = 14,
                                       fontface = "bold"),
                 border         = TRUE,
@@ -726,8 +734,7 @@ plot.heatmap.TCGA <- function() {
 }
 plot.heatmap.TCGA()
 
-
-###
+### use TCGA pan-cancer dataset
 plot.heatmap.all.TCGA <- function () {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
@@ -810,13 +817,14 @@ plot.heatmap.all.TCGA <- function () {
                           "A&B&C" = a[8, "Counts"]))
       p1 <- plot(pos.Venn,
                  #key = TRUE,
-                 lwd = 0,
-                 fill = c("#999999", "#E69F00", "#56B4E9"),
+                 lwd        = 0,
+                 fill       = c("#999999", "#E69F00", "#56B4E9"),
                  quantities = list(cex = 1.25),
-                 labels = list(labels = c("EIF4E posCOR",
-                                          "EIF4G1 posCOR",
-                                          "EIF4A1 posCOR"),
-                               cex    = 1.25))
+                 main       = "Tumors",
+                 labels     = list(labels = c("EIF4E posCOR",
+                                              "EIF4G1 posCOR",
+                                              "EIF4A1 posCOR"),
+                                   cex    = 1.25))
       print(p1)}
     plot.pos.Venn()
     cor.data <- cbind(setNames(data.frame(EIF4E.cor[3]), c('EIF4E')),
@@ -936,7 +944,7 @@ plot.heatmap.all.TCGA <- function () {
     }
 plot.heatmap.all.TCGA()
 
-###
+### use GTEx dataset
 plot.heatmap.all.GTEx <- function () {
     # download https://toil.xenahubs.net/download/gtex_RSEM_Hugo_norm_count.gz
     TCGA.pancancer <- fread("~/Downloads/gtex_RSEM_Hugo_norm_count", data.table=FALSE)
@@ -1012,6 +1020,7 @@ plot.heatmap.all.GTEx <- function () {
                  lwd = 0,
                  fill = c("#999999", "#E69F00", "#56B4E9"),
                  quantities = list(cex = 1.25),
+                 main = "Normal Tissues",
                  labels = list(labels = c("EIF4E posCOR",
                                           "EIF4G1 posCOR",
                                           "EIF4A1 posCOR"),
@@ -1041,6 +1050,7 @@ plot.heatmap.all.GTEx <- function () {
                  lwd = 0,
                  fill = c("#999999", "#E69F00", "#56B4E9"),
                  quantities = list(cex = 1.25),
+                 main = "Normal Tissues",
                  labels = list(labels = c("EIF4E negCOR",
                                           "EIF4G1 negCOR",
                                           "EIF4A1 negCOR"),
@@ -1162,6 +1172,7 @@ plot.heatmap.all.GTEx <- function () {
 }
 plot.heatmap.all.GTEx()
 
+### use TCGA-TARGET-GTEX dataset
 ### plot heatmap, Venn diagram and pathway analysis on clusters ###
 plot.heatmap.lung <- function(x) {
   # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
@@ -1262,7 +1273,7 @@ plot.heatmap.lung <- function(x) {
                  border     = "black",
                  fill       = c("#999999", "#E69F00", "#56B4E9"),
                  quantities = list(cex = 1.5),
-                 main       = y,
+                 # main       = y,
                  labels     = list(labels = c("EIF4E posCOR",
                                               "EIF4G1 posCOR",
                                               "EIF4A1 posCOR"),
@@ -1317,9 +1328,9 @@ plot.heatmap.lung <- function(x) {
       just     = "center",
       gp       = gpar(fontsize = 14,
                       fontface = "bold"))),
-    #row_km         = 3,
+    row_km         = 3,
     #row_km_repeats = 100,
-    #row_title      = "cluster_%s",
+    row_title      = "cluster_%s",
     row_title_gp   = gpar(fontsize = 14,
                           fontface = "bold"),
     #border         = TRUE,
@@ -1428,6 +1439,10 @@ plot.heatmap.lung <- function(x) {
     main           = "Gene expression Heatmap",
     annotation_col =  my_sample_col[,"_sample_type",drop=FALSE],
     scale          = "row",
+    clustering_distance_rows = "euclidean",
+    clustering_distance_cols = "euclidean", 
+    clustering_method        = "complete", # has to be complete
+    cutree_cols = 2,
     angle_col      = c("0"),
     fontsize       = 12,
     fontface       = "bold",
@@ -1442,7 +1457,7 @@ plot.heatmap.lung <- function(x) {
 }
 plot.heatmap.lung(x = "Lung")
 
-###
+### find pathways in the overlapping CORs from all cancer cases
 plot.EIF.cor.pathway.all <- function() {
   TCGA.RNAseq.sampletype <- TCGA.sampletype.all[
     TCGA.sampletype.all$sample_type != "Solid Tissue Normal", ]
@@ -1621,6 +1636,7 @@ plot.EIF.cor.pathway.all <- function() {
   }
 plot.EIF.cor.pathway.all()
 
+### find pathways in the overlapping CORs from lung cancer cases
 plot.EIF.cor.pathway.lung <- function() {
   TCGA.RNAseq.sampletype <- TCGA.GTEX.sampletype.lung[
     TCGA.GTEX.sampletype.lung$`_sample_type` == "Normal Tissue", ]
@@ -1676,7 +1692,6 @@ plot.EIF.cor.pathway.lung <- function() {
                border = "black",
                fill = c("#999999", "#E69F00", "#56B4E9"),
                quantities = list(cex = 1.5),
-               main = "Normal Lung Tissues",
                labels = list(labels = c("EIF4E posCOR",
                                         "EIF4G1 posCOR",
                                         "EIF4A1 posCOR"),
@@ -1805,6 +1820,7 @@ plot.EIF.cor.pathway.lung <- function() {
   }
 plot.EIF.cor.pathway.lung()
 
+### plot the scatter plot
 plot.cor.scatter <- function(x){
   tumor.type <- c("Primary Tumor", "Metastatic")
   TCGA.sampletype.all <- TCGA.sampletype.all[
@@ -1865,6 +1881,210 @@ plot.cor.scatter <- function(x){
       }
 plot.cor.scatter(x = "CCNB1")
 lapply(EIF.gene, plot.cor.scatter, y = "CCNB1")
+
+
+################################################
+plot.boxgraph.EIF.RNAseq.TCGA <- function () {
+  pan.TCGA.gene <- function(){
+    # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
+    TCGA.pancancer <- fread(
+      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      data.table = FALSE)
+    # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
+    TCGA.sampletype <- read_tsv(
+      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+    # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
+    TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
+      !duplicated(colnames(TCGA.pancancer))]
+    row.names(TCGA.pancancer1) <- TCGA.pancancer1$sample
+    TCGA.pancancer1$sample <- NULL
+    TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer1)
+    rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer1)
+    colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer1)
+    row.names(TCGA.sampletype) <- TCGA.sampletype$sample
+    TCGA.sampletype$sample <- NULL
+    TCGA.sampletype$sample_type_id <- NULL
+    TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose,
+                                    TCGA.sampletype,
+                                    by    = "row.names",
+                                    all.x = TRUE)
+    TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
+    return(TCGA.RNAseq.sampletype)
+  }
+  TCGA.RNAseq.anno <- pan.TCGA.gene()
+  sample.type.list <- levels(as.factor(TCGA.RNAseq.anno$sample_type))
+  cancer.type.list <- levels(as.factor(TCGA.RNAseq.anno$`_primary_disease`))
+  TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno[
+    !TCGA.RNAseq.anno$sample_type %in% "Solid Tissue Normal", ]
+  TCGA.RNAseq.anno.subset$sample_type <- as.factor(
+    TCGA.RNAseq.anno.subset$sample_type)
+  row.names(TCGA.RNAseq.anno.subset) <- TCGA.RNAseq.anno.subset$Row.names
+  TCGA.RNAseq.anno.subset$Row.names <- NULL
+  EIF.TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno.subset[ ,
+    colnames(TCGA.RNAseq.anno.subset) %in% c(EIF.gene, 
+                                             "sample_type",
+                                             "_primary_disease")]
+  EIF.TCGA.RNAseq.anno.subset.long <- melt(EIF.TCGA.RNAseq.anno.subset)
+  EIF.TCGA.RNAseq.anno.subset.long$`_primary_disease` <- as.factor(
+    EIF.TCGA.RNAseq.anno.subset.long$`_primary_disease`)
+  # reorder bars by explicitly ordering factor levels
+  mean <- within(EIF.TCGA.RNAseq.anno.subset.long[
+    EIF.TCGA.RNAseq.anno.subset.long$variable == "EIF4E", ], # TCGAstudy is one column in df2
+    `_primary_disease` <- reorder(`_primary_disease`, value, median))
+  mean$`_primary_disease` <- as.factor(mean$`_primary_disease`)
+  neworder <- levels(mean$`_primary_disease`)
+  x.ordered <- factor(EIF.TCGA.RNAseq.anno.subset.long$`_primary_disease`, 
+                      levels = neworder)
+  p1 <- ggplot(data = EIF.TCGA.RNAseq.anno.subset.long,
+    aes(x     = x.ordered,
+        y     = value,
+        color = variable)) +
+    stat_n_text(size = 5, fontface = "bold", hjust = 0) +
+    # geom_violin(trim = FALSE) +
+    geom_boxplot(
+                 alpha    = .01,
+                 size     = .75,
+                # width    = .5,
+                 position = position_dodge(width = .9)
+               ) +
+    scale_fill_brewer(palette = "Dark2") +
+    labs(x = "primary disease",
+         y = paste("log2(normalized RNA counts + 1)")) +
+    coord_flip() +
+    theme_bw() +
+    theme(
+      plot.title      = black_bold_tahoma_12,
+      axis.title      = black_bold_tahoma_12,
+      axis.text.x     = black_bold_tahoma_12,
+      axis.text.y     = black_bold_tahoma_12,
+      axis.line.x     = element_line(color = "black"),
+      axis.line.y     = element_line(color = "black"),
+      panel.grid      = element_blank(),
+      legend.title    = element_blank(),
+      legend.text     = black_bold_tahoma_12,
+      legend.position = "top",
+      strip.text      = black_bold_tahoma_12
+    )
+  print(p1)
+  
+}
+plot.boxgraph.EIF.RNAseq.TCGA()
+
+plot.boxgraph.EIF.ratio.TCGA <- function () {
+  pan.TCGA.gene <- function(){
+    # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
+    TCGA.pancancer <- fread(
+      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      data.table = FALSE)
+    # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
+    TCGA.sampletype <- read_tsv(
+      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+    # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
+    TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
+      !duplicated(colnames(TCGA.pancancer))]
+    row.names(TCGA.pancancer1) <- TCGA.pancancer1$sample
+    TCGA.pancancer1$sample <- NULL
+    TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer1)
+    rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer1)
+    colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer1)
+    row.names(TCGA.sampletype) <- TCGA.sampletype$sample
+    TCGA.sampletype$sample <- NULL
+    TCGA.sampletype$sample_type_id <- NULL
+    TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose,
+      TCGA.sampletype,
+      by    = "row.names",
+      all.x = TRUE)
+    TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
+    return(TCGA.RNAseq.sampletype)
+  }
+  TCGA.RNAseq.anno <- pan.TCGA.gene()
+  sample.type.list <- levels(as.factor(TCGA.RNAseq.anno$sample_type))
+  cancer.type.list <- levels(as.factor(TCGA.RNAseq.anno$`_primary_disease`))
+  TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno[
+    !TCGA.RNAseq.anno$sample_type %in% "Solid Tissue Normal", ]
+  TCGA.RNAseq.anno.subset$sample_type <- as.factor(
+    TCGA.RNAseq.anno.subset$sample_type)
+  row.names(TCGA.RNAseq.anno.subset) <- TCGA.RNAseq.anno.subset$Row.names
+  TCGA.RNAseq.anno.subset$Row.names <- NULL
+  EIF.TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno.subset[ ,
+    colnames(TCGA.RNAseq.anno.subset) %in% c(EIF.gene, 
+                                             "sample_type",
+                                             "_primary_disease")]
+  EIF.TCGA.GTEX.score <- EIF.TCGA.RNAseq.anno.subset
+  EIF.TCGA.GTEX.score$EIF4A1 <- 
+    (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
+  colnames(EIF.TCGA.GTEX.score)[
+    which(names(EIF.TCGA.GTEX.score) == "EIF4A1")] <- "EIF4A1:EIF4E"
+  EIF.TCGA.GTEX.score$EIF4G1 <- 
+    (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
+  colnames(EIF.TCGA.GTEX.score)[
+    which(names(EIF.TCGA.GTEX.score) == "EIF4G1")] <- "EIF4G1:EIF4E"
+  EIF.TCGA.GTEX.score$EIF4EBP1 <- 
+    (EIF.TCGA.RNAseq.anno.subset$EIF4EBP1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
+  colnames(EIF.TCGA.GTEX.score)[
+    which(names(EIF.TCGA.GTEX.score) == "EIF4EBP1")] <- "EIF4EBP1:EIF4E"
+  EIF.TCGA.GTEX.score.long <- melt(EIF.TCGA.GTEX.score)
+  ratio <- c("EIF4A1:EIF4E", "EIF4G1:EIF4E", "EIF4EBP1:EIF4E")
+  EIF.TCGA.GTEX.score.long <- EIF.TCGA.GTEX.score.long[
+    EIF.TCGA.GTEX.score.long$variable %in% ratio, ]
+  # reorder bars by explicitly ordering factor levels
+  EIF.TCGA.GTEX.score.long$`_primary_disease` <- as.factor(
+    EIF.TCGA.GTEX.score.long$`_primary_disease`)
+  ## bug here
+  mean <- within(EIF.TCGA.GTEX.score.long[
+    EIF.TCGA.GTEX.score.long$variable == "EIF4EBP1:EIF4E", ], # TCGAstudy is one column in df2
+    `_primary_disease` <- reorder(`_primary_disease`, value, median))
+  mean$`_primary_disease` <- as.factor(mean$`_primary_disease`)
+  neworder <- levels(mean$`_primary_disease`)
+  x.ordered <- factor(EIF.TCGA.GTEX.score.long$`_primary_disease`, 
+                      levels = neworder)
+  levels(EIF.TCGA.GTEX.score.long$variable)
+  p1 <- ggplot(data = EIF.TCGA.GTEX.score.long,
+    aes(x     = x.ordered,
+      y     = value, 
+      fill  = variable,
+      color = variable)) +
+    stat_n_text(size = 5, fontface = "bold", hjust = 0) +
+    # geom_violin(trim = FALSE) +
+    geom_boxplot(
+      alpha    = .01,
+      size     = .75,
+      position = position_dodge(width = .9)
+    ) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    scale_fill_brewer(palette = "Dark2") +
+    labs(x = "primary disease",
+      y = paste("log2(ratio)")) +
+    coord_flip() +
+    theme_bw() +
+    theme(
+      plot.title      = black_bold_tahoma_12,
+      axis.title      = black_bold_tahoma_12,
+      axis.text.x     = black_bold_tahoma_12,
+      axis.text.y     = black_bold_tahoma_12,
+      axis.line.x     = element_line(color = "black"),
+      axis.line.y     = element_line(color = "black"),
+      panel.grid      = element_blank(),
+      legend.title    = element_blank(),
+      legend.position = "top",
+      legend.text     = black_bold_tahoma_12,
+      strip.text      = black_bold_tahoma_12
+    )
+  print(p1)
+  }
+plot.boxgraph.EIF.ratio.TCGA()
+
+
+
+
+
+
+
+
+
+
+
+
 
 ## read.csv will transform characters into factors
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
@@ -2546,6 +2766,7 @@ plot.box.EIF.RNAseq.TCGA <- function (x) {
   print(p1)
 
 }
+plot.box.EIF.RNAseq.TCGA (get.EIF.TCGA.RNAseq.long(EIF.gene))
 
 ##
 plotEIF.RNAseq.TCGA <- function (x) {
@@ -2667,7 +2888,7 @@ plotEIF.RNAseq.TCGA <- function (x) {
 }
 plotEIF.RNAseq.TCGA (get.EIF.TCGA.RNAseq.long(EIF.gene))
 
-  ##
+##
 plot.box.EIF.score.TCGA <- function (x) {
   x <- x[x$value != 0, ]
   name <- deparse(substitute(x))
@@ -2729,7 +2950,8 @@ plot.box.EIF.score.TCGA <- function (x) {
   print(p1)
 
 }
-
+plot.box.EIF.score.TCGA (get.EIF.TCGA.score.long(EIF.gene))
+  
 ##
 plotEIF.score.TCGA <- function (x) {
   name <- deparse(substitute(x))
@@ -2843,6 +3065,7 @@ plotEIF.score.TCGA <- function (x) {
   print(p1)
   print(p2)
 }
+plotEIF.score.TCGA (get.EIF.TCGA.score.long(EIF.gene))
 
 ##
 plotEIF.score.TCGA.GTEX.tissue <- function (tissue) {
