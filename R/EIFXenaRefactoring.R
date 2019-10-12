@@ -60,7 +60,7 @@ plot.heatmap.total <- function() {
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count",
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -77,14 +77,14 @@ plot.heatmap.total <- function() {
                                        by    = "row.names",
                                        all.x = TRUE)
     # check the name of the last column
-    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)] 
+    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)]
     TCGA.GTEX.Lung.sampletype <- na.omit(TCGA.GTEX.Lung.sampletype)
     return(TCGA.GTEX.Lung.sampletype)
   }
   TCGA.GTEX.sampletype <- tissue.GTEX.TCGA.gene()
   gene.name <- names(TCGA.GTEX.sampletype)
   gene.name <- gene.name [! gene.name %in% c("Row.names", "sample.type")]
-  
+
   ### TO BE CONTINUED
   EIF.correlation <- function(y){
     TCGA.GTEX.tumor.lung <- TCGA.GTEX.sampletype[
@@ -120,8 +120,8 @@ plot.heatmap.total <- function() {
     return(cor.data)
   }
   all.sample.type <- levels(subset$sample.type)
-  all.tumor.type <- all.sample.type [! all.sample.type %in% c("Cell Line", 
-                                                              "Normal Tissue", 
+  all.tumor.type <- all.sample.type [! all.sample.type %in% c("Cell Line",
+                                                              "Normal Tissue",
                                                               "Solid Tissue Normal")]
   EIF.cor.tumor <- EIF.correlation(y = all.tumor.type)
   EIF.cor.normal <- EIF.correlation(y = c("Normal Tissue"))
@@ -143,7 +143,7 @@ plot.heatmap.total <- function() {
                                    #cor.data$EIF4E.normal < -0.3 |
                                    cor.data$EIF4G1.normal > 0.3 |
                                    #cor.data$EIF4G1.normal < -0.3 |
-                                   cor.data$EIF4A1.normal > 0.3 
+                                   cor.data$EIF4A1.normal > 0.3
                                    #cor.data$EIF4A1.normal < -0.3
     , ]))
   pheatmap::pheatmap(DF,
@@ -152,7 +152,7 @@ plot.heatmap.total <- function() {
     angle_col     = c("0"),
     fontsize      = 12,
     fontface      = "bold",
-    color         = colorRampPalette(rev(brewer.pal(n    = 7, 
+    color         = colorRampPalette(rev(brewer.pal(n    = 7,
       name = "RdYlBu")))(100),
     show_rownames = FALSE,
     show_colnames = FALSE)
@@ -168,7 +168,7 @@ plot.heatmap.total <- function() {
       annotation_legend_param = list(direction = "horizontal"),
       type     = c("tumor", "tumor","tumor",
                    "normal","normal","normal"),
-      col      = list(type = c("tumor"  = "pink", 
+      col      = list(type = c("tumor"  = "pink",
                                "normal" = "royalblue")),
       cn       = anno_text(gsub("\\..*","",colnames(DF)),
                            location = 0,
@@ -180,7 +180,7 @@ plot.heatmap.total <- function() {
      #row_split     = 3,
      row_km     = 3,
      #row_km_repeats = 100,
-     row_title     = "cluster_%s", 
+     row_title     = "cluster_%s",
     row_title_gp   = gpar(fontsize = 14,
                           fontface = "bold"),
     border         = TRUE,
@@ -190,7 +190,7 @@ plot.heatmap.total <- function() {
             merge_legends       = TRUE,
             heatmap_legend_side = "top")
   ## try to extract clusters from heatmap
-  # Saving row names of cluster one  
+  # Saving row names of cluster one
   plot.cluster.pathway <- function() {
     cluster.geneID.list <- function(x) {
       c1 <- t(t(row.names(DF[row_order(ht1)[[x]],])))
@@ -276,7 +276,7 @@ plot.heatmap.GTEX <- function() {
       !duplicated(Sample.type.annotation$sample), ]
     Sample.type.annotation <- as.data.frame(Sample.type.annotation)
     Sample.type.annotation$`_study` <- as.factor(Sample.type.annotation$`_study`)
-  # levels(Sample.type.annotation$`_study`), "GTEX"   "TARGET" "TCGA" 
+  # levels(Sample.type.annotation$`_study`), "GTEX"   "TARGET" "TCGA"
     GTEX.annotation <- Sample.type.annotation[Sample.type.annotation$`_study` == "GTEX",]
     GTEX.annotation$`_study` <- droplevels(GTEX.annotation$`_study`)
     GTEX.annotation <- na.omit(GTEX.annotation)
@@ -292,7 +292,7 @@ plot.heatmap.GTEX <- function() {
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count",
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -309,14 +309,14 @@ plot.heatmap.GTEX <- function() {
                                   by    = "row.names",
                                   all.x = TRUE)
     # check the name of the last column
-    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)] 
+    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)]
     TCGA.GTEX.sampletype <- na.omit(TCGA.GTEX.sampletype)
     return(TCGA.GTEX.sampletype)
   }
   TCGA.GTEX.sampletype <- tissue.GTEX.TCGA.gene()
   gene.name <- names(TCGA.GTEX.sampletype)
   gene.name <- gene.name [! gene.name %in% c("Row.names", "sample.type")]
-  
+
   ### TO BE CONTINUED
   EIF.correlation <- function(y){
     GTEX.tissue <- TCGA.GTEX.sampletype[
@@ -391,7 +391,7 @@ plot.heatmap.GTEX <- function() {
     angle_col     = c("0"),
     fontsize      = 12,
     fontface      = "bold",
-    color         = colorRampPalette(rev(brewer.pal(n    = 7, 
+    color         = colorRampPalette(rev(brewer.pal(n    = 7,
                                                     name = "RdYlBu")))(100),
     show_rownames = FALSE,
     show_colnames = TRUE)
@@ -422,7 +422,7 @@ plot.heatmap.GTEX <- function() {
             merge_legends       = TRUE,
             heatmap_legend_side = "top")
   ## try to extract clusters from heatmap
-  # Saving row names of cluster one  
+  # Saving row names of cluster one
   plot.cluster.pathway <- function() {
     cluster.geneID.list <- function(x) {
       c1 <- t(t(row.names(DF[row_order(ht1)[[x]],])))
@@ -509,7 +509,7 @@ plot.heatmap.TCGA <- function() {
       !duplicated(Sample.type.annotation$sample), ]
     Sample.type.annotation <- as.data.frame(Sample.type.annotation)
     Sample.type.annotation$`_study` <- as.factor(Sample.type.annotation$`_study`)
-    # levels(Sample.type.annotation$`_study`), "GTEX"   "TARGET" "TCGA" 
+    # levels(Sample.type.annotation$`_study`), "GTEX"   "TARGET" "TCGA"
     GTEX.annotation <- Sample.type.annotation[
       Sample.type.annotation$`_study` == "TCGA",]
     GTEX.annotation$`_study` <- droplevels(GTEX.annotation$`_study`)
@@ -526,7 +526,7 @@ plot.heatmap.TCGA <- function() {
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count",
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -543,14 +543,14 @@ plot.heatmap.TCGA <- function() {
                                   by    = "row.names",
                                   all.x = TRUE)
     # check the name of the last column
-    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)] 
+    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)]
     TCGA.GTEX.sampletype <- na.omit(TCGA.GTEX.sampletype)
     return(TCGA.GTEX.sampletype)
   }
   TCGA.GTEX.sampletype <- tissue.GTEX.TCGA.gene()
   gene.name <- names(TCGA.GTEX.sampletype)
   gene.name <- gene.name [! gene.name %in% c("Row.names", "sample.type")]
-  
+
   ### TO BE CONTINUED
   EIF.correlation <- function(y){
     GTEX.tissue <- TCGA.GTEX.sampletype[
@@ -625,7 +625,7 @@ plot.heatmap.TCGA <- function() {
                      angle_col     = c("0"),
                      fontsize      = 12,
                      fontface      = "bold",
-                     color         = colorRampPalette(rev(brewer.pal(n    = 7, 
+                     color         = colorRampPalette(rev(brewer.pal(n    = 7,
                                                                      name = "RdYlBu")))(100),
                      show_rownames = FALSE,
                      show_colnames = TRUE)
@@ -656,7 +656,7 @@ plot.heatmap.TCGA <- function() {
             merge_legends       = TRUE,
             heatmap_legend_side = "top")
   ## try to extract clusters from heatmap
-  # Saving row names of cluster one  
+  # Saving row names of cluster one
   plot.cluster.pathway <- function() {
     cluster.geneID.list <- function(x) {
       c1 <- t(t(row.names(DF[row_order(ht1)[[x]],])))
@@ -739,7 +739,7 @@ plot.heatmap.all.TCGA <- function () {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.pancancer <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena",
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv(
@@ -1180,21 +1180,21 @@ plot.heatmap.lung <- function(x) {
   tissue.GTEX.TCGA.gene <- function(x){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count",
       data.table = FALSE)
     Lung <- Sampletype[Sampletype$`_primary_site` == x,]
     Lung.ID <- as.vector(Lung$sample)
     Lung.ID <- na.omit(Lung.ID) # NA in the vector
     TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)
     #   TCGA.GTEX.Lung1 <- as.data.frame(TCGA.GTEX.Lung)
-    TCGA.GTEX.Lung <- TCGA.GTEX.Lung[!duplicated(TCGA.GTEX.Lung$sample), 
+    TCGA.GTEX.Lung <- TCGA.GTEX.Lung[!duplicated(TCGA.GTEX.Lung$sample),
                                      !duplicated(colnames(TCGA.GTEX.Lung))]
     row.names(TCGA.GTEX.Lung) <- TCGA.GTEX.Lung$sample
     TCGA.GTEX.Lung$sample <- NULL
     TCGA.GTEX.Lung.t <- data.table::transpose(TCGA.GTEX.Lung)
     rownames(TCGA.GTEX.Lung.t) <- colnames(TCGA.GTEX.Lung)
     colnames(TCGA.GTEX.Lung.t) <- rownames(TCGA.GTEX.Lung)
-    
+
     Lung <- Lung[!duplicated(Lung$sample), ]
     Lung <- na.omit(Lung)
     row.names(Lung) <- Lung$sample
@@ -1214,7 +1214,7 @@ plot.heatmap.lung <- function(x) {
   # remove Solid Tissue Normal data
   #TCGA.GTEX.sampletype.lung <- TCGA.GTEX.sampletype.lung[
   #  !(TCGA.GTEX.sampletype.lung$`_sample_type` %in% "Solid Tissue Normal"), ]
-  
+
   geneID <- colnames(Sampletype[Sampletype$`_primary_site` == x,])
   TCGA.GTEX.lung <- TCGA.GTEX.sampletype.lung[ ,
     !names(TCGA.GTEX.sampletype.lung) %in% geneID]
@@ -1286,8 +1286,8 @@ plot.heatmap.lung <- function(x) {
                       setNames(data.frame(EIF4A1.cor[3]), c('EIF4A1')))
     return(cor.data)
     }
-  EIF.cor.tumor <- EIF.correlation(y = c("Primary Tumor", 
-                                         "Metastatic", 
+  EIF.cor.tumor <- EIF.correlation(y = c("Primary Tumor",
+                                         "Metastatic",
                                          "Recurrent Tumor"))
   EIF.cor.normal <- EIF.correlation(y = c("Normal Tissue"))
   cor.data <- cbind(setNames(data.frame(EIF.cor.tumor[1:3]),
@@ -1307,7 +1307,7 @@ plot.heatmap.lung <- function(x) {
     angle_col     = c("0"),
     fontsize      = 12,
     fontface      = "bold",
-    color         = colorRampPalette(rev(brewer.pal(n    = 7, 
+    color         = colorRampPalette(rev(brewer.pal(n    = 7,
                                                     name = "RdYlBu")))(100),
     show_rownames = FALSE,
     show_colnames = TRUE)
@@ -1320,7 +1320,7 @@ plot.heatmap.lung <- function(x) {
       annotation_legend_param = list(direction = "horizontal"),
       type     = c("tumor", "tumor","tumor",
                    "normal","normal","normal"),
-      col      = list(type = c("tumor"  = "pink", 
+      col      = list(type = c("tumor"  = "pink",
                                "normal" = "royalblue")),
       cn       = anno_text(gsub("\\..*","",colnames(DF)),
       location = 0,
@@ -1340,7 +1340,7 @@ plot.heatmap.lung <- function(x) {
             merge_legends       = TRUE,
             heatmap_legend_side = "top")
   ## try to extract clusters from heatmap
-  # Saving row names of cluster one  
+  # Saving row names of cluster one
   plot.cluster.pathway <- function() {
     cluster.geneID.list <- function(x) {
       c1 <- t(t(row.names(DF[row_order(ht1)[[x]],])))
@@ -1415,7 +1415,7 @@ plot.heatmap.lung <- function(x) {
                 strip.text   = black_bold_tahoma_16))
     }
   plot.cluster.pathway()
-  
+
   ### select posCOR for gene expression data ###
   DF.tumor <- as.matrix(na.omit(cor.data[cor.data$EIF4E.tumor > 0.3 |
                                          cor.data$EIF4G1.tumor > 0.3 |
@@ -1427,7 +1427,7 @@ plot.heatmap.lung <- function(x) {
 
   sample.ID <- row.names(DF2)
   sample.ID.type <- Sampletype[Sampletype$sample %in% sample.ID, ]
-  
+
   my_sample_col <- sample.ID.type[ ,
     colnames(sample.ID.type) %in% c("sample", "_sample_type")]
   row.names(my_sample_col) <- my_sample_col$sample
@@ -1440,20 +1440,20 @@ plot.heatmap.lung <- function(x) {
     annotation_col =  my_sample_col[,"_sample_type",drop=FALSE],
     scale          = "row",
     clustering_distance_rows = "euclidean",
-    clustering_distance_cols = "euclidean", 
+    clustering_distance_cols = "euclidean",
     clustering_method        = "complete", # has to be complete
     cutree_cols = 2,
     angle_col      = c("0"),
     fontsize       = 12,
     fontface       = "bold",
-    color          = colorRampPalette(rev(brewer.pal(n    = 7, 
+    color          = colorRampPalette(rev(brewer.pal(n    = 7,
                                                      name = "RdYlBu")))(length(breaksList)),
     breaks = breaksList,
     show_rownames  = FALSE,
     show_colnames  = FALSE)
-  
+
   ##############################################
-  
+
 }
 plot.heatmap.lung(x = "Lung")
 
@@ -1888,7 +1888,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function () {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.pancancer <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena",
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv(
@@ -1921,7 +1921,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function () {
   row.names(TCGA.RNAseq.anno.subset) <- TCGA.RNAseq.anno.subset$Row.names
   TCGA.RNAseq.anno.subset$Row.names <- NULL
   EIF.TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno.subset[ ,
-    colnames(TCGA.RNAseq.anno.subset) %in% c(EIF.gene, 
+    colnames(TCGA.RNAseq.anno.subset) %in% c(EIF.gene,
                                              "sample_type",
                                              "_primary_disease")]
   EIF.TCGA.RNAseq.anno.subset.long <- melt(EIF.TCGA.RNAseq.anno.subset)
@@ -1933,7 +1933,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function () {
     `_primary_disease` <- reorder(`_primary_disease`, value, median))
   mean$`_primary_disease` <- as.factor(mean$`_primary_disease`)
   neworder <- levels(mean$`_primary_disease`)
-  x.ordered <- factor(EIF.TCGA.RNAseq.anno.subset.long$`_primary_disease`, 
+  x.ordered <- factor(EIF.TCGA.RNAseq.anno.subset.long$`_primary_disease`,
                       levels = neworder)
   p1 <- ggplot(data = EIF.TCGA.RNAseq.anno.subset.long,
     aes(x     = x.ordered,
@@ -1966,7 +1966,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function () {
       strip.text      = black_bold_tahoma_12
     )
   print(p1)
-  
+
 }
 plot.boxgraph.EIF.RNAseq.TCGA()
 
@@ -1974,7 +1974,7 @@ plot.boxgraph.EIF.ratio.TCGA <- function () {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.pancancer <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena",
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv(
@@ -2007,19 +2007,19 @@ plot.boxgraph.EIF.ratio.TCGA <- function () {
   row.names(TCGA.RNAseq.anno.subset) <- TCGA.RNAseq.anno.subset$Row.names
   TCGA.RNAseq.anno.subset$Row.names <- NULL
   EIF.TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno.subset[ ,
-    colnames(TCGA.RNAseq.anno.subset) %in% c(EIF.gene, 
+    colnames(TCGA.RNAseq.anno.subset) %in% c(EIF.gene,
                                              "sample_type",
                                              "_primary_disease")]
   EIF.TCGA.GTEX.score <- EIF.TCGA.RNAseq.anno.subset
-  EIF.TCGA.GTEX.score$EIF4A1 <- 
+  EIF.TCGA.GTEX.score$EIF4A1 <-
     (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
   colnames(EIF.TCGA.GTEX.score)[
     which(names(EIF.TCGA.GTEX.score) == "EIF4A1")] <- "EIF4A1:EIF4E"
-  EIF.TCGA.GTEX.score$EIF4G1 <- 
+  EIF.TCGA.GTEX.score$EIF4G1 <-
     (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
   colnames(EIF.TCGA.GTEX.score)[
     which(names(EIF.TCGA.GTEX.score) == "EIF4G1")] <- "EIF4G1:EIF4E"
-  EIF.TCGA.GTEX.score$EIF4EBP1 <- 
+  EIF.TCGA.GTEX.score$EIF4EBP1 <-
     (EIF.TCGA.RNAseq.anno.subset$EIF4EBP1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
   colnames(EIF.TCGA.GTEX.score)[
     which(names(EIF.TCGA.GTEX.score) == "EIF4EBP1")] <- "EIF4EBP1:EIF4E"
@@ -2036,12 +2036,12 @@ plot.boxgraph.EIF.ratio.TCGA <- function () {
     `_primary_disease` <- reorder(`_primary_disease`, value, median))
   mean$`_primary_disease` <- as.factor(mean$`_primary_disease`)
   neworder <- levels(mean$`_primary_disease`)
-  x.ordered <- factor(EIF.TCGA.GTEX.score.long$`_primary_disease`, 
+  x.ordered <- factor(EIF.TCGA.GTEX.score.long$`_primary_disease`,
                       levels = neworder)
   levels(EIF.TCGA.GTEX.score.long$variable)
   p1 <- ggplot(data = EIF.TCGA.GTEX.score.long,
     aes(x     = x.ordered,
-      y     = value, 
+      y     = value,
       fill  = variable,
       color = variable)) +
     stat_n_text(size = 5, fontface = "bold", hjust = 0) +
@@ -2951,7 +2951,7 @@ plot.box.EIF.score.TCGA <- function (x) {
 
 }
 plot.box.EIF.score.TCGA (get.EIF.TCGA.score.long(EIF.gene))
-  
+
 ##
 plotEIF.score.TCGA <- function (x) {
   name <- deparse(substitute(x))
