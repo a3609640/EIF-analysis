@@ -1,52 +1,55 @@
-library(AnnotationDbi)
-library(clusterProfiler)
-library(circlize) ## for color options
-library(ComplexHeatmap)
-library(data.table)
-library(dendextend)
-library(descr)
-library(dplyr)
-library(EnvStats)
-library(eulerr)
-library(ggfortify)
-library(ggplot2)
-library(ggpubr)
-library(ggsignif)
-library(gplots)
-library(gridExtra)
-library(igraph)
-library(KEGG.db)
-library(limma)
-library(org.Hs.eg.db)
-library(pheatmap)
-library(RColorBrewer)
-library(ReactomePA)
-library(readr)
-library(reshape2)
-library(survival)
-library(survMisc)
-library(survminer)
-library(tidyverse)
-
-EIF.gene <- c("EIF4E",
-              "EIF4G1",
-              "EIF4A1",
-              "EIF4EBP1")
-names(EIF.gene) <- EIF.gene
-
-black_bold_tahoma_16 <- element_text(color  = "black",
-                                     face   = "bold",
-                                     family = "Tahoma",
-                                     size   = 16)
-black_bold_tahoma_12 <- element_text(color  = "black",
-                                     face   = "bold",
-                                     family = "Tahoma",
-                                     size   = 12)
+  library(AnnotationDbi)
+  library(clusterProfiler)
+  library(circlize) ## for color options
+  library(ComplexHeatmap)
+  library(corrplot)
+  library(data.table)
+  library(dendextend)
+  library(descr)
+  library(dplyr)
+  library(EnvStats)
+  library(eulerr)
+  library(FactoMineR)
+  library(factoextra)
+  library(ggfortify)
+  library(ggplot2)
+  library(ggpubr)
+  library(ggsignif)
+  library(gplots)
+  library(gridExtra)
+  library(igraph)
+  library(KEGG.db)
+  library(limma)
+  library(org.Hs.eg.db)
+  library(pheatmap)
+  library(RColorBrewer)
+  library(ReactomePA)
+  library(readr)
+  library(reshape2)
+  library(survival)
+  library(survMisc)
+  library(survminer)
+  library(tidyverse)
+  
+  EIF.gene <- c("EIF4E",
+                "EIF4G1",
+                "EIF4A1",
+                "EIF4EBP1")
+  names(EIF.gene) <- EIF.gene
+  
+  black_bold_tahoma_16 <- element_text(color  = "black",
+                                       face   = "bold",
+                                       family = "Tahoma",
+                                       size   = 16)
+  black_bold_tahoma_12 <- element_text(color  = "black",
+                                       face   = "bold",
+                                       family = "Tahoma",
+                                       size   = 12)
 x <- "Lung"
 
 
-#########################################
-### use TCGA-TARGET-GTEX dataset
+####################################
+### use TCGA-TARGET-GTEX dataset ###
 plot.heatmap.total <- function() {
   Lung <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
   Lung <- Lung[!duplicated(Lung$sample), ]
@@ -1883,7 +1886,8 @@ plot.cor.scatter(x = "CCNB1")
 lapply(EIF.gene, plot.cor.scatter, y = "CCNB1")
 
 
-################################################
+##############################################
+## boxplot for EIF expression across tumors ##
 plot.boxgraph.EIF.RNAseq.TCGA <- function () {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
@@ -1904,6 +1908,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function () {
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
+    colnames(TCGA.sampletype) <- c("sample.type", "primary.disease")
     TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose,
                                     TCGA.sampletype,
                                     by    = "row.names",
@@ -1912,28 +1917,28 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function () {
     return(TCGA.RNAseq.sampletype)
   }
   TCGA.RNAseq.anno <- pan.TCGA.gene()
-  sample.type.list <- levels(as.factor(TCGA.RNAseq.anno$sample_type))
-  cancer.type.list <- levels(as.factor(TCGA.RNAseq.anno$`_primary_disease`))
+  TCGA.RNAseq.anno$sample.type <- as.factor(TCGA.RNAseq.anno$sample.type)
+  sample.type.list <- levels(TCGA.RNAseq.anno$sample.type)
+  TCGA.RNAseq.anno$primary.disease <- as.factor(TCGA.RNAseq.anno$primary.disease)
+  cancer.type.list <- levels(TCGA.RNAseq.anno$primary.disease)
   TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno[
-    !TCGA.RNAseq.anno$sample_type %in% "Solid Tissue Normal", ]
-  TCGA.RNAseq.anno.subset$sample_type <- as.factor(
-    TCGA.RNAseq.anno.subset$sample_type)
+    !TCGA.RNAseq.anno$sample.type %in% "Solid Tissue Normal", ]
   row.names(TCGA.RNAseq.anno.subset) <- TCGA.RNAseq.anno.subset$Row.names
   TCGA.RNAseq.anno.subset$Row.names <- NULL
   EIF.TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno.subset[ ,
     colnames(TCGA.RNAseq.anno.subset) %in% c(EIF.gene, 
-                                             "sample_type",
-                                             "_primary_disease")]
+                                             "sample.type",
+                                             "primary.disease")]
   EIF.TCGA.RNAseq.anno.subset.long <- melt(EIF.TCGA.RNAseq.anno.subset)
-  EIF.TCGA.RNAseq.anno.subset.long$`_primary_disease` <- as.factor(
-    EIF.TCGA.RNAseq.anno.subset.long$`_primary_disease`)
+  EIF.TCGA.RNAseq.anno.subset.long$primary.disease <- as.factor(
+    EIF.TCGA.RNAseq.anno.subset.long$primary.disease)
   # reorder bars by explicitly ordering factor levels
   mean <- within(EIF.TCGA.RNAseq.anno.subset.long[
     EIF.TCGA.RNAseq.anno.subset.long$variable == "EIF4E", ], # TCGAstudy is one column in df2
-    `_primary_disease` <- reorder(`_primary_disease`, value, median))
-  mean$`_primary_disease` <- as.factor(mean$`_primary_disease`)
-  neworder <- levels(mean$`_primary_disease`)
-  x.ordered <- factor(EIF.TCGA.RNAseq.anno.subset.long$`_primary_disease`, 
+    primary.disease <- reorder(primary.disease, value, median))
+  mean$primary.disease <- as.factor(mean$primary.disease)
+  neworder <- levels(mean$primary.disease)
+  x.ordered <- factor(EIF.TCGA.RNAseq.anno.subset.long$primary.disease, 
                       levels = neworder)
   p1 <- ggplot(data = EIF.TCGA.RNAseq.anno.subset.long,
     aes(x     = x.ordered,
@@ -1953,23 +1958,27 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function () {
     coord_flip() +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
-      axis.text.x     = black_bold_tahoma_12,
-      axis.text.y     = black_bold_tahoma_12,
-      axis.line.x     = element_line(color = "black"),
-      axis.line.y     = element_line(color = "black"),
-      panel.grid      = element_blank(),
-      legend.title    = element_blank(),
-      legend.text     = black_bold_tahoma_12,
-      legend.position = "top",
-      strip.text      = black_bold_tahoma_12
+      plot.title           = black_bold_tahoma_12,
+      axis.title.x         = black_bold_tahoma_12,
+      axis.title.y         = element_blank(),
+      axis.text.x          = black_bold_tahoma_12,
+      axis.text.y          = black_bold_tahoma_12,
+      axis.line.x          = element_line(color = "black"),
+      axis.line.y          = element_line(color = "black"),
+      panel.grid           = element_blank(),
+      legend.title         = element_blank(),
+      legend.text          = black_bold_tahoma_12,
+      legend.position      = "top",
+      legend.justification = "left",
+      legend.box           = "horizontal", 
+      strip.text           = black_bold_tahoma_12
     )
   print(p1)
   
 }
 plot.boxgraph.EIF.RNAseq.TCGA()
 
+## boxplot for EIF ratios across tumors ##
 plot.boxgraph.EIF.ratio.TCGA <- function () {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
@@ -1990,91 +1999,776 @@ plot.boxgraph.EIF.ratio.TCGA <- function () {
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
+    colnames(TCGA.sampletype) <- c("sample.type", "primary.disease")
     TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose,
-      TCGA.sampletype,
-      by    = "row.names",
-      all.x = TRUE)
+                                    TCGA.sampletype,
+                                    by    = "row.names",
+                                    all.x = TRUE)
     TCGA.RNAseq.sampletype <- as.data.frame(TCGA.RNAseq.sampletype)
     return(TCGA.RNAseq.sampletype)
   }
   TCGA.RNAseq.anno <- pan.TCGA.gene()
-  sample.type.list <- levels(as.factor(TCGA.RNAseq.anno$sample_type))
-  cancer.type.list <- levels(as.factor(TCGA.RNAseq.anno$`_primary_disease`))
-  TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno[
-    !TCGA.RNAseq.anno$sample_type %in% "Solid Tissue Normal", ]
-  TCGA.RNAseq.anno.subset$sample_type <- as.factor(
-    TCGA.RNAseq.anno.subset$sample_type)
+  TCGA.RNAseq.anno$sample.type <- as.factor(TCGA.RNAseq.anno$sample.type)
+  sample.type.list <- levels(TCGA.RNAseq.anno$sample.type)
+  TCGA.RNAseq.anno$primary.disease <- as.factor(TCGA.RNAseq.anno$primary.disease)
+  cancer.type.list <- levels(TCGA.RNAseq.anno$primary.disease)
+  TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno
+  [!TCGA.RNAseq.anno$sample.type %in% "Solid Tissue Normal", ]
   row.names(TCGA.RNAseq.anno.subset) <- TCGA.RNAseq.anno.subset$Row.names
   TCGA.RNAseq.anno.subset$Row.names <- NULL
   EIF.TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno.subset[ ,
     colnames(TCGA.RNAseq.anno.subset) %in% c(EIF.gene, 
-                                             "sample_type",
-                                             "_primary_disease")]
+                                             "sample.type",
+                                             "primary.disease")]
   EIF.TCGA.GTEX.score <- EIF.TCGA.RNAseq.anno.subset
-  EIF.TCGA.GTEX.score$EIF4A1 <- 
+  EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4E` <- 
     (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-  colnames(EIF.TCGA.GTEX.score)[
-    which(names(EIF.TCGA.GTEX.score) == "EIF4A1")] <- "EIF4A1:EIF4E"
-  EIF.TCGA.GTEX.score$EIF4G1 <- 
+  EIF.TCGA.GTEX.score$`EIF4G1:\nEIF4E` <- 
     (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-  colnames(EIF.TCGA.GTEX.score)[
-    which(names(EIF.TCGA.GTEX.score) == "EIF4G1")] <- "EIF4G1:EIF4E"
-  EIF.TCGA.GTEX.score$EIF4EBP1 <- 
+  EIF.TCGA.GTEX.score$`EIF4EBP1:\nEIF4E` <- 
     (EIF.TCGA.RNAseq.anno.subset$EIF4EBP1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-  colnames(EIF.TCGA.GTEX.score)[
-    which(names(EIF.TCGA.GTEX.score) == "EIF4EBP1")] <- "EIF4EBP1:EIF4E"
+  ratio <- c("EIF4A1:\nEIF4E", "EIF4G1:\nEIF4E", "EIF4EBP1:\nEIF4E")
+  EIF.TCGA.GTEX.score <- EIF.TCGA.GTEX.score[ ,c(ratio,
+                                                 "sample.type",
+                                                 "primary.disease"), 
+                                             drop = FALSE]
+  counts <- as.data.frame(table(EIF.TCGA.GTEX.score$primary.disease))
+  colnames(counts) <- c("primary.disease","Freq")
   EIF.TCGA.GTEX.score.long <- melt(EIF.TCGA.GTEX.score)
-  ratio <- c("EIF4A1:EIF4E", "EIF4G1:EIF4E", "EIF4EBP1:EIF4E")
-  EIF.TCGA.GTEX.score.long <- EIF.TCGA.GTEX.score.long[
-    EIF.TCGA.GTEX.score.long$variable %in% ratio, ]
   # reorder bars by explicitly ordering factor levels
-  EIF.TCGA.GTEX.score.long$`_primary_disease` <- as.factor(
-    EIF.TCGA.GTEX.score.long$`_primary_disease`)
+  EIF.TCGA.GTEX.score.long$primary.disease <- as.factor(
+    EIF.TCGA.GTEX.score.long$primary.disease)
   ## bug here
   mean <- within(EIF.TCGA.GTEX.score.long[
-    EIF.TCGA.GTEX.score.long$variable == "EIF4EBP1:EIF4E", ], # TCGAstudy is one column in df2
-    `_primary_disease` <- reorder(`_primary_disease`, value, median))
-  mean$`_primary_disease` <- as.factor(mean$`_primary_disease`)
-  neworder <- levels(mean$`_primary_disease`)
-  x.ordered <- factor(EIF.TCGA.GTEX.score.long$`_primary_disease`, 
+    EIF.TCGA.GTEX.score.long$variable == "EIF4EBP1:\nEIF4E", ], # TCGAstudy is one column in df2
+    primary.disease <- reorder(primary.disease, value, median))
+  mean$primary.disease <- as.factor(mean$primary.disease)
+  neworder <- levels(mean$primary.disease)
+  x.ordered <- factor(EIF.TCGA.GTEX.score.long$primary.disease, 
                       levels = neworder)
   levels(EIF.TCGA.GTEX.score.long$variable)
   p1 <- ggplot(data = EIF.TCGA.GTEX.score.long,
     aes(x     = x.ordered,
-      y     = value, 
-      fill  = variable,
-      color = variable)) +
+        y     = value, 
+        fill  = variable,
+        color = variable)) +
     stat_n_text(size = 5, fontface = "bold", hjust = 0) +
     # geom_violin(trim = FALSE) +
     geom_boxplot(
       alpha    = .01,
       size     = .75,
       position = position_dodge(width = .9)
-    ) +
+    ) + 
     geom_hline(yintercept = 0, linetype = "dashed") +
     scale_fill_brewer(palette = "Dark2") +
     labs(x = "primary disease",
-      y = paste("log2(ratio)")) +
+         y = paste("log2(ratio)")) +
     coord_flip() +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
-      axis.text.x     = black_bold_tahoma_12,
-      axis.text.y     = black_bold_tahoma_12,
-      axis.line.x     = element_line(color = "black"),
-      axis.line.y     = element_line(color = "black"),
-      panel.grid      = element_blank(),
-      legend.title    = element_blank(),
-      legend.position = "top",
-      legend.text     = black_bold_tahoma_12,
-      strip.text      = black_bold_tahoma_12
+      plot.title           = black_bold_tahoma_12,
+      axis.title.x         = black_bold_tahoma_12,
+      axis.title.y         = element_blank(),
+      axis.text.x          = black_bold_tahoma_12,
+      axis.text.y          = black_bold_tahoma_12,
+      axis.line.x          = element_line(color = "black"),
+      axis.line.y          = element_line(color = "black"),
+      panel.grid           = element_blank(),
+      legend.title         = element_blank(),
+      legend.position      = "top",
+      legend.justification = "left",
+      legend.box           = "horizontal", 
+      legend.text          = black_bold_tahoma_12,
+      strip.text           = black_bold_tahoma_12
     )
   print(p1)
   }
 plot.boxgraph.EIF.ratio.TCGA()
 
 
+## violin plot for EIF expression in tumors vs adjacent normal ##
+plot.violingraph.EIF.RNAseq.TCGA <- function () {
+  TCGA.GTEX.anno <- read_tsv(
+    "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
+  TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
+  row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
+  TCGA.GTEX.anno$sample <- NULL
+  Sample.ID <- row.names(TCGA.GTEX.anno)
+  TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno) # otherwise lose rownames in the next step, use drop = FALSE to keep the row names 
+  subset <- TCGA.GTEX.anno[ ,c("_sample_type", "_primary_site"), drop = FALSE]
+  row.names(subset) <- row.names(TCGA.GTEX.anno)
+  colnames(subset) <- c("sample.type", "primary.site")
+  tissue.GTEX.TCGA.gene <- function(){
+    # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
+    TCGA.GTEX <- fread(
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      data.table = FALSE) # data.table = FALSE gives data.frame
+    # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
+    TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
+                           !duplicated(colnames(TCGA.GTEX))]
+    row.names(TCGA.GTEX) <- TCGA.GTEX$sample
+    TCGA.GTEX$sample <- NULL
+    TCGA.GTEX <- TCGA.GTEX[,colnames(TCGA.GTEX) %in% Sample.ID]
+    TCGA.GTEX.t <- data.table::transpose(TCGA.GTEX)
+    rownames(TCGA.GTEX.t) <- colnames(TCGA.GTEX)
+    colnames(TCGA.GTEX.t) <- rownames(TCGA.GTEX)
+    # NA in the vector
+    TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.t,
+                                       subset,
+                                       by    = "row.names",
+                                       all.x = TRUE)
+    # check the name of the last column
+    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)] 
+    TCGA.GTEX.Lung.sampletype <- na.omit(TCGA.GTEX.Lung.sampletype)
+    return(TCGA.GTEX.Lung.sampletype)
+  }
+  TCGA.GTEX.sampletype <- tissue.GTEX.TCGA.gene()
+  TCGA.GTEX.sampletype <- as.data.frame(TCGA.GTEX.sampletype)
+  row.names(TCGA.GTEX.sampletype) <- TCGA.GTEX.sampletype$Row.names
+  TCGA.GTEX.sampletype$Row.names <- NULL
+  EIF.TCGA.RNAseq.anno.subset <- TCGA.GTEX.sampletype[ ,c(EIF.gene, 
+                                                          "sample.type",
+                                                          "primary.site"),
+                                                      drop = FALSE]
+  EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[
+    !EIF.TCGA.RNAseq.anno.subset$EIF4E == 0, ]
+  EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[
+    EIF.TCGA.RNAseq.anno.subset$sample.type %in% c("Metastatic",
+                                                   "Primary Tumor",
+                                                   #"Normal Tissue",
+                                                   "Solid Tissue Normal"), ]
+  EIF.TCGA.RNAseq.anno.subset$sample.type <- as.factor(as.character(
+    EIF.TCGA.RNAseq.anno.subset$sample.type))
+  EIF.TCGA.RNAseq.anno.subset.long <- melt(EIF.TCGA.RNAseq.anno.subset)
+  EIF.TCGA.RNAseq.anno.subset.long$primary.site <- as.factor(
+    EIF.TCGA.RNAseq.anno.subset.long$primary.site)
+  black_bold_tahoma_12 <- element_text(color  = "black",
+                                       face   = "bold",
+                                       family = "Tahoma",
+                                       size   = 12)
+  black_bold_tahoma_16 <- element_text(color  = "black",
+                                       face   = "bold",
+                                       family = "Tahoma",
+                                       size   = 16)
+  black_bold_tahoma_16_90 <- element_text(color  = "black",
+                                          face   = "bold",
+                                          family = "Tahoma",
+                                          size   = 16,
+                                          angle  = 90,
+                                          hjust  = 1,
+                                          vjust  = 0.5)
+  p1 <- ggplot(data = EIF.TCGA.RNAseq.anno.subset.long,
+    aes(x     = sample.type,
+        y     = value,
+        fill  = sample.type,
+        color = sample.type)) +
+    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
+    facet_grid(. ~ variable,
+               scales = "free",
+               space  = "free") +
+    # facet_wrap(~ variable, ncol = 6) +
+    geom_violin(trim = FALSE) +
+    geom_boxplot(
+      alpha    = .01,
+      width    = .25,
+      color    = "black",
+      position = position_dodge(width = .9)
+    ) +
+    labs(x = "sample type",
+         y = paste("log2(normalized RNA counts + 1)")) +
+    scale_x_discrete(labels = c("Metastatic Tumor",
+                                "Primary Tumor",
+                                #"Normal Tissue",
+                                "Adjacent Normal")
+    ) +
+    theme_bw() +
+    theme(
+      plot.title      = black_bold_tahoma_16,
+      axis.title.x    = element_blank(),
+      axis.title.y    = black_bold_tahoma_16,
+      axis.text.x     = black_bold_tahoma_16_90,
+      axis.text.y     = black_bold_tahoma_16_90,
+      axis.line.x     = element_line(color = "black"),
+      axis.line.y     = element_line(color = "black"),
+      panel.grid      = element_blank(),
+      legend.position = "none",
+      strip.text      = black_bold_tahoma_16
+    ) +
+    stat_compare_means(
+      comparisons = list(c("Metastatic",    "Solid Tissue Normal"),
+                         c("Primary Tumor", "Solid Tissue Normal"),
+                         c("Metastatic",    "Primary Tumor")),
+      method = "t.test", label = "p.signif", size = 6)
+  p2 <- ggplot(data = EIF.TCGA.RNAseq.anno.subset.long,
+    aes(x     = variable,
+        y     = value,
+        fill  = variable,
+        color = variable)) +
+    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
+    facet_grid(~ sample.type,
+               scales = "free",
+               space  = "free") +
+    facet_wrap(~ sample.type, ncol = 6) +
+    geom_violin(trim = FALSE) +
+    geom_boxplot(
+      alpha    = .01,
+      width    = .25,
+      color    = "black",
+      position = position_dodge(width = .9)
+    ) +
+    labs(x = "EIF4F complex",
+         y = paste("log2(normalized RNA counts + 1)")) +
+    theme_bw() +
+    theme(
+      plot.title      = black_bold_tahoma_16,
+      axis.title      = black_bold_tahoma_16,
+      axis.text.x     = black_bold_tahoma_16_90,
+      axis.text.y     = black_bold_tahoma_16_90,
+      axis.line.x     = element_line(color = "black"),
+      axis.line.y     = element_line(color = "black"),
+      panel.grid      = element_blank(),
+      legend.position = "none",
+      strip.text      = black_bold_tahoma_16
+    ) +
+    stat_compare_means(comparisons = list(
+      c("EIF4A1", "EIF4E"),
+      c("EIF4G1", "EIF4E"),
+      c("EIF4EBP1", "EIF4E")
+    ),
+      method = "t.test", label = "p.signif", size = 6, hjust = 0)
+  print(p1)
+  print(p2)
+}
+plot.violingraph.EIF.RNAseq.TCGA ()
+
+##
+plot.violingraph.EIF.ratio.TCGA <- function () {
+  TCGA.GTEX.anno <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
+  TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
+  row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
+  TCGA.GTEX.anno$sample <- NULL
+  Sample.ID <- row.names(TCGA.GTEX.anno)
+  TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno) # otherwise lose rownames in the next step, use drop = FALSE to keep the row names 
+  subset <- TCGA.GTEX.anno[ ,c("_sample_type", "_primary_site"), drop = FALSE]
+  row.names(subset) <- row.names(TCGA.GTEX.anno)
+  colnames(subset) <- c("sample.type", "primary.site")
+  tissue.GTEX.TCGA.gene <- function(){
+    # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
+    TCGA.GTEX <- fread(
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      data.table = FALSE) # data.table = FALSE gives data.frame
+    # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
+    TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
+      !duplicated(colnames(TCGA.GTEX))]
+    row.names(TCGA.GTEX) <- TCGA.GTEX$sample
+    TCGA.GTEX$sample <- NULL
+    TCGA.GTEX <- TCGA.GTEX[,colnames(TCGA.GTEX) %in% Sample.ID]
+    TCGA.GTEX.t <- data.table::transpose(TCGA.GTEX)
+    rownames(TCGA.GTEX.t) <- colnames(TCGA.GTEX)
+    colnames(TCGA.GTEX.t) <- rownames(TCGA.GTEX)
+    # NA in the vector
+    TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.t,
+                                       subset,
+                                       by    = "row.names",
+                                       all.x = TRUE)
+    # check the name of the last column
+    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)] 
+    TCGA.GTEX.Lung.sampletype <- na.omit(TCGA.GTEX.Lung.sampletype)
+    return(TCGA.GTEX.Lung.sampletype)
+  }
+  TCGA.GTEX.sampletype <- tissue.GTEX.TCGA.gene()
+  TCGA.GTEX.sampletype <- as.data.frame(TCGA.GTEX.sampletype)
+  row.names(TCGA.GTEX.sampletype) <- TCGA.GTEX.sampletype$Row.names
+  TCGA.GTEX.sampletype$Row.names <- NULL
+  EIF.TCGA.RNAseq.anno.subset <- TCGA.GTEX.sampletype[ ,c(EIF.gene, 
+                                                          "sample.type",
+                                                          "primary.site"),
+                                                      drop = FALSE]
+  EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[!EIF.TCGA.RNAseq.anno.subset$EIF4E == 0, ]
+  EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[
+    EIF.TCGA.RNAseq.anno.subset$sample.type %in% c("Metastatic",
+                                                   "Primary Tumor",
+                                                   "Solid Tissue Normal"), ]
+  EIF.TCGA.RNAseq.anno.subset$sample.type <- as.factor(as.character(
+    EIF.TCGA.RNAseq.anno.subset$sample.type))
+  EIF.TCGA.GTEX.score <- EIF.TCGA.RNAseq.anno.subset
+  EIF.TCGA.GTEX.score$`EIF4A1:EIF4E` <- 
+    (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
+  EIF.TCGA.GTEX.score$`EIF4G1:EIF4E` <- 
+    (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
+  EIF.TCGA.GTEX.score$`EIF4EBP1:EIF4E` <- 
+    (EIF.TCGA.RNAseq.anno.subset$EIF4EBP1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
+  EIF.TCGA.GTEX.score$`EIF4G1:EIF4EBP1` <- 
+    (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4EBP1)
+  ratio <- c("EIF4A1:EIF4E", "EIF4G1:EIF4E", "EIF4EBP1:EIF4E", "EIF4G1:EIF4EBP1")
+  EIF.TCGA.GTEX.score <- EIF.TCGA.GTEX.score[c(ratio, "sample.type","primary.site")]
+  EIF.TCGA.GTEX.score.long <- melt(EIF.TCGA.GTEX.score)
+  black_bold_tahoma_12 <- element_text(
+    color  = "black",
+    face   = "bold",
+    family = "Tahoma",
+    size   = 12
+  )
+  black_bold_tahoma_16 <- element_text(
+    color  = "black",
+    face   = "bold",
+    family = "Tahoma",
+    size   = 16
+  )
+  black_bold_tahoma_16_90 <- element_text(
+    color  = "black",
+    face   = "bold",
+    family = "Tahoma",
+    size   = 16,
+    angle  = 90,
+    hjust  = 1,
+    vjust  = 0.5
+  )
+  new.label <- c(`EIF4A1:EIF4E` = "EIF4A1:\nEIF4E",
+                 `EIF4G1:EIF4E` = "EIF4G1:\nEIF4E",
+                 `EIF4EBP1:EIF4E` = "EIF4EBP1:\n EIF4E",
+                 `EIF4G1:EIF4EBP1` = "EIF4G1:\n EIF4EBP1")
+  p1 <- ggplot(data = EIF.TCGA.GTEX.score.long,
+    aes(x     = sample.type,
+        y     = value,
+        fill  = sample.type,
+        color = sample.type)) +
+    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
+    facet_grid(~ variable,
+               ) +
+    facet_wrap(~ variable, 
+               labeller = labeller(variable = as_labeller(new.label)),
+               ncol = 6) +
+    geom_violin(trim = FALSE) +
+    geom_boxplot(alpha    = .01,
+                 width     = 0.25,
+                 color    = "black"
+                 ) +
+    labs(x = "sample type",
+         y = paste("log2(ratio)")) +
+    scale_x_discrete(labels = c("Metastatic Tumor",
+                                "Primary Tumor",
+                                "Adjacent Normal")
+                                ) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    theme_bw() +
+    theme(plot.title      = black_bold_tahoma_16,
+          axis.title.x    = element_blank(),
+          axis.title.y    = black_bold_tahoma_16,
+          axis.text.x     = black_bold_tahoma_16_90,
+          axis.text.y     = black_bold_tahoma_16_90,
+          axis.line.x     = element_line(color = "black"),
+          axis.line.y     = element_line(color = "black"),
+          panel.grid      = element_blank(),
+          legend.position = "none",
+          strip.text      = black_bold_tahoma_16
+        ) +
+    stat_compare_means(comparisons = list(
+      c("Metastatic", "Solid Tissue Normal"),
+      c("Primary Tumor", "Solid Tissue Normal"),
+      c("Metastatic", "Primary Tumor")
+    ),
+      method = "t.test", label = "p.signif", size = 6, hjust = 0)
+  p2 <- ggplot(data = EIF.TCGA.GTEX.score.long,
+    aes(x     = variable,
+      y     = value,
+      fill  = variable,
+      color = variable)) +
+    stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
+    facet_grid(~ sample.type,
+               scales = "free",
+               space  = "free") +
+    facet_wrap(~ sample.type, ncol = 6) +
+    geom_violin(trim = FALSE) +
+    geom_boxplot(
+      alpha    = .01,
+      width     = 0.25,
+      color    = "black"
+    ) +
+    labs(x = "EIF complex",
+         y = paste("log2(ratio)")) +
+    geom_hline(yintercept = 0, linetype = "dashed") +
+    theme_bw() +
+    theme(
+          plot.title      = black_bold_tahoma_16,
+          axis.title      = black_bold_tahoma_16,
+          axis.text.x     = black_bold_tahoma_16_90,
+          axis.text.y     = black_bold_tahoma_16_90,
+          axis.line.x     = element_line(color = "black"),
+          axis.line.y     = element_line(color = "black"),
+          panel.grid      = element_blank(),
+          legend.position = "none",
+          strip.text      = black_bold_tahoma_12
+        ) +
+    stat_compare_means(comparisons = list(
+                                          c("EIF4A1:EIF4E",
+                                            "EIF4E:EIF4E"),
+                                          c("EIF4G1:EIF4E",
+                                            "EIF4E:EIF4E"),
+                                          c("EIF4EBP1:EIF4E",
+                                            "EIF4E:EIF4E")
+                                        ),
+      method = "t.test", label = "p.signif", size  = 6, hjust = 0)
+  print(p1)
+  print(p2)
+}
+plot.violingraph.EIF.ratio.TCGA ()
+
+#################################################################
+##  PCA plots on EIF4F RNA-seq data from TCGA and GTEx groups  ##
+plot.EIF.TCGA.GTEX.PCA.all <- function () {
+  TCGA.GTEX.anno <- read_tsv(
+    "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
+  TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
+  row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
+  TCGA.GTEX.anno$sample <- NULL
+  Sample.ID <- row.names(TCGA.GTEX.anno)
+  TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno) # otherwise lose rownames in the next step, use drop = FALSE to keep the row names 
+  subset <- TCGA.GTEX.anno[ ,c("_sample_type", "_primary_site"), drop = FALSE]
+  row.names(subset) <- row.names(TCGA.GTEX.anno)
+  colnames(subset) <- c("sample.type", "primary.site")
+  tissue.GTEX.TCGA.gene <- function(){
+    # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
+    TCGA.GTEX <- fread(
+      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      data.table = FALSE) # data.table = FALSE gives data.frame
+    # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
+    TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
+      !duplicated(colnames(TCGA.GTEX))]
+    row.names(TCGA.GTEX) <- TCGA.GTEX$sample
+    TCGA.GTEX$sample <- NULL
+    TCGA.GTEX <- TCGA.GTEX[,colnames(TCGA.GTEX) %in% Sample.ID]
+    TCGA.GTEX.t <- data.table::transpose(TCGA.GTEX)
+    rownames(TCGA.GTEX.t) <- colnames(TCGA.GTEX)
+    colnames(TCGA.GTEX.t) <- rownames(TCGA.GTEX)
+    # NA in the vector
+    TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.t,
+                                       subset,
+                                       by    = "row.names",
+                                       all.x = TRUE)
+    # check the name of the last column
+    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)] 
+    TCGA.GTEX.Lung.sampletype <- na.omit(TCGA.GTEX.Lung.sampletype)
+    return(TCGA.GTEX.Lung.sampletype)
+  }
+  TCGA.GTEX.sampletype <- tissue.GTEX.TCGA.gene()
+  TCGA.GTEX.sampletype <- as.data.frame(TCGA.GTEX.sampletype)
+  row.names(TCGA.GTEX.sampletype) <- TCGA.GTEX.sampletype$Row.names
+  TCGA.GTEX.sampletype$Row.names <- NULL
+  EIF.list <- c("EIF4E", "EIF4G1", "EIF4A1","EIF4EBP1",
+                "PABPC1","MKNK1","MKNK2", "YY1", "JUN")
+  EIF.TCGA.RNAseq.anno.subset <- TCGA.GTEX.sampletype[ ,c(EIF.list, 
+                                                          "sample.type",
+                                                          "primary.site"),
+                                                        drop = FALSE]
+  EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[
+    !EIF.TCGA.RNAseq.anno.subset$EIF4E == 0, ]
+  EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[
+    EIF.TCGA.RNAseq.anno.subset$sample.type %in% c("Metastatic",
+                                                   "Primary Tumor",
+                                                   "Normal Tissue",
+                                                   "Solid Tissue Normal"), ]
+  EIF.TCGA.RNAseq.anno.subset$sample.type <- factor(
+    EIF.TCGA.RNAseq.anno.subset$sample.type,
+    levels = c("Normal Tissue",
+               "Primary Tumor",
+               "Metastatic",
+               "Solid Tissue Normal"))
+  EIF.TCGA.RNAseq.anno.subset <- na.omit(EIF.TCGA.RNAseq.anno.subset)
+  ## remove the last two columns 
+  df1 <- EIF.TCGA.RNAseq.anno.subset[1:(length(EIF.TCGA.RNAseq.anno.subset)-2)]
+  rownames(df1) <- NULL
+  PCA <- prcomp(df1)
+  # Extract PC axes for plotting
+  PCAvalues <- data.frame(Sample.type = EIF.TCGA.RNAseq.anno.subset$sample.type, 
+                          PCA$x)
+  PCAvalues$Sample.type <- factor(PCAvalues$Sample.type,
+    levels = c("Normal Tissue", 
+               "Solid Tissue Normal", 
+               "Primary Tumor", 
+               "Metastatic"),
+    labels = c("Healthy Tissue (GTEx)", 
+               "Adjacent Normal Tissue (TCGA)",
+               "Primary Tumor (TCGA)", 
+               "Metastatic Tumor (TCGA)"))
+  # Extract loadings of the variables
+  PCAloadings <- data.frame(Variables = rownames(PCA$rotation), PCA$rotation)
+  # Plot
+  p <- ggplot(PCAvalues,
+    aes(x      = PC1,
+        y      = PC2,
+        colour = Sample.type)) +
+    geom_point(size = 2) +
+    geom_segment(data = PCAloadings,
+      aes(x     = 0,
+          y     = 0,
+          xend  = (PC1*5),
+          yend  = (PC2*5)),
+          arrow = arrow(length = unit(1/3, "picas")),
+          color = "black") +
+    annotate("text",
+             size     = 6,
+             fontface = "bold",
+             x        = (PCAloadings$PC1*5),
+             y        = (PCAloadings$PC2*5),
+             label    = PCAloadings$Variables) +
+    # stat_n_text(geom = "label") +
+    ggtitle("Principal Component Analysis") +
+    theme(plot.background   = element_blank(),
+          plot.title        = element_text(colour = "black",
+                                           size   = 18,
+                                           face   = "bold"),
+          panel.background  = element_rect(fill   = 'transparent',
+                                           color  = 'black',
+                                           size   = 1),
+          axis.title        = element_text(colour = "black",
+                                           size   = 18,
+                                           face   = "bold"),
+          axis.text         = element_text(colour = "black",
+                                           size   = 18,
+                                           face   = "bold"),
+          legend.title      = element_blank(),
+          legend.position   = c(0.3, 0.93),
+          legend.background = element_blank(),
+          legend.text       = element_text(colour = "black",
+                                           size   = 18,
+                                           face   = "bold",
+                                           hjust  = 0),
+          legend.key        = element_blank())
+  print(p)
+  EIF.TCGA.RNAseq.anno.subset$sample.type <- factor(
+    EIF.TCGA.RNAseq.anno.subset$sample.type,
+    levels = c("Normal Tissue", 
+               "Solid Tissue Normal", 
+               "Primary Tumor", 
+               "Metastatic"),
+    labels = c("Healthy Tissue (GTEx)", 
+               "Adjacent Normal Tissue (TCGA)",
+               "Primary Tumor (TCGA)", 
+               "Metastatic Tumor (TCGA)"))
+  res.pca <- PCA(df1, 
+                 scale.unit = TRUE, 
+                 ncp        = 10, 
+                 graph      = FALSE)
+  
+  fviz_pca_ind(res.pca, 
+                  labelsize  = 5,
+                  col.ind    = EIF.TCGA.RNAseq.anno.subset$sample.type, 
+                  palette    = "dark1", 
+                  pointshape = 20,
+                  addEllipses = TRUE, 
+                  label      = "var",
+                  col.var    = "black", 
+                  repel      = TRUE) +
+    theme_classic() + 
+    theme(plot.background  = element_blank(),
+          plot.title       = element_text(colour = "black",
+                                           size  = 18,
+                                           face  = "bold"),
+          panel.background = element_rect(fill   = 'transparent',
+                                           color = 'black',
+                                           size  = 1),
+          axis.title.x     = element_text(colour = "black",
+                                           size  = 18,
+                                           face  = "bold"),
+          axis.title.y     = element_text(colour = "black",
+                                           size  = 18,
+                                           face  = "bold"),
+          axis.text.x      = element_text(colour = "black", 
+                                           size  = 18,
+                                           face  = "bold"),
+          axis.text.y      = element_text(colour = "black",
+                                           size  = 18,
+                                           face  = "bold"),
+          legend.title      = element_blank(),
+          legend.position   = c(0.75, 0.93),
+          legend.background = element_blank(),
+          legend.text       = element_text(colour = "black",
+                                           size   = 18,
+                                           face   = "bold",
+                                           hjust  = 0))
+
+  
+  fviz_pca_var(res.pca, 
+    labelsize  = 5,
+    col.ind    = EIF.TCGA.RNAseq.anno.subset$sample.type, 
+    palette    = "dark1", 
+    pointshape = 20,
+    #addEllipses = TRUE, 
+    label      = "var",
+    col.var    = "black", 
+    repel      = TRUE) +
+    theme_classic() + 
+    theme(plot.background  = element_blank(),
+      plot.title       = element_text(colour = "black",
+        size  = 18,
+        face  = "bold"),
+      panel.background = element_rect(fill   = 'transparent',
+        color = 'black',
+        size  = 1),
+      axis.title.x     = element_text(colour = "black",
+        size  = 18,
+        face  = "bold"),
+      axis.title.y     = element_text(colour = "black",
+        size  = 18,
+        face  = "bold"),
+      axis.text.x      = element_text(colour = "black", 
+        size  = 18,
+        face  = "bold"),
+      axis.text.y      = element_text(colour = "black",
+        size  = 18,
+        face  = "bold"),
+      legend.title      = element_blank(),
+      legend.position   = c(0.75, 0.93),
+      legend.background = element_blank(),
+      legend.text       = element_text(colour = "black",
+        size   = 18,
+        face   = "bold",
+        hjust  = 0))
+  
+  fviz_pca_biplot(res.pca, 
+    axes = c(2, 3),
+    labelsize  = 5,
+    col.ind    = EIF.TCGA.RNAseq.anno.subset$sample.type, 
+    palette    = "dark1", 
+    pointshape = 20,
+    #addEllipses = TRUE, 
+    label      = "var",
+    col.var    = "black", 
+    repel      = TRUE) +
+    theme_classic() + 
+    theme(plot.background  = element_blank(),
+      plot.title       = element_text(colour = "black",
+        size  = 18,
+        face  = "bold"),
+      panel.background = element_rect(fill   = 'transparent',
+        color = 'black',
+        size  = 1),
+      axis.title.x     = element_text(colour = "black",
+        size  = 18,
+        face  = "bold"),
+      axis.title.y     = element_text(colour = "black",
+        size  = 18,
+        face  = "bold"),
+      axis.text.x      = element_text(colour = "black", 
+        size  = 18,
+        face  = "bold"),
+      axis.text.y      = element_text(colour = "black",
+        size  = 18,
+        face  = "bold"),
+      legend.title      = element_blank(),
+      legend.position   = c(0.75, 0.93),
+      legend.background = element_blank(),
+      legend.text       = element_text(colour = "black",
+        size   = 18,
+        face   = "bold",
+        hjust  = 0))
+  
+  screeplot <- fviz_eig(res.pca, labelsize = 6,
+                        geom      = "bar", 
+                        width     = 0.7, 
+                        addlabels = TRUE) + 
+    # geom_text(aes(label = res.pca$eig, size = 18)) +
+    theme_classic() +
+    theme(
+      plot.background   = element_blank(),
+      plot.title        = element_text(colour = "black",
+                                       size   = 18,
+                                       face   = "bold"),
+      panel.background  = element_rect(fill   = 'transparent',
+                                       color  = 'black',
+                                       size   = 1),
+      axis.title.x      = element_text(colour = "black",
+                                       size   = 18,
+                                       face   = "bold"),
+      axis.title.y      = element_text(colour = "black",
+                                       size   = 18,
+                                       face   = "bold"),
+      axis.text.x       = element_text(colour = "black", 
+                                       size   = 18,
+                                       face   = "bold"),
+      axis.text.y       = element_text(colour = "black",
+                                       size   = 18,
+                                       face   = "bold"))
+  print(screeplot)
+  fviz_contrib(res.pca, choice = "var", axes = 1:2)
+  
+  var <- get_pca_var(res.pca)
+  fviz_pca_var(res.pca, col.var="contrib")
+  corrplot(var$cos2, mar = c(0, 0, 0, 0),
+           is.corr     = FALSE, 
+           tl.cex      = 1.5,
+           number.cex  = 1.5, 
+           addCoef.col = "black", 
+           tl.col      = "black")
+  # Contributions of variables to PC1
+  fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
+  # Contributions of variables to PC2
+  fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
+  
+  pc1Plot <- fviz_contrib(res.pca,
+                          choice = "var",
+                          axes   = 1,
+                          top    = 10,
+                          fill   = "lightblue",
+                          color  = "black") +
+    theme_minimal() +
+    theme(
+      plot.background   = element_blank(),
+      plot.title        = element_text(colour = "black",
+                                       size   = 18,
+                                       face   = "bold"),
+      panel.background  = element_rect(fill   = 'transparent',
+                                       color  = 'black',
+                                       size   = 1),
+      axis.title.x      = element_blank(),
+      axis.title.y      = element_text(colour = "black",
+                                       size   = 18,
+                                       face   = "bold"),
+      axis.text.x       = element_text(colour = "black", 
+                                       angle  = 45,
+                                       hjust  = 1,
+                                       size   = 18,
+                                       face   = "bold"),
+      axis.text.y       = element_text(colour = "black",
+                                       size   = 18,
+                                       face   = "bold"))
+  print(pc1Plot)
+  pc2Plot <- fviz_contrib(res.pca,
+                          choice = "var",
+                          axes   = 2,
+                          top    = 10,
+                          fill   = "lightblue",
+                          color  = "black") +
+    theme_minimal() +
+    theme(
+      plot.background  = element_blank(),
+      plot.title       = element_text(colour = "black",
+                                       size  = 18,
+                                       face  = "bold"),
+      panel.background = element_rect(fill   = 'transparent',
+                                       color = 'black',
+                                       size  = 1),
+      axis.title.x     = element_blank(),
+      axis.title.y     = element_text(colour = "black",
+                                       size  = 18,
+                                       face  = "bold"),
+      axis.text.x      = element_text(colour = "black", 
+                                      angle  = 45,
+                                      hjust  = 1,
+                                      size   = 18,
+                                      face   = "bold"),
+      axis.text.y      = element_text(colour = "black",
+                                      size   = 18,
+                                      face   = "bold"))
+  print(pc2Plot)
+
+  
+}
+plot.EIF.TCGA.GTEX.PCA.all()
 
 
 
@@ -2083,10 +2777,7 @@ plot.boxgraph.EIF.ratio.TCGA()
 
 
 
-
-
-
-## read.csv will transform characters into factors
+  ## read.csv will transform characters into factors
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
   EIF.TCGA.GTEX <- read_csv("project-data/EIFTCGAGTEX.csv")
   EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:10])
