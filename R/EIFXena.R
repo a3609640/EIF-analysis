@@ -2012,8 +2012,8 @@ plot.boxgraph.EIF.ratio.TCGA <- function () {
   sample.type.list <- levels(TCGA.RNAseq.anno$sample.type)
   TCGA.RNAseq.anno$primary.disease <- as.factor(TCGA.RNAseq.anno$primary.disease)
   cancer.type.list <- levels(TCGA.RNAseq.anno$primary.disease)
-  TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno
-  [!TCGA.RNAseq.anno$sample.type %in% "Solid Tissue Normal", ]
+  TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno[
+    !TCGA.RNAseq.anno$sample.type %in% "Solid Tissue Normal", ]
   row.names(TCGA.RNAseq.anno.subset) <- TCGA.RNAseq.anno.subset$Row.names
   TCGA.RNAseq.anno.subset$Row.names <- NULL
   EIF.TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno.subset[ ,
@@ -2168,7 +2168,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function () {
                scales = "free",
                space  = "free") +
     # facet_wrap(~ variable, ncol = 6) +
-    geom_violin(trim = FALSE) +
+    geom_violin(trim = TRUE) + 
     geom_boxplot(
       alpha    = .01,
       width    = .25,
@@ -2176,7 +2176,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function () {
       position = position_dodge(width = .9)
     ) +
     labs(x = "sample type",
-         y = paste("log2(normalized RNA counts + 1)")) +
+         y = "log2(normalized RNA counts)") +
     scale_x_discrete(labels = c("Metastatic Tumor",
                                 "Primary Tumor",
                                 #"Normal Tissue",
@@ -2336,18 +2336,18 @@ plot.violingraph.EIF.ratio.TCGA <- function () {
         fill  = sample.type,
         color = sample.type)) +
     stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
-    facet_grid(~ variable,
-               ) +
+    facet_grid(~ variable) +
     facet_wrap(~ variable, 
                labeller = labeller(variable = as_labeller(new.label)),
                ncol = 6) +
-    geom_violin(trim = FALSE) +
-    geom_boxplot(alpha    = .01,
-                 width     = 0.25,
-                 color    = "black"
-                 ) +
+    #geom_violin(trim = TRUE) +
+    geom_boxplot(#alpha    = .01,
+                 width     = 0.75,
+                 color    = "black",
+                 outlier.colour=NA
+                 ) + ylim(0,60) +
     labs(x = "sample type",
-         y = paste("log2(ratio)")) +
+         y = "log2(ratio)") +
     scale_x_discrete(labels = c("Metastatic Tumor",
                                 "Primary Tumor",
                                 "Adjacent Normal")
@@ -2458,8 +2458,10 @@ plot.EIF.TCGA.GTEX.PCA.all <- function () {
   TCGA.GTEX.sampletype <- as.data.frame(TCGA.GTEX.sampletype)
   row.names(TCGA.GTEX.sampletype) <- TCGA.GTEX.sampletype$Row.names
   TCGA.GTEX.sampletype$Row.names <- NULL
-  EIF.list <- c("EIF4E", "EIF4G1", "EIF4A1","EIF4EBP1",
-                "PABPC1","MKNK1","MKNK2", "YY1", "JUN")
+  #EIF.list <- c("EIF4E", "EIF4G1", "EIF4G2", "EIF4A1","EIF4EBP1", "PABPC1",
+  #              "MKNK1","MKNK2", "MTOR", "RPTOR", "RPS6KB1","MYC")
+  EIF.list <- c("EIF4E", "EIF4G1", "EIF4G2", "EIF4A1","EIF4EBP1", "PABPC1",
+                "MKNK1","MKNK2", "MYC")
   EIF.TCGA.RNAseq.anno.subset <- TCGA.GTEX.sampletype[ ,c(EIF.list, 
                                                           "sample.type",
                                                           "primary.site"),
@@ -2473,126 +2475,157 @@ plot.EIF.TCGA.GTEX.PCA.all <- function () {
                                                    "Solid Tissue Normal"), ]
   EIF.TCGA.RNAseq.anno.subset$sample.type <- factor(
     EIF.TCGA.RNAseq.anno.subset$sample.type,
-    levels = c("Normal Tissue",
-               "Primary Tumor",
-               "Metastatic",
-               "Solid Tissue Normal"))
+    levels = c("Normal Tissue", 
+               "Solid Tissue Normal", 
+               "Primary Tumor", 
+               "Metastatic"),
+    labels = c("Healthy Tissue (GTEx)", 
+               "Adjacent Normal Tissue (TCGA)",
+               "Primary Tumor (TCGA)", 
+               "Metastatic Tumor (TCGA)"))
   EIF.TCGA.RNAseq.anno.subset <- na.omit(EIF.TCGA.RNAseq.anno.subset)
   ## remove the last two columns 
   df1 <- EIF.TCGA.RNAseq.anno.subset[1:(length(EIF.TCGA.RNAseq.anno.subset)-2)]
   rownames(df1) <- NULL
-  PCA <- prcomp(df1)
+  plot.PCA.prcomp <- function(){
+  # the variables should be scaled to have unit variance 
+    PCA <- prcomp(df1, scale = TRUE)
   # Extract PC axes for plotting
-  PCAvalues <- data.frame(Sample.type = EIF.TCGA.RNAseq.anno.subset$sample.type, 
-                          PCA$x)
-  PCAvalues$Sample.type <- factor(PCAvalues$Sample.type,
-    levels = c("Normal Tissue", 
-               "Solid Tissue Normal", 
-               "Primary Tumor", 
-               "Metastatic"),
-    labels = c("Healthy Tissue (GTEx)", 
-               "Adjacent Normal Tissue (TCGA)",
-               "Primary Tumor (TCGA)", 
-               "Metastatic Tumor (TCGA)"))
+    PCAvalues <- data.frame(Sample.type = EIF.TCGA.RNAseq.anno.subset$sample.type, 
+                            PCA$x)
   # Extract loadings of the variables
-  PCAloadings <- data.frame(Variables = rownames(PCA$rotation), PCA$rotation)
-  # Plot
-  p <- ggplot(PCAvalues,
-    aes(x      = PC1,
-        y      = PC2,
-        colour = Sample.type)) +
-    geom_point(size = 2) +
-    geom_segment(data = PCAloadings,
-      aes(x     = 0,
-          y     = 0,
-          xend  = (PC1*5),
-          yend  = (PC2*5)),
-          arrow = arrow(length = unit(1/3, "picas")),
-          color = "black") +
-    annotate("text",
-             size     = 6,
-             fontface = "bold",
-             x        = (PCAloadings$PC1*5),
-             y        = (PCAloadings$PC2*5),
-             label    = PCAloadings$Variables) +
-    # stat_n_text(geom = "label") +
-    ggtitle("Principal Component Analysis") +
-    theme(plot.background   = element_blank(),
-          plot.title        = element_text(colour = "black",
-                                           size   = 18,
-                                           face   = "bold"),
-          panel.background  = element_rect(fill   = 'transparent',
-                                           color  = 'black',
-                                           size   = 1),
-          axis.title        = element_text(colour = "black",
-                                           size   = 18,
-                                           face   = "bold"),
-          axis.text         = element_text(colour = "black",
-                                           size   = 18,
-                                           face   = "bold"),
-          legend.title      = element_blank(),
-          legend.position   = c(0.3, 0.93),
-          legend.background = element_blank(),
-          legend.text       = element_text(colour = "black",
-                                           size   = 18,
-                                           face   = "bold",
-                                           hjust  = 0),
-          legend.key        = element_blank())
-  print(p)
-  EIF.TCGA.RNAseq.anno.subset$sample.type <- factor(
-    EIF.TCGA.RNAseq.anno.subset$sample.type,
-    levels = c("Normal Tissue", 
-               "Solid Tissue Normal", 
-               "Primary Tumor", 
-               "Metastatic"),
-    labels = c("Healthy Tissue (GTEx)", 
-               "Adjacent Normal Tissue (TCGA)",
-               "Primary Tumor (TCGA)", 
-               "Metastatic Tumor (TCGA)"))
-  res.pca <- PCA(df1, 
-                 scale.unit = TRUE, 
-                 ncp        = 10, 
-                 graph      = FALSE)
-  
-  fviz_pca_ind(res.pca, 
-                  labelsize  = 5,
-                  col.ind    = EIF.TCGA.RNAseq.anno.subset$sample.type, 
-                  palette    = "dark1", 
-                  pointshape = 20,
-                  addEllipses = TRUE, 
-                  label      = "var",
-                  col.var    = "black", 
-                  repel      = TRUE) +
-    theme_classic() + 
-    theme(plot.background  = element_blank(),
-          plot.title       = element_text(colour = "black",
-                                           size  = 18,
-                                           face  = "bold"),
-          panel.background = element_rect(fill   = 'transparent',
-                                           color = 'black',
-                                           size  = 1),
-          axis.title.x     = element_text(colour = "black",
-                                           size  = 18,
-                                           face  = "bold"),
-          axis.title.y     = element_text(colour = "black",
-                                           size  = 18,
-                                           face  = "bold"),
-          axis.text.x      = element_text(colour = "black", 
-                                           size  = 18,
-                                           face  = "bold"),
-          axis.text.y      = element_text(colour = "black",
-                                           size  = 18,
-                                           face  = "bold"),
-          legend.title      = element_blank(),
-          legend.position   = c(0.75, 0.93),
-          legend.background = element_blank(),
-          legend.text       = element_text(colour = "black",
-                                           size   = 18,
-                                           face   = "bold",
-                                           hjust  = 0))
-
-  
-  fviz_pca_var(res.pca, 
+    PCAloadings <- data.frame(Variables = rownames(PCA$rotation), PCA$rotation)
+    # Plot
+    p <- ggplot(PCAvalues,
+      aes(x      = PC1,
+          y      = PC2,
+          colour = Sample.type)) +
+      geom_point(size = 0.2) +
+      geom_segment(data = PCAloadings,
+        aes(x     = 0,
+            y     = 0,
+            xend  = (PC1*5),
+            yend  = (PC2*5)),
+            arrow = arrow(length = unit(1/3, "picas")),
+            color = "black") +
+      annotate("text",
+               size     = 6,
+               fontface = "bold",
+               x        = (PCAloadings$PC1*5),
+               y        = (PCAloadings$PC2*5),
+               label    = PCAloadings$Variables) +
+      # stat_n_text(geom = "label") +
+      ggtitle("Principal Component Analysis") +
+      theme(plot.background   = element_blank(),
+            plot.title        = element_text(colour = "black",
+                                             size   = 18,
+                                             face   = "bold"),
+            panel.background  = element_rect(fill   = 'transparent',
+                                             color  = 'black',
+                                             size   = 1),
+            axis.title        = element_text(colour = "black",
+                                             size   = 18,
+                                             face   = "bold"),
+            axis.text         = element_text(colour = "black",
+                                             size   = 18,
+                                             face   = "bold"),
+            legend.title      = element_blank(),
+            legend.position   = c(0.3, 0.93),
+            legend.background = element_blank(),
+            legend.text       = element_text(colour = "black",
+                                             size   = 18,
+                                             face   = "bold",
+                                             hjust  = 0),
+            legend.key        = element_blank())
+    print(p)
+  }
+  plot.PCA.prcomp()
+  plot.pca.factomineR <- function(){
+    res.pca <- PCA(df1, 
+      scale.unit = TRUE, 
+      ncp        = 10, 
+      graph      = FALSE)
+    
+    biplot <- fviz_pca_biplot(res.pca, 
+      axes       = c(1, 2),
+      labelsize  = 5,
+      col.ind    = EIF.TCGA.RNAseq.anno.subset$sample.type, 
+      #palette    = "dark1", 
+      #pointshape = 20,
+      pointsize  = 0.5,
+      #addEllipses = TRUE, 
+      label      = "var",
+      col.var    = "black", 
+      repel      = TRUE) +
+      theme_classic() + 
+      theme(
+        plot.background  = element_blank(),
+        plot.title       = element_text(colour = "black",
+                                        size   = 18,
+                                        face   = "bold"),
+        panel.background = element_rect(fill   = 'transparent',
+                                        color  = 'black',
+                                        size   = 1),
+        axis.title.x     = element_text(colour = "black",
+                                        size   = 18,
+                                        face   = "bold"),
+        axis.title.y     = element_text(colour = "black",
+                                        size   = 18,
+                                        face   = "bold"),
+        axis.text.x      = element_text(colour = "black", 
+                                        size   = 18,
+                                        face   = "bold"),
+        axis.text.y      = element_text(colour = "black",
+                                        size   = 18,
+                                        face   = "bold"),
+        legend.title      = element_blank(),
+        legend.position   = c(0.75, 0.93),
+        legend.background = element_blank(),
+        legend.text       = element_text(colour = "black",
+                                         size   = 18,
+                                         face   = "bold",
+                                         hjust  = 0))
+    print(biplot)
+    
+    indplot <- fviz_pca_ind(res.pca,
+      labelsize   = 5,
+      col.ind     = EIF.TCGA.RNAseq.anno.subset$sample.type, 
+      palette     = "dark1", 
+      #pointshape  = 20,
+      pointsize   = 0.5,
+      addEllipses = TRUE, 
+      label       = "var",
+      col.var     = "black", 
+      repel       = TRUE) +
+      theme_classic() + 
+      theme(plot.background  = element_blank(),
+            plot.title       = element_text(colour = "black",
+                                            size   = 18,
+                                            face   = "bold"),
+            panel.background = element_rect(fill   = 'transparent',
+                                            color  = 'black',
+                                            size   = 1),
+            axis.title.x     = element_text(colour = "black",
+                                            size   = 18,
+                                            face   = "bold"),
+            axis.title.y     = element_text(colour = "black",
+                                            size   = 18,
+                                            face   = "bold"),
+            axis.text.x      = element_text(colour = "black", 
+                                            size   = 18,
+                                            face   = "bold"),
+            axis.text.y      = element_text(colour = "black",
+                                            size   = 18,
+                                            face   = "bold"),
+            legend.title      = element_blank(),
+            legend.position   = c(0.75, 0.93),
+            legend.background = element_blank(),
+            legend.text       = element_text(colour = "black",
+                                             size   = 18,
+                                             face   = "bold",
+                                             hjust  = 0))
+  print(indplot)
+  varplot <- fviz_pca_var(res.pca,
     labelsize  = 5,
     col.ind    = EIF.TCGA.RNAseq.anno.subset$sample.type, 
     palette    = "dark1", 
@@ -2602,72 +2635,36 @@ plot.EIF.TCGA.GTEX.PCA.all <- function () {
     col.var    = "black", 
     repel      = TRUE) +
     theme_classic() + 
-    theme(plot.background  = element_blank(),
+    theme(
+      plot.background  = element_blank(),
       plot.title       = element_text(colour = "black",
-        size  = 18,
-        face  = "bold"),
+                                      size   = 18,
+                                      face   = "bold"),
       panel.background = element_rect(fill   = 'transparent',
-        color = 'black',
-        size  = 1),
+                                      color  = 'black',
+                                      size   = 1),
       axis.title.x     = element_text(colour = "black",
-        size  = 18,
-        face  = "bold"),
+                                      size   = 18,
+                                      face   = "bold"),
       axis.title.y     = element_text(colour = "black",
-        size  = 18,
-        face  = "bold"),
+                                      size   = 18,
+                                      face   = "bold"),
       axis.text.x      = element_text(colour = "black", 
-        size  = 18,
-        face  = "bold"),
+                                      size   = 18,
+                                      face   = "bold"),
       axis.text.y      = element_text(colour = "black",
-        size  = 18,
-        face  = "bold"),
+                                      size   = 18,
+                                      face   = "bold"),
       legend.title      = element_blank(),
       legend.position   = c(0.75, 0.93),
       legend.background = element_blank(),
       legend.text       = element_text(colour = "black",
-        size   = 18,
-        face   = "bold",
-        hjust  = 0))
-  
-  fviz_pca_biplot(res.pca, 
-    axes = c(2, 3),
-    labelsize  = 5,
-    col.ind    = EIF.TCGA.RNAseq.anno.subset$sample.type, 
-    palette    = "dark1", 
-    pointshape = 20,
-    #addEllipses = TRUE, 
-    label      = "var",
-    col.var    = "black", 
-    repel      = TRUE) +
-    theme_classic() + 
-    theme(plot.background  = element_blank(),
-      plot.title       = element_text(colour = "black",
-        size  = 18,
-        face  = "bold"),
-      panel.background = element_rect(fill   = 'transparent',
-        color = 'black',
-        size  = 1),
-      axis.title.x     = element_text(colour = "black",
-        size  = 18,
-        face  = "bold"),
-      axis.title.y     = element_text(colour = "black",
-        size  = 18,
-        face  = "bold"),
-      axis.text.x      = element_text(colour = "black", 
-        size  = 18,
-        face  = "bold"),
-      axis.text.y      = element_text(colour = "black",
-        size  = 18,
-        face  = "bold"),
-      legend.title      = element_blank(),
-      legend.position   = c(0.75, 0.93),
-      legend.background = element_blank(),
-      legend.text       = element_text(colour = "black",
-        size   = 18,
-        face   = "bold",
-        hjust  = 0))
-  
-  screeplot <- fviz_eig(res.pca, labelsize = 6,
+                                       size   = 18,
+                                       face   = "bold",
+                                       hjust  = 0))
+  print(varplot)
+  eig <- fviz_eig(res.pca, 
+                        labelsize = 6,
                         geom      = "bar", 
                         width     = 0.7, 
                         addlabels = TRUE) + 
@@ -2693,28 +2690,23 @@ plot.EIF.TCGA.GTEX.PCA.all <- function () {
       axis.text.y       = element_text(colour = "black",
                                        size   = 18,
                                        face   = "bold"))
-  print(screeplot)
-  fviz_contrib(res.pca, choice = "var", axes = 1:2)
-  
+  print(eig)
   var <- get_pca_var(res.pca)
-  fviz_pca_var(res.pca, col.var="contrib")
-  corrplot(var$cos2, mar = c(0, 0, 0, 0),
+  #fviz_pca_var(res.pca, col.var="contrib")
+  corrplot(var$cos2, #cos2 is better than contribute
            is.corr     = FALSE, 
            tl.cex      = 1.5,
            number.cex  = 1.5, 
            addCoef.col = "black", 
            tl.col      = "black")
-  # Contributions of variables to PC1
-  fviz_contrib(res.pca, choice = "var", axes = 1, top = 10)
-  # Contributions of variables to PC2
-  fviz_contrib(res.pca, choice = "var", axes = 2, top = 10)
   
-  pc1Plot <- fviz_contrib(res.pca,
-                          choice = "var",
-                          axes   = 1,
-                          top    = 10,
-                          fill   = "lightblue",
-                          color  = "black") +
+  contribplot <- function(x){
+    fviz_contrib(res.pca,
+      choice = "var",
+      axes   = x,
+      top    = 10,
+      fill   = "lightblue",
+      color  = "black") +
     theme_minimal() +
     theme(
       plot.background   = element_blank(),
@@ -2735,39 +2727,11 @@ plot.EIF.TCGA.GTEX.PCA.all <- function () {
                                        face   = "bold"),
       axis.text.y       = element_text(colour = "black",
                                        size   = 18,
-                                       face   = "bold"))
-  print(pc1Plot)
-  pc2Plot <- fviz_contrib(res.pca,
-                          choice = "var",
-                          axes   = 2,
-                          top    = 10,
-                          fill   = "lightblue",
-                          color  = "black") +
-    theme_minimal() +
-    theme(
-      plot.background  = element_blank(),
-      plot.title       = element_text(colour = "black",
-                                       size  = 18,
-                                       face  = "bold"),
-      panel.background = element_rect(fill   = 'transparent',
-                                       color = 'black',
-                                       size  = 1),
-      axis.title.x     = element_blank(),
-      axis.title.y     = element_text(colour = "black",
-                                       size  = 18,
-                                       face  = "bold"),
-      axis.text.x      = element_text(colour = "black", 
-                                      angle  = 45,
-                                      hjust  = 1,
-                                      size   = 18,
-                                      face   = "bold"),
-      axis.text.y      = element_text(colour = "black",
-                                      size   = 18,
-                                      face   = "bold"))
-  print(pc2Plot)
-
-  
-}
+                                       face   = "bold"))}
+  lapply(c(1,2), contribplot)
+  }
+  plot.pca.factomineR()
+  }
 plot.EIF.TCGA.GTEX.PCA.all()
 
 
@@ -2777,7 +2741,7 @@ plot.EIF.TCGA.GTEX.PCA.all()
 
 
 
-  ## read.csv will transform characters into factors
+## read.csv will transform characters into factors
 get.EIF.TCGA.GTEX.RNAseq.long <- function () {
   EIF.TCGA.GTEX <- read_csv("project-data/EIFTCGAGTEX.csv")
   EIF.TCGA.GTEX.RNAseq.long <- melt(EIF.TCGA.GTEX[, 1:10])
