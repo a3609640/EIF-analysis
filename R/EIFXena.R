@@ -9,13 +9,16 @@ library(descr)
 library(dplyr)
 library(EnvStats)
 library(eulerr)
-library(FactoMineR)
 library(factoextra)
+library(FactoMineR)
+library(forestmodel)
+library(Hmisc)
 library(ggfortify)
 library(ggplot2)
 library(ggpubr)
 library(ggsignif)
 library(ggthemes) ## color-blind options
+library(glmnet)
 library(gplots)
 library(gridExtra)
 library(igraph)
@@ -24,6 +27,7 @@ library(limma)
 library(missMDA)
 library(org.Hs.eg.db)
 library(pheatmap)
+library(plotmo) # for plot_glmnet
 library(RColorBrewer)
 library(ReactomePA)
 library(readr)
@@ -31,9 +35,11 @@ library(readxl)
 library(reshape2)
 library(rgl)
 library(survival)
+library(survivalAnalysis)
 library(survMisc)
 library(survminer)
 library(tidyverse)
+library(vip)
   
 EIF.gene <- c("EIF4E",
               "EIF4G1",
@@ -2083,6 +2089,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
   df <- pan.TCGA.gene(EIF)
   
   plot.KM <- function(EIF){
+    #df <- subset(df, OS.time <= 4000) 
     number <- nrow(df)
     sub <- round(number / 5, digits = 0)
     # bottom.label <- paste("Bottom 20%, n = ", sub)
@@ -2102,8 +2109,8 @@ plot.km.EIF.all.tumors <- function(EIF) {
       xlab = "Days",
       ylab = "Survival Probability",
       main = paste0("All TCGA cancer studies (", number, " cases)"),
-      color = strata,
-      xlim = c(0, 4000)) +
+      xlim = c(0, 4100),
+      color = strata) +
       theme_bw() +
       theme(
         plot.title           = black_bold_tahoma_16,
@@ -2115,16 +2122,20 @@ plot.km.EIF.all.tumors <- function(EIF) {
         strip.text           = black_bold_tahoma_16,
         legend.text          = black_bold_tahoma_16 ,
         legend.title         = black_bold_tahoma_16 ,
-        legend.position      = c(1, 1),
+        legend.position      = c(0.98, 0.98),
         legend.justification = c(1, 1)) +
       guides(fill = FALSE) +
       scale_color_manual(
         values = c("red", "blue"),
         name   = paste(EIF, "mRNA expression"),
         breaks = c("Bottom 20%", "Top 20%"),
-        labels = c(paste("Bottom 20%, n = ", sub),
-                   paste("Top 20%, n = ", sub))
+        labels = c(paste("Bottom 20%, n =", sub),
+                   paste("Top 20%, n =", sub))
       ) +
+      #scale_x_continuous(expand = c(0, 0), limits = c(0, 4100)) + 
+      #scale_y_continuous(expand = c(0, 0), 
+      #                   limits = c(0, 1.05), 
+      #                   labels = scales::percent) +
       geom_point(size = 0.25) +
       annotate(
         "text",
@@ -2145,9 +2156,11 @@ plot.km.EIF.all.tumors <- function(EIF) {
       useDingbats = FALSE)
     }
   plot.KM(EIF)
-  
   }
-plot.km.EIF.all.tumors("EIF4A1")
+plot.km.EIF.all.tumors("EIF4G1")
+lapply(c("EIF4E", "EIF4G1","EIF4G2", "EIF4A1",
+         "EIF4EBP1", "PABPC1", "MKNK1","MKNK2", 
+         "MTOR", "RPTOR","RPS6KB1", "MYC"), plot.km.EIF.all.tumors)
 
 ##
 plot.km.EIF.each.tumor <- function(EIF, tumor) {
@@ -2220,6 +2233,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
   }
   
   plot.KM <- function(EIF, tumor){
+    #df <- subset(df, OS.time <= 2000) 
     df <- pan.TCGA.gene(EIF, tumor)
     number <- nrow(df)
     sub <- round(number / 5, digits = 0)
@@ -2239,8 +2253,8 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
       km,
       xlab = "Days",
       ylab = "Survival Probability",
-      main = paste0(tumor, " (", number, " cases)"),
-      xlim = c(0, 4000)) +
+      xlim = c(0, 2100),
+      main = paste0(tumor, " (", number, " cases)")) +
       theme_bw() +
       theme(
         plot.title           = black_bold_tahoma_16,
@@ -2252,20 +2266,24 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
         strip.text           = black_bold_tahoma_16,
         legend.text          = black_bold_tahoma_16 ,
         legend.title         = black_bold_tahoma_16 ,
-        legend.position      = c(1, 1),
+        legend.position      = c(0.98, 0.98),
         legend.justification = c(1, 1)) +
       guides(fill = FALSE) +
       scale_color_manual(
         values = c("red", "blue"),
         name   = paste(EIF, "mRNA expression"),
         breaks = c("Bottom 20%", "Top 20%"),
-        labels = c(paste("Bottom 20%, n = ", sub),
-                   paste("Top 20%, n = ", sub))
+        labels = c(paste("Bottom 20%, n =", sub),
+                   paste("Top 20%, n =", sub))
       ) +
+      #scale_x_continuous(expand = c(0, 0), limits = c(0, 2100)) + 
+      #scale_y_continuous(expand = c(0, 0), 
+      #                   limits = c(0, 1.05), 
+      #                   labels = scales::percent) +
       geom_point(size = 0.25) +
       annotate(
         "text",
-        x        = 4000,
+        x        = 2000,
         y        = 0.8,
         label    = paste("log-rank test \n p.val = ", p.val),
         size     = 6.5,
@@ -2282,165 +2300,17 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
   }
   plot.KM(EIF, tumor)
 }
-plot.km.EIF.each.tumor("MYC", "lung adenocarcinoma")
+plot.km.EIF.each.tumor("EIF4G1", "lung adenocarcinoma")
 
-ggforest2 <- function (model, data = NULL, main = "Hazard ratio", 
-  cpositions = c(0.02, 0.22, 0.4), 
-  fontsize = 0.7, refLabel = "reference", noDigits = 2,
-  # new parameters with some default values; function's behaviour
-  # does not differ from ggforest() unless arrow = TRUE
-  arrow = FALSE, arrow.labels = c("left", "right"), 
-  arrow.specification = arrow(), arrow.colour = "black") {
-  
-  # this part is unchanged
-  conf.high <- conf.low <- estimate <- NULL
-  stopifnot(class(model) == "coxph")
-  data <- survminer:::.get_data(model, data = data)
-  terms <- attr(model$terms, "dataClasses")[-1]
-  terms <- terms[intersect(names(terms), 
-    gsub(rownames(anova(model))[-1], pattern = "`", replacement = ""))]
-  allTerms <- lapply(seq_along(terms), function(i) {
-    var <- names(terms)[i]
-    if (terms[i] == "factor") {
-      adf <- as.data.frame(table(data[, var]))
-      cbind(var = var, adf, pos = 1:nrow(adf))
-    }
-    else {
-      data.frame(var = var, Var1 = "", Freq = nrow(data), pos = 1)
-    }
-  })
-  allTermsDF <- do.call(rbind, allTerms)
-  colnames(allTermsDF) <- c("var", "level", "N", "pos")
-  inds <- apply(allTermsDF[, 1:2], 1, paste0, collapse = "")
-  coef <- as.data.frame(broom::tidy(model))
-  gmodel <- broom::glance(model)
-  rownames(coef) <- gsub(coef$term, pattern = "`", replacement = "")
-  toShow <- cbind(allTermsDF, coef[inds, ])[, c("var", "level", "N", "p.value", "estimate", 
-    "conf.low", "conf.high", "pos")]
-  toShowExp <- toShow[, 5:7]
-  toShowExp[is.na(toShowExp)] <- 0
-  toShowExp <- format(exp(toShowExp), digits = noDigits)
-  toShowExpClean <- data.frame(toShow, pvalue = signif(toShow[, 4], noDigits + 1), toShowExp)
-  toShowExpClean$stars <- paste0(round(toShowExpClean$p.value, noDigits + 1), " ", 
-    ifelse(toShowExpClean$p.value < 0.05, "*", ""), 
-    ifelse(toShowExpClean$p.value < 0.01, "*", ""), 
-    ifelse(toShowExpClean$p.value < 0.001, "*", ""))
-  toShowExpClean$ci <- paste0("(", toShowExpClean[, "conf.low.1"], 
-    " - ", toShowExpClean[, "conf.high.1"], ")")
-  toShowExpClean$estimate.1[is.na(toShowExpClean$estimate)] = refLabel
-  toShowExpClean$stars[which(toShowExpClean$p.value < 0.001)] = "<0.001 ***"
-  toShowExpClean$stars[is.na(toShowExpClean$estimate)] = ""
-  toShowExpClean$ci[is.na(toShowExpClean$estimate)] = ""
-  toShowExpClean$estimate[is.na(toShowExpClean$estimate)] = 0
-  toShowExpClean$var = as.character(toShowExpClean$var)
-  toShowExpClean$var[duplicated(toShowExpClean$var)] = ""
-  toShowExpClean$N <- paste0("(N=", toShowExpClean$N, ")")
-  toShowExpClean <- toShowExpClean[nrow(toShowExpClean):1, ]
-  rangeb <- range(toShowExpClean$conf.low, toShowExpClean$conf.high, 
-    na.rm = TRUE)
-  breaks <- axisTicks(rangeb/2, log = TRUE, nint = 7)
-  rangeplot <- rangeb
-  rangeplot[1] <- rangeplot[1] - diff(rangeb)
-  rangeplot[2] <- rangeplot[2] + 0.15 * diff(rangeb)
-  width <- diff(rangeplot)
-  y_variable <- rangeplot[1] + cpositions[1] * width
-  y_nlevel <- rangeplot[1] + cpositions[2] * width
-  y_cistring <- rangeplot[1] + cpositions[3] * width
-  y_stars <- rangeb[2]
-  x_annotate <- seq_len(nrow(toShowExpClean))
-  annot_size_mm <- fontsize * as.numeric(grid::convertX(unit(theme_get()$text$size, "pt"), "mm"))
-  
-  # modified code from here onwards
-  p <- ggplot(toShowExpClean, aes(seq_along(var), exp(estimate))) + 
-    geom_rect(aes(xmin = seq_along(var) - 0.5, 
-      xmax = seq_along(var) + 0.5,
-      ymin = exp(rangeplot[1]), 
-      ymax = exp(rangeplot[2]), 
-      fill = ordered(seq_along(var)%%2 + 1))) + 
-    geom_point(pch = 15, size = 4) + 
-    geom_errorbar(aes(ymin = exp(conf.low), ymax = exp(conf.high)), 
-      width = 0.15) + 
-    geom_hline(yintercept = 1, linetype = 3) + 
-    
-    annotate(geom = "text", x = x_annotate, y = exp(y_variable), 
-      label = toShowExpClean$var, fontface = "bold", hjust = 0, 
-      size = annot_size_mm) + 
-    annotate(geom = "text", x = x_annotate, y = exp(y_nlevel),
-      hjust = 0, label = toShowExpClean$level, 
-      vjust = -0.1, size = annot_size_mm) + 
-    annotate(geom = "text", x = x_annotate, y = exp(y_nlevel), 
-      label = toShowExpClean$N, 
-      fontface = "italic", hjust = 0, 
-      vjust = ifelse(toShowExpClean$level == "", 0.5, 1.1), 
-      size = annot_size_mm) + 
-    annotate(geom = "text", x = x_annotate, y = exp(y_cistring), 
-      label = toShowExpClean$estimate.1, 
-      size = annot_size_mm, 
-      vjust = ifelse(toShowExpClean$estimate.1 == "reference", 0.5, -0.1)) + 
-    annotate(geom = "text", x = x_annotate, y = exp(y_cistring), 
-      label = toShowExpClean$ci, 
-      size = annot_size_mm, vjust = 1.1, fontface = "italic") + 
-    annotate(geom = "text", x = x_annotate, y = exp(y_stars), 
-      label = toShowExpClean$stars, size = annot_size_mm, 
-      hjust = -0.2, fontface = "italic") + 
-    annotate(geom = "text", x = 0.5, y = exp(y_variable), 
-      label = paste0("# Events: ", 
-        gmodel$nevent, "; Global p-value (Log-Rank): ", 
-        format.pval(gmodel$p.value.log, eps = ".001"), " \nAIC: ", 
-        round(gmodel$AIC, 2), "; Concordance Index: ", 
-        round(gmodel$concordance, 2)), 
-      size = annot_size_mm, hjust = 0, vjust = 1.2, 
-      fontface = "italic") +
-    
-    scale_y_log10(labels = sprintf("%g", breaks),
-      expand = c(0.02, 0.02), breaks = breaks) + 
-    scale_fill_manual(values = c("#FFFFFF33", "#00000033"), guide = "none") + 
-    labs(title = main, x = "", y = "") +
-    
-    coord_flip(ylim = exp(rangeplot), 
-      xlim = c(0.5, nrow(toShowExpClean) + 0.5),
-      clip = "off") + 
-    
-    theme_light() + 
-    theme(panel.grid.minor = element_blank(), 
-      panel.grid.major.y = element_blank(), 
-      legend.position = "none", 
-      panel.border = element_blank(), 
-      axis.title.y = element_blank(), 
-      axis.text.y = element_blank(), 
-      axis.ticks.y = element_blank(), 
-      plot.title = element_text(hjust = 0.5))
-  
-  if(arrow){
-    # define arrow positions based on range of coefficient values, &
-    # exact y-axis range after flipping coordinates, taking into account
-    # any expansion due to annotated labels above
-    range.arrow.outer <- exp(min(abs(rangeb)) * c(-1, 1))
-    range.arrow.inner <- exp(min(abs(rangeb)) * c(-1, 1) / 2)
-    arrow.y <- ggplot_build(p)$layout$panel_params[[1]]$y.range[1] - 
-      0.05 * diff(ggplot_build(p)$layout$panel_params[[1]]$y.range)
-    
-    p <- p + 
-      annotate("segment", 
-        x = arrow.y, xend = arrow.y, 
-        y = range.arrow.inner, 
-        yend = range.arrow.outer, 
-        arrow = arrow.specification, color = arrow.colour) +
-      annotate("text",
-        x = arrow.y, y = range.arrow.inner,
-        label = arrow.labels, 
-        hjust = 0.5, vjust = -0.5, size = annot_size_mm,
-        color = arrow.colour) +
-      theme(plot.margin = margin(5.5, 5.5, 20, 5.5, "pt"))
-  }
-  
-  # this part is unchanged
-  gt <- ggplot_gtable(ggplot_build(p))
-  gt$layout$clip[gt$layout$name == "panel"] <- "off"
-  ggpubr::as_ggplot(gt)
-}
+EIF = c("EIF4E", "EIF4G1","EIF4G2", "EIF4A1",
+        "EIF4EBP1", "PABPC1", "MKNK1","MKNK2", 
+        "MTOR", "RPTOR","RPS6KB1", "MYC")
+name(EIF) = c("EIF4E", "EIF4G1","EIF4G2", "EIF4A1",
+              "EIF4EBP1", "PABPC1", "MKNK1","MKNK2", 
+              "MTOR", "RPTOR","RPS6KB1", "MYC")
+lapply(EIF, plot.km.EIF.each.tumor, tumor = "lung adenocarcinoma")
 
-## To be continued Cox model
+## Cox regression model
 plot.coxph.EIF.all.tumors <- function(){
   pan.TCGA.gene <- function(EIF){
   ## get TCGA pancancer RNAseq data ##
@@ -2507,21 +2377,24 @@ plot.coxph.EIF.all.tumors <- function(){
     TCGA.RNAseq.OS.sampletype$primary.disease)
   return(TCGA.RNAseq.OS.sampletype)
 }
-  df <- pan.TCGA.gene(c("EIF4E", "EIF4G1", "EIF4A1","EIF4EBP1",
-                        "PABPC1", "MKNK1","MKNK2", 
+  df <- pan.TCGA.gene(c("EIF4E", "EIF4G1","EIF4G2", "EIF4A1",
+                        "EIF4EBP1","PABPC1", "MKNK1","MKNK2", 
                         "MTOR", "RPTOR","RPS6KB1", "MYC"))
-  # Univariate Cox regression
+  # Univariate Cox regression #
   mv_fit <- coxph(Surv(OS.time, OS) ~ EIF4A1, data = df)
   ggforest(mv_fit)
-  
-  
-  covariates <- c("EIF4E", "EIF4G1", "EIF4A1","EIF4EBP1",
+  forestmodel::forest_model(mv_fit, limits=log( c(.6, 1.8) ) )
+
+  # Multiple Univariate Analyses #
+  covariates <- c("EIF4E", "EIF4G1","EIF4G2", "EIF4A1","EIF4EBP1",
                   "PABPC1", "MKNK1","MKNK2", 
                   "MTOR", "RPTOR","RPS6KB1", "MYC")
   univ_formulas <- sapply(covariates,
     function(x) as.formula(paste('Surv(OS.time, OS)~', x)))
   
   univ_models <- lapply(univ_formulas, function(x){coxph(x, data = df)})
+  summary(univ_models$EIF4E)
+  univ_results <- lapply(univ_models,function(x){return(exp(cbind(coef(x),confint(x))))})
   # Extract data 
   univ_results <- lapply(univ_models,
     function(x){ 
@@ -2543,25 +2416,150 @@ plot.coxph.EIF.all.tumors <- function(){
   res <- t(as.data.frame(univ_results, check.names = FALSE))
   as.data.frame(res)
 
-  lapply(univ_models, ggforest)
-  
-  
-  mv_fit <- coxph(Surv(OS.time, OS) ~ EIF4E + EIF4G1 + EIF4A1 + EIF4EBP1 + PABPC1 + MKNK1 + MKNK2 + MTOR + RPTOR + RPS6KB1 + MYC, data = df)
-  p1 <- ggforest(mv_fit)
-  p2 <- ggforest2(mv_fit, arrow = TRUE, arrow.labels = c("elevated expression lowers risk", "elevated expression increases risk"),
-    arrow.colour = "blue", 
-    arrow.specification = arrow(angle = 20, length = unit(0.1, "inches")))
+  # lapply(univ_models, forest_model)
+  # Use survivalAnalysis package to draw forest plot of multiple univariate #
+  covariate_names <- c(EIF4E = "EIF4E", EIF4G1 = "EIF4G1",
+                       EIF4G2 = "EIF4G2", EIF4A1 = "EIF4A1",
+                       EIF4EBP1 = "EIF4EBP1", PABPC1 = "PABPC1", 
+                       MKNK1 = "MKNK1", MKNK2 = "MKNK2", 
+                       MTOR = "MTOR", RPTOR = "RPTOR",
+                       RPS6KB1 = "RPS6KB1", MYC = "MYC")
+  p <- map(vars(EIF4E, EIF4G1, EIF4G2, EIF4A1,
+                EIF4EBP1, PABPC1, MKNK1, MKNK2, 
+                MTOR, RPTOR, RPS6KB1, MYC), function(by)
+  {
+    analyse_multivariate(df,
+      vars(OS.time, OS),
+      covariates = list(by), # covariates expects a list
+      covariate_name_dict = covariate_names)
+  }) %>%
+    forest_plot(factor_labeller = covariate_names,
+      endpoint_labeller = c(OS.time = "OS"),
+      orderer = ~order(HR),
+      labels_displayed = c("factor"),
+      values_displayed = c("HR", "CI", "p"),
+      value_headers = c(HR = "HR", CI = "95%CI", p = "p", n = "N"),
+      relative_widths = c(0.4, 1.8, 1.2), #more space for the plot, less space for the tables
+      label_headers = c(factor = "Gene"),
+      title = "Univariate Cox proportional-hazards regression analysis",
+      HR_x_breaks = seq(0.7, 1.8, 0.2), 
+      HR_x_limits = c(0.7, 1.8),
+      ggtheme = ggplot2::theme_bw(base_size = 7))
   ggsave(
     path        = "~/Documents/EIF_output/KM", 
-    filename    = "EIFCoxph.pdf", 
+    filename    = "EIFuniCox.pdf", 
+    plot        = p,
+    width       = 4, 
+    height      = 4, 
+    useDingbats = FALSE)
+
+  # Multivariate Cox regression #
+  mv_fit <- coxph(Surv(OS.time, OS) ~ EIF4E + EIF4G1 + EIF4G2 + EIF4A1 + EIF4EBP1 + PABPC1 + MKNK1 + MKNK2 + MTOR + RPTOR + RPS6KB1 + MYC, data = df)
+  #p1 <- ggforest(mv_fit)
+  summary(mv_fit)
+  # forestmodel::forest_model(mv_fit, limits=log( c(.6, 1.8) ) )
+  cox_fit <- survfit(mv_fit)
+  ggplot2::autoplot(cox_fit)
+
+  df %>% 
+  analyse_multivariate(vars(OS.time, OS),
+    covariates = vars(EIF4E, EIF4G1, EIF4G2, EIF4A1, EIF4EBP1, PABPC1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC),
+    covariate_name_dict = covariate_names) -> result
+  p2 <- forest_plot(result,
+    factor_labeller = covariate_names, #label the subgroups.
+    endpoint_labeller = c(OS.time="OS"), #label the endpoint.
+    orderer = ~order(HR), #order by hazard ratio
+    labels_displayed = c("factor"),
+    values_displayed = c("HR", "CI", "p"),
+    value_headers = c(HR = "HR", CI = "95%CI", p = "p"),
+    ggtheme = ggplot2::theme_bw(base_size = 7), #Adjust font size
+    relative_widths = c(0.4, 1.8, 1.2), #more space for the plot, less space for the tables
+    label_headers = c(factor = "Gene", n = "Sample size"),
+    title = "Multivariate Cox proportional-hazards regression analysis",
+    HR_x_breaks = seq(0.6, 1.7, 0.2), 
+    HR_x_limits = c(0.6, 1.7)) #more breaks on the X axis
+  
+  ggsave(
+    path        = "~/Documents/EIF_output/KM", 
+    filename    = "EIFmultiCox.pdf", 
     plot        = p2,
-    width       = 8, 
-    height      = 8, 
+    width       = 4, 
+    height      = 4, 
     useDingbats = FALSE)
   ggcoxdiagnostics(mv_fit, type = "dfbeta",
     linear.predictions = FALSE, ggtheme = theme_bw())
   cz <- cox.zph(mv_fit)
   ggcoxzph(cz)
+  
+  # Aalen’s additive regression model #
+  # provide detailed information about temporal influence of each of the covariates not available in Cox’s model
+  aa_fit <-aareg(Surv(OS.time, OS) ~ EIF4E + EIF4G1 + EIF4G2 + EIF4A1 + EIF4EBP1 + PABPC1 + MKNK1 + MKNK2 + MTOR + RPTOR + RPS6KB1 + MYC, data = df)
+  summary(aa_fit)
+  ggplot2::autoplot(aa_fit)
+  
+  # Lasso with an elastic-net penalty #
+  df1 <- na.omit(df)
+  df1 <- df1[df1$OS.time != 0, ] ## must remove 0 in OS time
+  x <- as.matrix(df1[,1:12])
+  y <- as.double(df1$OS.time)
+  STATUS <- as.double(df1$OS)
+  surv <- Surv(y,STATUS)
+
+  fit.lasso <- glmnet(x, surv, family = "cox", alpha = 1)
+  fit.ridge <- glmnet(x, surv, family = "cox", alpha = 0)
+  fit.elnet <- glmnet(x, surv, family = "cox", alpha = .5)
+  # 10-fold Cross validation for each alpha = 0, 0.1, ... , 0.9, 1.0
+  fit.lasso.cv <- cv.glmnet(x, surv, family = "cox", alpha = 1)
+  fit.ridge.cv <- cv.glmnet(x, surv, family = "cox", alpha = 0)
+  fit.elnet.cv <- cv.glmnet(x, surv, family = "cox", alpha = .5)
+  for (i in 0:10) {
+    assign(paste("fit", i, sep = ""), 
+      cv.glmnet(x, surv, family = "cox", alpha = i/10))
+  }
+  # par(mfrow=c(3,2))
+  # For plotting options, type '?plot.glmnet' in R console
+  pdf(file.path(
+    path        = "~/Documents/EIF_output/KM", 
+    filename    = "EIFlasso.pdf"), 
+    width       = 6, 
+    height      = 6, 
+    useDingbats = FALSE)
+ x <-  plot_glmnet(fit.lasso, main="LASSO (Alpha = 1)")
+  dev.off()
+  plot(fit10, main="Lasso penalty\n\n")
+  
+  plot_glmnet(fit.ridge, main="Ridge")
+  plot(fit0, main="Ridge penalty\n\n")
+  
+  plot_glmnet(fit.elnet, main="Elastic Net")
+  plot(fit5, main="Elastic Net")
+
+  # correlation plot
+  my_data <- df[, c(1:12)]
+  res <- cor(my_data)
+  cor_5 <- rcorr(as.matrix(my_data))
+  M <- cor_5$r
+  p_mat <- cor_5$P
+  pdf(file.path(
+    path        = "~/Documents/EIF_output/KM", 
+    filename    = "EIFcormatrix.pdf"), 
+    width       = 8, 
+    height      = 8, 
+    useDingbats = FALSE)
+  corrplot(
+    res, 
+    method      = "color", 
+    tl.cex      = 1, 
+    number.cex  = 1, 
+    addgrid.col = "gray",
+    addCoef.col = "black", 
+    tl.col      = "black",
+    #type        = "upper", 
+    order       = "FPC", 
+    p.mat       = p_mat, 
+    sig.level   = 0.05, #insig = "blank" 
+    )
+  dev.off()
   }
 plot.coxph.EIF.all.tumors()
 
@@ -2636,7 +2634,7 @@ plot.coxph.EIF.each.tumor <- function(tumor){
   }
   df <- pan.TCGA.gene(c("EIF4E", "EIF4G1", "EIF4A1","EIF4EBP1",
     "PABPC1", "MKNK1","MKNK2", 
-    "MTOR", "RPTOR","RPS6KB1", "MYC"), tumor)
+    "MTOR", "RPTOR","RPS6KB1", "MYC"), "lung adenocarcinoma")
   mv_fit <- coxph(Surv(OS.time, OS) ~ EIF4E + EIF4G1 + EIF4A1 + EIF4EBP1 + PABPC1 + MKNK1 + MKNK2 + MTOR + RPTOR + RPS6KB1 + MYC, data = df)
   p1 <- ggforest(mv_fit)
   ggsave(
@@ -2646,6 +2644,7 @@ plot.coxph.EIF.each.tumor <- function(tumor){
     width       = 8, 
     height      = 8, 
     useDingbats = FALSE)}
+
 plot.coxph.EIF.each.tumor("lung adenocarcinoma")
 
 ####################################
