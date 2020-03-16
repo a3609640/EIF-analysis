@@ -34,14 +34,37 @@ EIF.gene <- c("EIF4E",
               "EIF4EBP1")
 names(EIF.gene) <- EIF.gene
 
-black_bold_tahoma_16 <- element_text(color  = "black",
-                                     face   = "bold",
-                                     family = "Tahoma",
-                                     size   = 16)
-black_bold_tahoma_12 <- element_text(color  = "black",
-                                     face   = "bold",
-                                     family = "Tahoma",
-                                     size   = 12)
+getBlackBoldTahoma16 <- function () {
+  return(element_text(color  = "black",
+                      face   = "bold",
+                      family = "Tahoma",
+                      size   = 16))
+}
+getBlackBoldTahoma12 <- function() {
+  return(element_text(color  = "black",
+                      face   = "bold",
+                      family = "Tahoma",
+                      size   = 12))
+}
+
+getXenaTheme <- function () {
+  return(
+    theme_bw() +
+      theme(
+        plot.title   = getBlackBoldTahoma16(),
+        axis.title   = getBlackBoldTahoma16(),
+        axis.text.x  = getBlackBoldTahoma16(),
+        axis.text.y  = getBlackBoldTahoma16(),
+        axis.line.x  = element_line(color = "black"),
+        axis.line.y  = element_line(color = "black"),
+        panel.grid   = element_blank(),
+        legend.title = getBlackBoldTahoma16(),
+        legend.text  = getBlackBoldTahoma16(),
+        strip.text   = getBlackBoldTahoma16()
+      )
+  )
+}
+
 x <- "Lung"
 
 
@@ -57,6 +80,7 @@ plot.heatmap.total <- function() {
   subset <- as.data.frame(Lung$`_sample_type`)
   row.names(subset) <- row.names(Lung)
   colnames(subset) <- "sample.type"
+
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
@@ -220,49 +244,19 @@ plot.heatmap.total <- function() {
                   showCategory = 8,
                   font.size    = 18,
                   includeAll   = FALSE) +
-          theme_bw() +
-          theme(plot.title   = black_bold_tahoma_16,
-                axis.title   = black_bold_tahoma_16,
-                axis.text.x  = black_bold_tahoma_16,
-                axis.text.y  = black_bold_tahoma_16,
-                axis.line.x  = element_line(color = "black"),
-                axis.line.y  = element_line(color = "black"),
-                panel.grid   = element_blank(),
-                legend.title = black_bold_tahoma_16,
-                legend.text  = black_bold_tahoma_16,
-                strip.text   = black_bold_tahoma_16))
+            getXenaTheme())
     print(dotplot(ck.KEGG,
       title        = "The Most Enriched KEGG Pathways",
       showCategory = 8,
       font.size    = 18,
       includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title   = black_bold_tahoma_16,
-              axis.title   = black_bold_tahoma_16,
-              axis.text.x  = black_bold_tahoma_16,
-              axis.text.y  = black_bold_tahoma_16,
-              axis.line.x  = element_line(color = "black"),
-              axis.line.y  = element_line(color = "black"),
-              panel.grid   = element_blank(),
-              legend.title = black_bold_tahoma_16,
-              legend.text  = black_bold_tahoma_16,
-              strip.text   = black_bold_tahoma_16))
+        getXenaTheme())
     print(dotplot(ck.REACTOME,
       title        = "The Most Enriched REACTOME Pathways",
       showCategory = 8,
       font.size    = 16,
       includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title   = black_bold_tahoma_16,
-              axis.title   = black_bold_tahoma_16,
-              axis.text.x  = black_bold_tahoma_16,
-              axis.text.y  = black_bold_tahoma_16,
-              axis.line.x  = element_line(color = "black"),
-              axis.line.y  = element_line(color = "black"),
-              panel.grid   = element_blank(),
-              legend.title = black_bold_tahoma_16,
-              legend.text  = black_bold_tahoma_16,
-              strip.text   = black_bold_tahoma_16))
+        getXenaTheme())
   }
   plot.cluster.pathway()
 }
@@ -452,49 +446,19 @@ plot.heatmap.GTEX <- function() {
       showCategory = 8,
       font.size    = 18,
       includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title   = black_bold_tahoma_16,
-          axis.title   = black_bold_tahoma_16,
-          axis.text.x  = black_bold_tahoma_16,
-          axis.text.y  = black_bold_tahoma_16,
-          axis.line.x  = element_line(color = "black"),
-          axis.line.y  = element_line(color = "black"),
-          panel.grid   = element_blank(),
-          legend.title = black_bold_tahoma_16,
-          legend.text  = black_bold_tahoma_16,
-          strip.text   = black_bold_tahoma_16))
+        getXenaTheme())
     print(dotplot(ck.KEGG,
       title        = "The Most Enriched KEGG Pathways",
       showCategory = 8,
       font.size    = 18,
       includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title   = black_bold_tahoma_16,
-          axis.title   = black_bold_tahoma_16,
-          axis.text.x  = black_bold_tahoma_16,
-          axis.text.y  = black_bold_tahoma_16,
-          axis.line.x  = element_line(color = "black"),
-          axis.line.y  = element_line(color = "black"),
-          panel.grid   = element_blank(),
-          legend.title = black_bold_tahoma_16,
-          legend.text  = black_bold_tahoma_16,
-          strip.text   = black_bold_tahoma_16))
+        getXenaTheme())
     print(dotplot(ck.REACTOME,
       title        = "The Most Enriched REACTOME Pathways",
       showCategory = 8,
       font.size    = 16,
       includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title   = black_bold_tahoma_16,
-          axis.title   = black_bold_tahoma_16,
-          axis.text.x  = black_bold_tahoma_16,
-          axis.text.y  = black_bold_tahoma_16,
-          axis.line.x  = element_line(color = "black"),
-          axis.line.y  = element_line(color = "black"),
-          panel.grid   = element_blank(),
-          legend.title = black_bold_tahoma_16,
-          legend.text  = black_bold_tahoma_16,
-          strip.text   = black_bold_tahoma_16))
+        getXenaTheme())
   }
   plot.cluster.pathway()
 }
@@ -686,49 +650,19 @@ plot.heatmap.TCGA <- function() {
                   showCategory = 8,
                   font.size    = 18,
                   includeAll   = FALSE) +
-            theme_bw() +
-            theme(plot.title   = black_bold_tahoma_16,
-                  axis.title   = black_bold_tahoma_16,
-                  axis.text.x  = black_bold_tahoma_16,
-                  axis.text.y  = black_bold_tahoma_16,
-                  axis.line.x  = element_line(color = "black"),
-                  axis.line.y  = element_line(color = "black"),
-                  panel.grid   = element_blank(),
-                  legend.title = black_bold_tahoma_16,
-                  legend.text  = black_bold_tahoma_16,
-                  strip.text   = black_bold_tahoma_16))
+            getXenaTheme())
     print(dotplot(ck.KEGG,
                   title        = "The Most Enriched KEGG Pathways",
                   showCategory = 8,
                   font.size    = 18,
                   includeAll   = FALSE) +
-            theme_bw() +
-            theme(plot.title   = black_bold_tahoma_16,
-                  axis.title   = black_bold_tahoma_16,
-                  axis.text.x  = black_bold_tahoma_16,
-                  axis.text.y  = black_bold_tahoma_16,
-                  axis.line.x  = element_line(color = "black"),
-                  axis.line.y  = element_line(color = "black"),
-                  panel.grid   = element_blank(),
-                  legend.title = black_bold_tahoma_16,
-                  legend.text  = black_bold_tahoma_16,
-                  strip.text   = black_bold_tahoma_16))
+            getXenaTheme())
     print(dotplot(ck.REACTOME,
                   title        = "The Most Enriched REACTOME Pathways",
                   showCategory = 8,
                   font.size    = 16,
                   includeAll   = FALSE) +
-            theme_bw() +
-            theme(plot.title   = black_bold_tahoma_16,
-                  axis.title   = black_bold_tahoma_16,
-                  axis.text.x  = black_bold_tahoma_16,
-                  axis.text.y  = black_bold_tahoma_16,
-                  axis.line.x  = element_line(color = "black"),
-                  axis.line.y  = element_line(color = "black"),
-                  panel.grid   = element_blank(),
-                  legend.title = black_bold_tahoma_16,
-                  legend.text  = black_bold_tahoma_16,
-                  strip.text   = black_bold_tahoma_16))
+            getXenaTheme())
   }
   plot.cluster.pathway()
 }
@@ -896,49 +830,19 @@ plot.heatmap.all.TCGA <- function () {
                   showCategory = 8,
                   font.size    = 18,
                   includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title       = black_bold_tahoma_16,
-              axis.title       = black_bold_tahoma_16,
-              axis.text.x      = black_bold_tahoma_16,
-              axis.text.y      = black_bold_tahoma_16,
-              axis.line.x      = element_line(color = "black"),
-              axis.line.y      = element_line(color = "black"),
-              panel.grid       = element_blank(),
-              legend.title     = black_bold_tahoma_16,
-              legend.text      = black_bold_tahoma_16,
-              strip.text       = black_bold_tahoma_16))
+            getXenaTheme())
     print(dotplot(ck.KEGG,
                   title        = "The Most Enriched KEGG Pathways",
                   showCategory = 8,
                   font.size    = 18,
                   includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title       = black_bold_tahoma_16,
-              axis.title       = black_bold_tahoma_16,
-              axis.text.x      = black_bold_tahoma_16,
-              axis.text.y      = black_bold_tahoma_16,
-              axis.line.x      = element_line(color = "black"),
-              axis.line.y      = element_line(color = "black"),
-              panel.grid       = element_blank(),
-              legend.title     = black_bold_tahoma_16,
-              legend.text      = black_bold_tahoma_16,
-              strip.text       = black_bold_tahoma_16))
+            getXenaTheme())
     print(dotplot(ck.REACTOME,
                   title        = "The Most Enriched REACTOME Pathways",
                   showCategory = 8,
                   font.size    = 16,
                   includeAll   = FALSE) +
-        theme_bw() +
-        theme(plot.title       = black_bold_tahoma_16,
-              axis.title       = black_bold_tahoma_16,
-              axis.text.x      = black_bold_tahoma_16,
-              axis.text.y      = black_bold_tahoma_16,
-              axis.line.x      = element_line(color = "black"),
-              axis.line.y      = element_line(color = "black"),
-              panel.grid       = element_blank(),
-              legend.title     = black_bold_tahoma_16,
-              legend.text      = black_bold_tahoma_16,
-              strip.text       = black_bold_tahoma_16))
+            getXenaTheme())
   }
   plot.cluster.pathway()
     }
@@ -1124,49 +1028,19 @@ plot.heatmap.all.GTEx <- function () {
                   showCategory  = 8,
                   font.size     = 18,
                   includeAll    = FALSE) +
-          theme_bw() +
-          theme(plot.title      = black_bold_tahoma_16,
-                axis.title      = black_bold_tahoma_16,
-                axis.text.x     = black_bold_tahoma_16,
-                axis.text.y     = black_bold_tahoma_16,
-                axis.line.x     = element_line(color = "black"),
-                axis.line.y     = element_line(color = "black"),
-                panel.grid      = element_blank(),
-                legend.title    = black_bold_tahoma_16,
-                legend.text     = black_bold_tahoma_16,
-                strip.text      = black_bold_tahoma_16))
+            getXenaTheme())
     print(dotplot(ck.KEGG,
                   title         = "The Most Enriched KEGG Pathways",
                   showCategory  = 8,
                   font.size     = 18,
                   includeAll    = FALSE) +
-          theme_bw() +
-          theme(plot.title      = black_bold_tahoma_16,
-                axis.title      = black_bold_tahoma_16,
-                axis.text.x     = black_bold_tahoma_16,
-                axis.text.y     = black_bold_tahoma_16,
-                axis.line.x     = element_line(color = "black"),
-                axis.line.y     = element_line(color = "black"),
-                panel.grid      = element_blank(),
-                legend.title    = black_bold_tahoma_16,
-                legend.text     = black_bold_tahoma_16,
-                strip.text      = black_bold_tahoma_16))
+            getXenaTheme())
     print(dotplot(ck.REACTOME,
                   title         = "The Most Enriched REACTOME Pathways",
                   showCategory  = 8,
                   font.size     = 16,
                   includeAll    = FALSE) +
-          theme_bw() +
-          theme(plot.title      = black_bold_tahoma_16,
-                axis.title      = black_bold_tahoma_16,
-                axis.text.x     = black_bold_tahoma_16,
-                axis.text.y     = black_bold_tahoma_16,
-                axis.line.x     = element_line(color = "black"),
-                axis.line.y     = element_line(color = "black"),
-                panel.grid      = element_blank(),
-                legend.title    = black_bold_tahoma_16,
-                legend.text     = black_bold_tahoma_16,
-                strip.text      = black_bold_tahoma_16))
+            getXenaTheme())
   }
   plot.cluster.pathway()
 }
@@ -1371,48 +1245,48 @@ plot.heatmap.lung <- function(x) {
                   font.size    = 18,
                   includeAll   = FALSE) +
           theme_bw() +
-          theme(plot.title   = black_bold_tahoma_16,
-                axis.title   = black_bold_tahoma_16,
-                axis.text.x  = black_bold_tahoma_16,
-                axis.text.y  = black_bold_tahoma_16,
+          theme(plot.title   = getBlackBoldTahoma16(),
+                axis.title   = getBlackBoldTahoma16(),
+                axis.text.x  = getBlackBoldTahoma16(),
+                axis.text.y  = getBlackBoldTahoma16(),
                 axis.line.x  = element_line(color = "black"),
                 axis.line.y  = element_line(color = "black"),
                 panel.grid   = element_blank(),
-                legend.title = black_bold_tahoma_16,
-                legend.text  = black_bold_tahoma_16,
-                strip.text   = black_bold_tahoma_16))
+                legend.title = getBlackBoldTahoma16(),
+                legend.text  = getBlackBoldTahoma16(),
+                strip.text   = getBlackBoldTahoma16()))
     print(dotplot(ck.KEGG,
           title        = "The Most Enriched KEGG Pathways",
           showCategory = 8,
           font.size    = 18,
           includeAll   = FALSE) +
           theme_bw() +
-          theme(plot.title   = black_bold_tahoma_16,
-                axis.title   = black_bold_tahoma_16,
-                axis.text.x  = black_bold_tahoma_16,
-                axis.text.y  = black_bold_tahoma_16,
+          theme(plot.title   = getBlackBoldTahoma16(),
+                axis.title   = getBlackBoldTahoma16(),
+                axis.text.x  = getBlackBoldTahoma16(),
+                axis.text.y  = getBlackBoldTahoma16(),
                 axis.line.x  = element_line(color = "black"),
                 axis.line.y  = element_line(color = "black"),
                 panel.grid   = element_blank(),
-                legend.title = black_bold_tahoma_16,
-                legend.text  = black_bold_tahoma_16,
-                strip.text   = black_bold_tahoma_16))
+                legend.title = getBlackBoldTahoma16(),
+                legend.text  = getBlackBoldTahoma16(),
+                strip.text   = getBlackBoldTahoma16()))
     print(dotplot(ck.REACTOME,
                   title        = "The Most Enriched REACTOME Pathways",
                   showCategory = 8,
                   font.size    = 16,
                   includeAll   = FALSE) +
           theme_bw() +
-          theme(plot.title   = black_bold_tahoma_16,
-                axis.title   = black_bold_tahoma_16,
-                axis.text.x  = black_bold_tahoma_16,
-                axis.text.y  = black_bold_tahoma_16,
+          theme(plot.title   = getBlackBoldTahoma16(),
+                axis.title   = getBlackBoldTahoma16(),
+                axis.text.x  = getBlackBoldTahoma16(),
+                axis.text.y  = getBlackBoldTahoma16(),
                 axis.line.x  = element_line(color = "black"),
                 axis.line.y  = element_line(color = "black"),
                 panel.grid   = element_blank(),
-                legend.title = black_bold_tahoma_16,
-                legend.text  = black_bold_tahoma_16,
-                strip.text   = black_bold_tahoma_16))
+                legend.title = getBlackBoldTahoma16(),
+                legend.text  = getBlackBoldTahoma16(),
+                strip.text   = getBlackBoldTahoma16()))
     }
   plot.cluster.pathway()
 
@@ -1835,12 +1709,6 @@ plot.cor.scatter <- function(x){
   levels(TCGA.sampletype.all$`_primary_disease`)
   plotdata <- TCGA.sampletype.all %>% select(x,
     c("EIF4E", "EIF4G1", "EIF4A1"), "sample_type")
-  black_bold_tahoma_16 <- element_text(
-                                       color  = "black",
-                                       face   = "bold",
-                                       family = "Tahoma",
-                                       size   = 16
-                                      )
   p1 <- ggscatter(data = plotdata,
                   x          = x,
                   y          = c("EIF4E", "EIF4G1", "EIF4A1"),
@@ -1865,17 +1733,17 @@ plot.cor.scatter <- function(x){
                                             size        = 6)) +
                   theme_bw() +
                   theme(
-                    plot.title      = black_bold_tahoma_16,
-                    axis.title      = black_bold_tahoma_16,
-                    axis.text.x     = black_bold_tahoma_16,
-                    axis.text.y     = black_bold_tahoma_16,
+                    plot.title      = getBlackBoldTahoma16(),
+                    axis.title      = getBlackBoldTahoma16(),
+                    axis.text.x     = getBlackBoldTahoma16(),
+                    axis.text.y     = getBlackBoldTahoma16(),
                     axis.line.x     = element_line(color = "black"),
                     axis.line.y     = element_line(color = "black"),
                     panel.grid      = element_blank(),
                     legend.position = c(0.18, 0.9),
                     legend.title    = element_blank(),
-                    legend.text     = black_bold_tahoma_16,
-                    strip.text      = black_bold_tahoma_16
+                    legend.text     = getBlackBoldTahoma16(),
+                    strip.text      = getBlackBoldTahoma16()
                   )
   print(p1)
       }
@@ -1953,17 +1821,17 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function () {
     coord_flip() +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
-      axis.text.x     = black_bold_tahoma_12,
-      axis.text.y     = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
+      axis.text.x     = getBlackBoldTahoma12(),
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.title    = element_blank(),
-      legend.text     = black_bold_tahoma_12,
+      legend.text     = getBlackBoldTahoma12(),
       legend.position = "top",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     )
   print(p1)
 
@@ -2058,17 +1926,17 @@ plot.boxgraph.EIF.ratio.TCGA <- function () {
     coord_flip() +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
-      axis.text.x     = black_bold_tahoma_12,
-      axis.text.y     = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
+      axis.text.x     = getBlackBoldTahoma12(),
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.title    = element_blank(),
       legend.position = "top",
-      legend.text     = black_bold_tahoma_12,
-      strip.text      = black_bold_tahoma_12
+      legend.text     = getBlackBoldTahoma12(),
+      strip.text      = getBlackBoldTahoma12()
     )
   print(p1)
   }
@@ -2421,12 +2289,6 @@ plot.EIF.correlation <- function(x, y){
   EIF.TCGA.GTEX <- droplevels(EIF.TCGA.GTEX)
   EIF.TCGA <- EIF.TCGA.GTEX[EIF.TCGA.GTEX$study == 'TCGA', ]
   cor.test(EIF.TCGA.GTEX$EIF4A1, EIF.TCGA.GTEX$MYC, method = "pearson")
-  black_bold_tahoma_16 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 16
-  )
   p1 <- ggscatter(EIF.TCGA.GTEX,
             x        = x,
             y        = y,
@@ -2438,15 +2300,15 @@ plot.EIF.correlation <- function(x, y){
             conf.int = TRUE) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_16,
-      axis.title      = black_bold_tahoma_16,
-      axis.text.x     = black_bold_tahoma_16,
-      axis.text.y     = black_bold_tahoma_16,
+      plot.title      = getBlackBoldTahoma16(),
+      axis.title      = getBlackBoldTahoma16(),
+      axis.text.x     = getBlackBoldTahoma16(),
+      axis.text.y     = getBlackBoldTahoma16(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_16
+      strip.text      = getBlackBoldTahoma16()
     ) +
     stat_cor(#aes(color   = "sample_type"),
                  method  = "pearson",
@@ -2462,15 +2324,15 @@ plot.EIF.correlation <- function(x, y){
             conf.int = TRUE) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_16,
-      axis.title      = black_bold_tahoma_16,
-      axis.text.x     = black_bold_tahoma_16,
-      axis.text.y     = black_bold_tahoma_16,
+      plot.title      = getBlackBoldTahoma16(),
+      axis.title      = getBlackBoldTahoma16(),
+      axis.text.x     = getBlackBoldTahoma16(),
+      axis.text.y     = getBlackBoldTahoma16(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_16
+      strip.text      = getBlackBoldTahoma16()
     ) +
     # discrete_scale("fill", "manual", palette_Dark2)+
     stat_cor(#aes(color   = "primary_disease_or_tissue"),
@@ -2483,12 +2345,6 @@ plot.EIF.correlation <- function(x, y){
 ##
 plotEIF.RNAseq.TCGA.GTEX <- function (x) {
   name <- deparse(substitute(x))
-  black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 9
-  )
   black_bold_tahoma_12_45 <- element_text(
     color  = "black",
     face   = "bold",
@@ -2519,15 +2375,15 @@ plotEIF.RNAseq.TCGA.GTEX <- function (x) {
          y = paste("log2(TPM)")) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
       axis.text.x     = black_bold_tahoma_12_45,
-      axis.text.y     = black_bold_tahoma_12,
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     )
   p1 <- p1 +  stat_compare_means(
     comparisons = list(
@@ -2557,15 +2413,15 @@ plotEIF.RNAseq.TCGA.GTEX <- function (x) {
          y = paste("log2(value)")) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
       axis.text.x     = black_bold_tahoma_12_45,
-      axis.text.y     = black_bold_tahoma_12,
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     )
   p2 <- p2 + stat_compare_means(
     comparisons = list(
@@ -2612,11 +2468,6 @@ plotEIF.RNAseq.TCGA.GTEX.tissue <- function (tissue) {
   }
   x <- get.EIF.TCGA.GTEX.RNAseq.tissue (tissue)
   name <- deparse(substitute(x))
-  black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    size   = 9
-  )
   black_bold_tahoma_12_45 <- element_text(
     color  = "black",
     face   = "bold",
@@ -2645,15 +2496,15 @@ plotEIF.RNAseq.TCGA.GTEX.tissue <- function (tissue) {
     ylim(7, 20)+
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
       axis.text.x     = black_bold_tahoma_12_45,
-      axis.text.y     = black_bold_tahoma_12,
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     )
   p1 <- p1 +  stat_compare_means(
     comparisons = list(
@@ -2683,15 +2534,15 @@ plotEIF.RNAseq.TCGA.GTEX.tissue <- function (tissue) {
          y = paste("log2(value)")) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
       axis.text.x     = black_bold_tahoma_12_45,
-      axis.text.y     = black_bold_tahoma_12,
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     )
   p2 <- p2 + stat_compare_means(
     comparisons = list(
@@ -2711,12 +2562,6 @@ plot.box.EIF.RNAseq.TCGA <- function (x) {
   x <- x[x$value != 0, ]
   # name <- deparse(substitute(x))
   # y <- x[x$variable == "EIF4E", ]
-  black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 12
-  )
   black_bold_tahoma_12_45 <- element_text(
     color  = "black",
     face   = "bold",
@@ -2751,17 +2596,17 @@ plot.box.EIF.RNAseq.TCGA <- function (x) {
     coord_flip() +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
-      axis.text.x     = black_bold_tahoma_12,
-      axis.text.y     = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
+      axis.text.x     = getBlackBoldTahoma12(),
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.title    = element_blank(),
-      legend.text     = black_bold_tahoma_12,
+      legend.text     = getBlackBoldTahoma12(),
       legend.position = "top",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     )
   print(p1)
 
@@ -2781,18 +2626,6 @@ plotEIF.RNAseq.TCGA <- function (x) {
   x <- droplevels(x)
   x$sample.type <- factor(x$sample.type, levels = tumor.type)
   #y <- x[x$variable == "EIF4E", ]
-  black_bold_tahoma_12 <- element_text(
-                                       color  = "black",
-                                       face   = "bold",
-                                       family = "Tahoma",
-                                       size   = 12
-                                       )
-  black_bold_tahoma_16 <- element_text(
-                                       color  = "black",
-                                       face   = "bold",
-                                       family = "Tahoma",
-                                       size   = 16
-                                       )
   black_bold_tahoma_16_90 <- element_text(
                                           color  = "black",
                                           face   = "bold",
@@ -2827,16 +2660,16 @@ plotEIF.RNAseq.TCGA <- function (x) {
     ) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_16,
+      plot.title      = getBlackBoldTahoma16(),
       axis.title.x    = element_blank(),
-      axis.title.y    = black_bold_tahoma_16,
+      axis.title.y    = getBlackBoldTahoma16(),
       axis.text.x     = black_bold_tahoma_16_90,
       axis.text.y     = black_bold_tahoma_16_90,
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_16
+      strip.text      = getBlackBoldTahoma16()
     ) +
     stat_compare_means(
       comparisons = list(
@@ -2867,15 +2700,15 @@ plotEIF.RNAseq.TCGA <- function (x) {
          y = paste("log2(RNA counts)")) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_16,
-      axis.title      = black_bold_tahoma_16,
+      plot.title      = getBlackBoldTahoma16(),
+      axis.title      = getBlackBoldTahoma16(),
       axis.text.x     = black_bold_tahoma_16_90,
       axis.text.y     = black_bold_tahoma_16_90,
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_16
+      strip.text      = getBlackBoldTahoma16()
     ) +
     stat_compare_means(comparisons = list(
       c("EIF4A1", "EIF4E"),
@@ -2895,12 +2728,6 @@ plot.box.EIF.score.TCGA <- function (x) {
   ratio <- c("EIF4A1:EIF4E", "EIF4G1:EIF4E", "EIF4EBP1:EIF4E")
   x <- x[x$variable %in% ratio, ]
   # y <- x[x$variable == "EIF4E", ]
-  black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 12
-  )
   black_bold_tahoma_12_45 <- element_text(
     color  = "black",
     face   = "bold",
@@ -2935,17 +2762,17 @@ plot.box.EIF.score.TCGA <- function (x) {
     coord_flip() +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
-      axis.text.x     = black_bold_tahoma_12,
-      axis.text.y     = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
+      axis.text.x     = getBlackBoldTahoma12(),
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.title    = element_blank(),
       legend.position = "top",
-      legend.text     = black_bold_tahoma_12,
-      strip.text      = black_bold_tahoma_12
+      legend.text     = getBlackBoldTahoma12(),
+      strip.text      = getBlackBoldTahoma12()
     )
   print(p1)
 
@@ -2957,18 +2784,6 @@ plotEIF.score.TCGA <- function (x) {
   name <- deparse(substitute(x))
   ratio <- c("EIF4A1:EIF4E", "EIF4G1:EIF4E", "EIF4EBP1:EIF4E", "EIF4G1:EIF4EBP1")
   x <- x[x$variable %in% ratio, ]
-  black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 12
-  )
-  black_bold_tahoma_16 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 16
-  )
   black_bold_tahoma_16_90 <- element_text(
     color  = "black",
     face   = "bold",
@@ -3004,16 +2819,16 @@ plotEIF.score.TCGA <- function (x) {
     geom_hline(yintercept = 0, linetype = "dashed") +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_16,
+      plot.title      = getBlackBoldTahoma16(),
       axis.title.x    = element_blank(),
-      axis.title.y    = black_bold_tahoma_16,
+      axis.title.y    = getBlackBoldTahoma16(),
       axis.text.x     = black_bold_tahoma_16_90,
       axis.text.y     = black_bold_tahoma_16_90,
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     ) +
     stat_compare_means(comparisons = list(
       c("Metastatic", "Solid Tissue Normal"),
@@ -3043,15 +2858,15 @@ plotEIF.score.TCGA <- function (x) {
     geom_hline(yintercept = 0, linetype = "dashed") +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_16,
-      axis.title      = black_bold_tahoma_16,
+      plot.title      = getBlackBoldTahoma16(),
+      axis.title      = getBlackBoldTahoma16(),
       axis.text.x     = black_bold_tahoma_16_90,
       axis.text.y     = black_bold_tahoma_16_90,
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     ) +
     stat_compare_means(comparisons = list(
       c("EIF4A1:EIF4E",
@@ -3142,11 +2957,6 @@ plotEIF.score.TCGA.GTEX.tissue <- function (tissue) {
     nrow(x[x$sample.type == "Solid Tissue Normal", ])/gene.number
   normal.tissue.number <-
     nrow(x[x$sample.type == "Normal Tissue", ])/gene.number
-  black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    size   = 12
-  )
   black_bold_tahoma_12_45 <- element_text(
     color  = "black",
     face   = "bold",
@@ -3187,15 +2997,15 @@ plotEIF.score.TCGA.GTEX.tissue <- function (tissue) {
     ) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
       axis.text.x     = black_bold_tahoma_12_45,
-      axis.text.y     = black_bold_tahoma_12,
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     ) +
     stat_compare_means(comparisons = list(
       c("Metastatic", "Normal Tissue"),
@@ -3225,15 +3035,15 @@ plotEIF.score.TCGA.GTEX.tissue <- function (tissue) {
     geom_hline(yintercept = 0, linetype = "dashed") +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
       axis.text.x     = black_bold_tahoma_12_45,
-      axis.text.y     = black_bold_tahoma_12,
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     ) +
     stat_compare_means(comparisons = list(
       c("EIF4A1:EIF4E ratio",
@@ -3259,12 +3069,6 @@ plotEIF.GTEX <- function (x) {
     nrow(x[x$sample.type == "Cell Line", ])/gene.number
   normal.tissue.number <-
     nrow(x[x$sample.type == "Normal Tissue", ])/gene.number
-  black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 12
-  )
   black_bold_tahoma_12_45 <- element_text(
     color  = "black",
     face   = "bold",
@@ -3298,15 +3102,15 @@ plotEIF.GTEX <- function (x) {
     )) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
       axis.text.x     = black_bold_tahoma_12_45,
-      axis.text.y     = black_bold_tahoma_12,
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     ) +
     stat_compare_means(method = "anova")
 }
@@ -3324,12 +3128,6 @@ plot.EIF.seq.each.tumor <- function(x, y) {
   m <- x[x$primary.disease == y, ]
   name <- deparse(substitute(m))
   y <- m[m$variable == "EIF4E", ]
-  black_bold_tahoma_12 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 12
-  )
   black_bold_tahoma_12_45 <- element_text(
     color  = "black",
     face   = "bold",
@@ -3358,15 +3156,15 @@ plot.EIF.seq.each.tumor <- function(x, y) {
          y = paste("log2(RNA counts)")) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
-      axis.title      = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
+      axis.title      = getBlackBoldTahoma12(),
       axis.text.x     = black_bold_tahoma_12_45,
-      axis.text.y     = black_bold_tahoma_12,
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     ) +
     scale_x_discrete(limit = c("Primary Tumor", "Solid Tissue Normal"),
       labels = c("Tumor","Normal")) +
@@ -3394,15 +3192,15 @@ plot.EIF.seq.each.tumor <- function(x, y) {
          y = paste("log2(RNA counts)")) +
     theme_bw() +
     theme(
-      plot.title      = black_bold_tahoma_12,
+      plot.title      = getBlackBoldTahoma12(),
       axis.title      = element_blank(),
       axis.text.x     = black_bold_tahoma_12_45,
-      axis.text.y     = black_bold_tahoma_12,
+      axis.text.y     = getBlackBoldTahoma12(),
       axis.line.x     = element_line(color = "black"),
       axis.line.y     = element_line(color = "black"),
       panel.grid      = element_blank(),
       legend.position = "none",
-      strip.text      = black_bold_tahoma_12
+      strip.text      = getBlackBoldTahoma12()
     ) +
     stat_compare_means(comparisons = list(
       c("EIF4A1", "EIF4E"),
