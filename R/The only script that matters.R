@@ -3430,7 +3430,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function (EIF.list, tissue) {
 plot.EIF.TCGA.GTEX.PCA.each.tumor(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1", 
                                     "PABPC1","MKNK1","MKNK2","MYC"), 
                                   "Pancreas")
-
+# stop here
 plot.EIF.TCGA.PCA.all.tumor <- function (EIF.list) {
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
@@ -3442,7 +3442,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function (EIF.list) {
     row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
     TCGA.GTEX.anno$sample <- NULL
     Sample.ID <- row.names(TCGA.GTEX.anno)
-    TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno) # otherwise lose rownames in the next step, use drop = FALSE to keep the row names 
+    TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno, drop = FALSE) # otherwise lose rownames in the next step, use drop = FALSE to keep the row names 
     subset <- TCGA.GTEX.anno[ ,c("_sample_type", "primary disease or tissue"), 
                               drop = FALSE]
     row.names(subset) <- row.names(TCGA.GTEX.anno)
@@ -3451,12 +3451,13 @@ plot.EIF.TCGA.PCA.all.tumor <- function (EIF.list) {
     TCGA.GTEX <- fread(
       "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
       data.table = FALSE) # data.table = FALSE gives data.frame
-    TCGA.GTEX <- tibble::as_data_frame(TCGA.GTEX)
+    TCGA.GTEX <- as.data.frame(TCGA.GTEX, drop = FALSE)
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
                            !duplicated(colnames(TCGA.GTEX))]
     row.names(TCGA.GTEX) <- TCGA.GTEX$sample
+    TCGA.GTEX <- as.data.frame(TCGA.GTEX, drop = FALSE)
     TCGA.GTEX$sample <- NULL
-    TCGA.GTEX <- TCGA.GTEX[,colnames(TCGA.GTEX) %in% Sample.ID]
+    TCGA.GTEX <- TCGA.GTEX[ ,colnames(TCGA.GTEX) %in% Sample.ID]
     TCGA.GTEX.t <- data.table::transpose(TCGA.GTEX)
     rownames(TCGA.GTEX.t) <- colnames(TCGA.GTEX)
     colnames(TCGA.GTEX.t) <- rownames(TCGA.GTEX)
@@ -3465,11 +3466,10 @@ plot.EIF.TCGA.PCA.all.tumor <- function (EIF.list) {
                                   subset,
                                   by    = "row.names",
                                   all.x = TRUE)
-    # check the name of the last column
-    # colnames(TCGA.GTEX.Lung.sampletype)[ncol(TCGA.GTEX.Lung.sampletype)] 
+
     TCGA.GTEX.sampletype <- na.omit(TCGA.GTEX.sampletype)
-    TCGA.GTEX.sampletype <- as.data.frame(TCGA.GTEX.sampletype)
     row.names(TCGA.GTEX.sampletype) <- TCGA.GTEX.sampletype$Row.names
+    TCGA.GTEX.sampletype <- as.data.frame(TCGA.GTEX.sampletype)
     TCGA.GTEX.sampletype$Row.names <- NULL
     return(TCGA.GTEX.sampletype)
   }
@@ -3477,10 +3477,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function (EIF.list) {
   
   get.EIF.TCGA.GTEX <- function(EIF.list) {
     # EIF.list <- c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1","PABPC1","MKNK1","MKNK2", "MYC")
-    EIF.TCGA.RNAseq.anno.subset <- TCGA.GTEX.sampletype[ ,c(EIF.list, 
-                                                            "sample.type",
-                                                            "primary.site"),
-                                                         drop = FALSE]
+    EIF.TCGA.RNAseq.anno.subset <- TCGA.GTEX.sampletype[ ,c(EIF.list, "sample.type","primary.site"), drop = FALSE]
     EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[
       !EIF.TCGA.RNAseq.anno.subset$EIF4E == 0, ]
     #EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[
