@@ -55,8 +55,10 @@ System 2 288.0   296.4   314.6   312.9   324.9   348.0
 ```
 
 ## DATASETS
-Please download all datasets from the following weblinks and store them at
+Please download all datasets from the following weblinks and store them at the following directory. The script will read all datasets from there.
+```
 ~/Download/
+```
 This project makes use of the following data files that must be fetched from remote sources:
 
 ### Xena DATA
@@ -139,10 +141,16 @@ Please generate the output directory.
 mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,KM,Cox,Heatmap,CPTAC}
 ```
 
-## Run the script.
+## INSTRUCTIONS
 1. Install R (3.6) and RStudio at the recommended Systems.
-2. Download all datasets from the listed web links above and store them under folder ~/Download/
+2. Download all datasets from the listed web links above and store them under the following directory.
+```
+~/Download/
+```
 3. Install all the R packages listed above.
-4. Create an output folder ~/Documents/EIF_output/{CNV,Expression,PCA,KM,Cox,Heatmap,CPTAC}
+4. Create output directories
+```
+~/Documents/EIF_output/{CNV,Expression,PCA,KM,Cox,Heatmap,CPTAC}
+```
 5. Open the EIFanalysis.R file, and run it with the source button.
-6. The EIFanalysis.R will produce all the figures from the EIF manuscript.
+6. The EIFanalysis.R will produce all the figures from the EIF manuscript and store them in the output folders.
