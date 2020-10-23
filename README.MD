@@ -72,13 +72,10 @@ https://xenabrowser.net/datapages/?dataset=Survival_SupplementalTable_S1_2017102
 ### CPTAC DATA
 #### CPTAC LUAD Proteomics
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_Proteome_CDAP_Protein_Report.r1/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv
-
 #### CPTAC LUAD Phosproteomics
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_Phosphoproteome_CDAP_Protein_Report.r1/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv
-
 #### CPTAC LUAD Sample Annotation
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_metadata/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx
-
 #### CPTAC Clinical Data
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_metadata/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx
 
@@ -86,7 +83,7 @@ https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/C
 ## LIBRARIES
 Note that libraries are listed for convenience in "libraries.R".
 The following command may be a useful way to install them all:
-
+```
 BiocManager::install(c("clusterProfiler",
                        "circlize",
                        "ComplexHeatmap",
@@ -133,13 +130,14 @@ BiocManager::install(c("clusterProfiler",
                        "vcd",
                        "vip"
 ), update = TRUE, ask = FALSE)
+```
 
-
-## Output folder
-The script will save all the generated plots into the output folder.
-Please generate the output directory
+## OUTPUT
+The script will save all the generated plots into the following output folder.
+Please generate the output directory.
+```
 mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,KM,Cox,Heatmap,CPTAC}
-
+```
 
 ## Run the script.
 1. Install R (3.6) and RStudio at the recommended Systems.
