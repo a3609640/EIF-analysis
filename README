@@ -1,10 +1,3 @@
----
-output:
-  html_document:
-    toc: yes
----
-
-
 # Using this Package
 
 ## System Requirements
