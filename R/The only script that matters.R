@@ -3860,7 +3860,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function(){
   CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
   
   CPTAC.LUAD.Proteomics <- fread(
-    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv",data.table = FALSE))
+    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),data.table = FALSE)
   EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[CPTAC.LUAD.Proteomics$Gene %in% c("EIF4E", "EIF4G1", "EIF4A1","PABPC1", "MKNK1","MKNK2", "MYC","EIF4EBP1"), ]
   row.names(EIF.CPTAC.LUAD.Proteomics) <- EIF.CPTAC.LUAD.Proteomics$Gene
   EIF.CPTAC.LUAD.Proteomics <- select(EIF.CPTAC.LUAD.Proteomics, -contains("Unshared"))
