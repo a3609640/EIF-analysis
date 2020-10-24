@@ -52,16 +52,7 @@ library(vcd)
 library(vip)
 
 
-#### Preparation ####
-get.EIF.gene <- function () {
-  EIF.gene <- c("EIF4E",
-              "EIF4G1",
-              "EIF4A1",
-              "EIF4EBP1")
-  names(EIF.gene) <- EIF.gene
-  }
-EIF.gene <- get.EIF.gene
-
+#### Format Preparation ####
 black_bold_tahoma_7 <- element_text(color = "black",
                                     face  = "bold",
                                     size  = 7)
@@ -94,21 +85,13 @@ black_bold_16_90 <- element_text(color = "black",
 black_bold_18 <- element_text(color = "black",
                               face  = "bold",
                               size  = 18)
-
 color <- function(){
   n <- 32
   qual_col_pals <- brewer.pal.info[brewer.pal.info$category == 'qual',]
-  col_vector <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))}
+  col_vector <- unlist(mapply(brewer.pal, 
+                              qual_col_pals$maxcolors, 
+                              rownames(qual_col_pals)))}
 col_vector <- color()
-
-create.folders <- function() {
-  mainDir <- "~/Documents/EIF_output/"
-  subfolder_names <- c("Expression","CNV","PCA","KM","Cox","Heatmap") 
-  for (j in 1:length(subfolder_names)){
-    folder<-dir.create(paste0(mainDir,subfolder_names[j]),
-                       showWarnings = FALSE)}
-}
-create.folders()
 ##############################################
 
 ## Figure 1 ##
@@ -4685,36 +4668,6 @@ plot.coxph.EIF.each.tumor <- function(tumor){
       c("P Value", data$p),
       c("P Value for\nInteraction", data$pinteraction))
     
-    p <- forestplot(
-      labeltext  = tabletext1, 
-      graph.pos  = 3, graphwidth = unit(6, "cm"),
-      hrzl_lines =list(
-        "1" = gpar(lwd=1, col="black"),
-        "2" = gpar(lwd=1, col="black")),
-      mean  = c(NA,data$HR), 
-      lower = c(NA,data$Lower_CI), 
-      upper = c(NA,data$Upper_CI),
-      title = "Univariate Cox proportional-hazards regression analysis (lung adenocarcinoma)",
-      xlab  = "<---Good prognosis---    ---Poor prognosis--->",
-      txt_gp = fpTxtGp(label = gpar(cex = 1.2),
-                       ticks = gpar(cex = 1.2),
-                       xlab  = gpar(cex = 1.2),
-                       title = gpar(cex = 1.2)),
-      col    = fpColors(box = "black", lines = "black"),
-      xticks = c(0.5,0.9,1.3,1.7,2.1), 
-      #xlog = 0,
-      clip   = c(0.5, 2.1),# range of x axis
-      zero   = 1, 
-      cex    = 1.2, 
-      lineheight = "auto", #height of the graph
-      boxsize    = 0.2, 
-      colgap     = unit(3,"mm"), #the gap between column
-      lwd.ci = 2, 
-      ci.vertices = FALSE,
-      ci.vertices.height = 0.02,
-      new_page = getOption("forestplot_new_page", FALSE))
-    print(p)
-    
     pdf(file    = paste0("~/Documents/EIF_output/Cox/", 
                          tumor, 
                          "EIFuniCox.pdf"),
@@ -4782,39 +4735,6 @@ plot.coxph.EIF.each.tumor <- function(tumor){
       c("Hazard Ratio\n(95% CI)", data$HRCI),
       c("P Value", data$p),
       c("P Value for\nInteraction", data$pinteraction))
-    
-    p <- forestplot(
-      labeltext  =tabletext1, 
-      graph.pos  = 3, graphwidth = unit(6, "cm"),
-      hrzl_lines =list(
-        "1" = gpar(lwd=1, col="black"),
-        "2" = gpar(lwd=1, col="black")),
-      #  "3.75" = gpar(lwd=60, lineend="butt", columns=c(2:6), col="#99999922")),
-      #  "3" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
-      #  "7" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
-      #  "9" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922")),
-      mean  = c(NA,data$HR), 
-      lower = c(NA,data$Lower_CI), 
-      upper = c(NA,data$Upper_CI),
-      title = "Multivariate Cox proportional-hazards regression analysis (lung adenocarcinoma)",
-      xlab  = "<---Good prognosis---    ---Poor prognosis--->",
-      txt_gp = fpTxtGp(label=gpar(cex=1.2),
-                       ticks  = gpar(cex = 1.2),
-                       xlab   = gpar(cex = 1.2),
-                       title  = gpar(cex = 1.2)),
-      col    = fpColors(box = "black", lines = "black"),
-      xticks = c(0.5,0.8,1.1,1.4,1.7,2,2.3,2.6),
-      clip   = c(0.5, 2.6),# range of x axis
-      zero   = 1, 
-      cex    = 1.2, 
-      lineheight = "auto", #height of the graph
-      boxsize    = 0.2, 
-      colgap     = unit(3,"mm"), #the gap between column
-      lwd.ci = 2, 
-      ci.vertices = FALSE,
-      ci.vertices.height = 0.02,
-      new_page = getOption("forestplot_new_page", FALSE))
-    print(p)
     
     pdf(
       file   = paste0("~/Documents/EIF_output/Cox/", 
@@ -5189,10 +5109,10 @@ plot.Venn.lung <- function(x) {
     Lung.ID <- as.vector(Lung$sample)
     Lung.ID <- na.omit(Lung.ID) # NA in the vector
     TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)
-    #   TCGA.GTEX.Lung1 <- as.data.frame(TCGA.GTEX.Lung)
     TCGA.GTEX.Lung <- TCGA.GTEX.Lung[!duplicated(TCGA.GTEX.Lung$sample), 
                                      !duplicated(colnames(TCGA.GTEX.Lung))]
     row.names(TCGA.GTEX.Lung) <- TCGA.GTEX.Lung$sample
+    TCGA.GTEX.Lung <- as.data.frame(TCGA.GTEX.Lung)
     TCGA.GTEX.Lung$sample <- NULL
     TCGA.GTEX.Lung.t <- data.table::transpose(TCGA.GTEX.Lung)
     rownames(TCGA.GTEX.Lung.t) <- colnames(TCGA.GTEX.Lung)
@@ -5201,6 +5121,7 @@ plot.Venn.lung <- function(x) {
     Lung <- Lung[!duplicated(Lung$sample), ]
     Lung <- na.omit(Lung)
     row.names(Lung) <- Lung$sample
+    Lung <- as.data.frame(Lung)
     Lung$sample <- NULL
     TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.Lung.t,
                                        Lung,
@@ -5214,10 +5135,6 @@ plot.Venn.lung <- function(x) {
   TCGA.GTEX.sampletype.lung$Row.names <- NULL
   TCGA.GTEX.sampletype.lung$`_sample_type` <- as.factor(
     TCGA.GTEX.sampletype.lung$`_sample_type`)
-  # remove Solid Tissue Normal data
-  #TCGA.GTEX.sampletype.lung <- TCGA.GTEX.sampletype.lung[
-  #  !(TCGA.GTEX.sampletype.lung$`_sample_type` %in% "Solid Tissue Normal"), ]
-  
   geneID <- colnames(Sampletype[Sampletype$`_primary_site` == x,])
   TCGA.GTEX.lung <- TCGA.GTEX.sampletype.lung[ ,
                                                !names(TCGA.GTEX.sampletype.lung) %in% geneID]
@@ -5256,44 +5173,6 @@ plot.Venn.lung <- function(x) {
     EIF4EBP1.cor <- EIF.cor.list("EIF4EBP1")
     
     plot.pos.Venn <- function(y){
-      c3 <- cbind(
-        EIF4E.cor$estimate > 0.3 & EIF4E.cor$p.value <= 0.05,
-        EIF4G1.cor$estimate > 0.3 & EIF4G1.cor$p.value <= 0.05,
-        EIF4A1.cor$estimate > 0.3 & EIF4A1.cor$p.value <= 0.05)
-      a <- vennCounts(c3)
-      colnames(a) <- c("EIF4E",
-                       "EIF4G1",
-                       "EIF4A1",
-                       "Counts")
-      vennDiagram(a)
-      ## draw Venn diagram for overlapping genes
-      pos.Venn <- euler(c(
-        A       = a[5, "Counts"],
-        B       = a[3, "Counts"],
-        C       = a[2, "Counts"],
-        "A&B"   = a[7, "Counts"],
-        "A&C"   = a[6, "Counts"],
-        "B&C"   = a[4, "Counts"],
-        "A&B&C" = a[8, "Counts"]))
-      p1 <- plot(pos.Venn,
-                 #key = TRUE,  
-                 lwd        = 0,
-                 # border     = "black",
-                 fill       = c("#999999", "#E69F00", "#56B4E9"),
-                 quantities = list(cex = 1.5),
-                 main       = paste(x, z,"posCOR"),
-                 labels     = list(labels = c("EIF4E posCOR",
-                                              "EIF4G1 posCOR",
-                                              "EIF4A1 posCOR"),
-                                   cex        = 1.5))
-      print(p1)
-      ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
-        filename    = paste(x,z,"posVenn.pdf"), 
-        plot        = p1,
-        width       = 8, 
-        height      = 8, 
-        useDingbats = FALSE)
       c4 <- cbind(EIF4E.cor$estimate > 0.3 & EIF4E.cor$p.value <= 0.05,
                   EIF4G1.cor$estimate > 0.3 & EIF4G1.cor$p.value <= 0.05,
                   EIF4A1.cor$estimate > 0.3 & EIF4A1.cor$p.value <= 0.05,
@@ -5344,44 +5223,6 @@ plot.Venn.lung <- function(x) {
     plot.pos.Venn(y)
     
     plot.neg.Venn <- function(y){
-      c3 <- cbind(
-        EIF4E.cor$estimate < -0.3 & EIF4E.cor$p.value <= 0.05,
-        EIF4G1.cor$estimate < -0.3 & EIF4G1.cor$p.value <= 0.05,
-        EIF4A1.cor$estimate < -0.3 & EIF4A1.cor$p.value <= 0.05)
-      a <- vennCounts(c3)
-      colnames(a) <- c("EIF4E",
-                       "EIF4G1",
-                       "EIF4A1",
-                       "Counts")
-      vennDiagram(a)
-      ## draw Venn diagram for overlapping genes
-      neg.Venn <- euler(c(
-        A       = a[5, "Counts"],
-        B       = a[3, "Counts"],
-        C       = a[2, "Counts"],
-        "A&B"   = a[7, "Counts"],
-        "A&C"   = a[6, "Counts"],
-        "B&C"   = a[4, "Counts"],
-        "A&B&C" = a[8, "Counts"]))
-      p1 <- plot(neg.Venn,
-                 #key = TRUE,
-                 lwd        = 0,
-                 # border     = "black",
-                 fill       = c("#999999", "#E69F00", "#56B4E9"),
-                 quantities = list(cex = 1.5),
-                 main       = paste(x, z,"negCOR"),
-                 labels     = list(labels = c("EIF4E negCOR",
-                                              "EIF4G1 negCOR",
-                                              "EIF4A1 negCOR"),
-                                   cex        = 1.5))
-      print(p1)
-      ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
-        filename    = paste(x,z,"negVenn.pdf"), 
-        plot        = p1,
-        width       = 8, 
-        height      = 8, 
-        useDingbats = FALSE)
       c4 <- cbind(EIF4E.cor$estimate < -0.3 & EIF4E.cor$p.value <= 0.05,
                   EIF4G1.cor$estimate < -0.3 & EIF4G1.cor$p.value <= 0.05,
                   EIF4A1.cor$estimate < -0.3 & EIF4A1.cor$p.value <= 0.05,
@@ -5430,95 +5271,7 @@ plot.Venn.lung <- function(x) {
         useDingbats = FALSE)
     }
     plot.neg.Venn(y)
-    
-    plot.pos.neg.Venn <- function(){
-      c3 <- cbind(
-        EIF4E.cor$estimate > 0.3 & EIF4E.cor$p.value <= 0.05,
-        EIF4G1.cor$estimate > 0.3 & EIF4G1.cor$p.value <= 0.05,
-        EIF4A1.cor$estimate > 0.3 & EIF4A1.cor$p.value <= 0.05)
-      a <- vennCounts(c3)
-      colnames(a) <- c("EIF4E",
-                       "EIF4G1",
-                       "EIF4A1",
-                       "Counts")
-      vennDiagram(a)
-      ## draw Venn diagram for overlapping genes
-      pos.neg.Venn <- euler(c(
-        A       = a[5, "Counts"],
-        B       = a[3, "Counts"],
-        C       = a[2, "Counts"],
-        "A&B"   = a[7, "Counts"],
-        "A&C"   = a[6, "Counts"],
-        "B&C"   = a[4, "Counts"],
-        "A&B&C" = a[8, "Counts"]))
-      p1 <- plot(pos.neg.Venn,
-                 #key = TRUE,
-                 main       = paste(x, z,"posnegCOR"),
-                 lwd        = 0,
-                 fill       = c("#999999", "#E69F00", "#56B4E9"),
-                 quantities = list(cex = 1.25),
-                 labels     = list(labels = c("EIF4E posCOR",
-                                              "EIF4G1 posCOR",
-                                              "EIF4A1 posCOR"),
-                                   cex    = 1.25))
-      print(p1)    
-      ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
-        filename    = paste(x,z,"posnegVenn.pdf"), 
-        plot        = p1,
-        width       = 8, 
-        height      = 8, 
-        useDingbats = FALSE)
-      c4 <- cbind(
-        EIF4E.cor$estimate > 0.3 & EIF4E.cor$p.value <= 0.05,
-        EIF4G1.cor$estimate > 0.3 & EIF4G1.cor$p.value <= 0.05,
-        EIF4A1.cor$estimate > 0.3 & EIF4A1.cor$p.value <= 0.05,
-        EIF4EBP1.cor$estimate < -0.3 & EIF4EBP1.cor$p.value <= 0.05)
-      b <- vennCounts(c4)
-      colnames(b) <- c("EIF4E",
-                       "EIF4G1",
-                       "EIF4A1",
-                       "EIF4EBP1",
-                       "Counts")
-      vennDiagram(b)
-      pos.neg.Venn2 <- euler(c(
-        EIF4E       = b[9, "Counts"], #EIF4E
-        EIF4G1      = b[5, "Counts"], #EIF4G1
-        EIF4A1      = b[3, "Counts"], #EIF4A1
-        EIF4EBP1    = b[2, "Counts"], #EIF4EBP1
-        "EIF4E&EIF4G1"   = b[13, "Counts"],
-        "EIF4E&EIF4A1"   = b[11, "Counts"],
-        "EIF4E&EIF4EBP1" = b[10, "Counts"],
-        "EIF4G1&EIF4A1"   = b[7, "Counts"],
-        "EIF4G1&EIF4EBP1"   = b[6, "Counts"],
-        "EIF4A1&EIF4EBP1"   = b[4, "Counts"],
-        "EIF4E&EIF4G1&EIF4A1" = b[15, "Counts"],
-        "EIF4E&EIF4G1&EIF4EBP1" = b[14, "Counts"],
-        "EIF4E&EIF4A1&EIF4EBP1" = b[12, "Counts"],
-        "EIF4G1&EIF4A1&EIF4EBP1" = b[8, "Counts"],
-        "EIF4E&EIF4G1&EIF4A1&EIF4EBP1" = b[16, "Counts"]))
-      p2 <- plot(pos.neg.Venn2,
-                 #key = TRUE,
-                 main       = paste(x, z,"posnegCOR"),
-                 lwd        = 0,
-                 fill       = c("#999999", "#009E73","#56B4E9", "#E69F00"),
-                 quantities = list(cex = 1.25),
-                 labels = list(labels = c("EIF4E posCOR",
-                                          "EIF4G1 posCOR",
-                                          "EIF4A1 posCOR",
-                                          "EIF4EBP1 negCOR"),
-                               cex    = 1.25))
-      print(p2)    
-      ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
-        filename    = paste(x, z, "posneg4Venn.pdf"), 
-        plot        = p2,
-        width       = 8, 
-        height      = 8, 
-        useDingbats = FALSE)
-    }
-    plot.pos.neg.Venn()
-    
+
     c4 <- cbind(
       EIF4E.cor$estimate > 0.3 & EIF4E.cor$p.value <= 0.05,
       EIF4G1.cor$estimate > 0.3 & EIF4G1.cor$p.value <= 0.05,
@@ -5655,14 +5408,15 @@ plot.Venn.lung(x = "Lung")
 ### use TCGA-TARGET-GTEX dataset ###
 ### plot heatmapand pathway analysis on clusters from all cancer cases ###
 plot.heatmap.total <- function() {
-  Lung <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
-  Lung <- Lung[!duplicated(Lung$sample), ]
-  Lung <- na.omit(Lung)
-  row.names(Lung) <- Lung$sample
-  Lung$sample <- NULL
-  Sample.ID <- row.names(Lung)
-  subset <- as.data.frame(Lung$`_sample_type`)
-  row.names(subset) <- row.names(Lung)
+  Data <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  Data <- Data[!duplicated(Data$sample), ]
+  Data <- na.omit(Data)
+  row.names(Data) <- Data$sample
+  Data <- as.data.frame(Data)
+  Data$sample <- NULL
+  Sample.ID <- row.names(Data)
+  subset <- as.data.frame(Data$`_sample_type`)
+  row.names(subset) <- row.names(Data)
   colnames(subset) <- "sample.type"
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
@@ -5673,6 +5427,7 @@ plot.heatmap.total <- function() {
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
                            !duplicated(colnames(TCGA.GTEX))]
     row.names(TCGA.GTEX) <- TCGA.GTEX$sample
+    TCGA.GTEX <- as.data.frame(TCGA.GTEX)
     TCGA.GTEX$sample <- NULL
     TCGA.GTEX <- TCGA.GTEX[,colnames(TCGA.GTEX) %in% Sample.ID]
     TCGA.GTEX.t <- data.table::transpose(TCGA.GTEX)
@@ -5941,10 +5696,10 @@ plot.heatmap.lung <- function(x){
     Lung.ID <- as.vector(Lung$sample)
     Lung.ID <- na.omit(Lung.ID) # NA in the vector
     TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)
-    #   TCGA.GTEX.Lung1 <- as.data.frame(TCGA.GTEX.Lung)
     TCGA.GTEX.Lung <- TCGA.GTEX.Lung[!duplicated(TCGA.GTEX.Lung$sample), 
                                      !duplicated(colnames(TCGA.GTEX.Lung))]
     row.names(TCGA.GTEX.Lung) <- TCGA.GTEX.Lung$sample
+    TCGA.GTEX.Lung <- as.data.frame(TCGA.GTEX.Lung)
     TCGA.GTEX.Lung$sample <- NULL
     TCGA.GTEX.Lung.t <- data.table::transpose(TCGA.GTEX.Lung)
     rownames(TCGA.GTEX.Lung.t) <- colnames(TCGA.GTEX.Lung)
@@ -5953,6 +5708,7 @@ plot.heatmap.lung <- function(x){
     Lung <- Lung[!duplicated(Lung$sample), ]
     Lung <- na.omit(Lung)
     row.names(Lung) <- Lung$sample
+    Lung <- as.data.frame(Lung)
     Lung$sample <- NULL
     TCGA.GTEX.Lung.sampletype <- merge(TCGA.GTEX.Lung.t,
                                        Lung,
@@ -5963,6 +5719,7 @@ plot.heatmap.lung <- function(x){
   }
   TCGA.GTEX.sampletype.lung <- tissue.GTEX.TCGA.gene(x)
   row.names(TCGA.GTEX.sampletype.lung) <- TCGA.GTEX.sampletype.lung$Row.names
+  TCGA.GTEX.sampletype.lung <- as.data.frame(TCGA.GTEX.sampletype.lung)
   TCGA.GTEX.sampletype.lung$Row.names <- NULL
   TCGA.GTEX.sampletype.lung$`_sample_type` <- as.factor(
     TCGA.GTEX.sampletype.lung$`_sample_type`)
@@ -6290,97 +6047,12 @@ plot.heatmap.lung <- function(x){
   }
   
 }
-plot.heatmap.lung(x = "Breast")
-
+plot.heatmap.lung(x = "Lung")
 
 ## Figure 6 ## 
 ######################################
 ## Boxplots for phosphor-proteomics ##
 ######################################
-
-plot.EIF.CPTAC.phos.LUAD <- function(x){
-  CPTAC.LUAD.Sample <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
-  CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
-  CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
-    !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
-  row.names(CPTAC.LUAD.Sample.ID) <- CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`
-  CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
-  
-  CPTAC.LUAD.Phosproteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv",data.table = FALSE)
-  EIF.CPTAC.LUAD.Phosproteomics <- CPTAC.LUAD.Phosproteomics[CPTAC.LUAD.Phosproteomics$Gene %in% x, ]
-  colnames(EIF.CPTAC.LUAD.Phosproteomics) <- sub(" Log Ratio", "", colnames(EIF.CPTAC.LUAD.Phosproteomics))
-  
-  row.names(EIF.CPTAC.LUAD.Phosproteomics) <- EIF.CPTAC.LUAD.Phosproteomics$Phosphosite
-  EIF.CPTAC.LUAD.Phosproteomics$Phosphosite <- NULL
-  
-  EIF.CPTAC.LUAD.Phosproteomics <- EIF.CPTAC.LUAD.Phosproteomics[1:(length(EIF.CPTAC.LUAD.Phosproteomics)-3)]
-  EIF.CPTAC.LUAD.Phosproteomics.t <- t(EIF.CPTAC.LUAD.Phosproteomics)
-  
-  EIF.CPTAC.LUAD.Phosproteomics.Sampletype <- merge(EIF.CPTAC.LUAD.Phosproteomics.t,
-                                                    CPTAC.LUAD.Sample.ID,
-                                                    by    = "row.names",
-                                                    all.x = TRUE)
-  
-  rownames(EIF.CPTAC.LUAD.Phosproteomics.Sampletype) <- EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Row.names
-  EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Row.names <- NULL
-  
-  
-  EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Type <- factor(
-    EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Type,
-    levels = c("Normal", "Tumor"),
-    labels = c("Normal", "Tumor"))
-  df <- melt(EIF.CPTAC.LUAD.Phosproteomics.Sampletype ,
-             variable.name = 'NP')
-  df <- df[!(is.na(df$Type)), ]  
-  df$NP <- gsub(".*:",paste0(x,":"),df$NP )
-  
-  p1 <- ggplot(data = df,
-               aes(x     = Type,  
-                   #x     = x.ordered, # order primary disease
-                   y     = 2**value,
-                   color = NP)) + 
-    
-    #stat_n_text(size     = 5, 
-    #  fontface = "bold", 
-    #  hjust    = 0) +
-    geom_boxplot(
-      alpha    = .01,
-      #size     = .75,
-      #width    = 1,
-      outlier.shape = NA,
-      position = position_dodge(width = .9)
-    ) +
-    stat_n_text(size = 4, fontface = "bold", angle = 90, hjust = 0) +
-    facet_grid(~ NP, scales = "free", space  = "free") +
-    facet_wrap(~ NP, ncol = 6) +
-    labs(x = NULL,
-         y = paste("normalized RNA counts")) +
-    facet_rep_wrap(~ NP, repeat.tick.labels = c('left','bottom'))+
-    coord_capped_cart(ylim = c(0,6))+       
-    theme_bw() +
-    theme(
-      plot.title      = black_bold_12,
-      axis.title.x    = black_bold_12,
-      axis.title.y    = element_blank(),
-      axis.text.x     = black_bold_12,
-      axis.text.y     = black_bold_12,
-      axis.line.x     = element_line(color = "black"),
-      axis.line.y     = element_line(color = "black"),
-      panel.grid      = element_blank(),
-      legend.position = "none",
-      strip.text      = black_bold_12
-    ) +
-    stat_compare_means(comparisons = list( c("Normal", "Tumor")),
-                       method      = "t.test", 
-                       label       = "p.signif", label.y = 5,
-                       size        = 4) 
-  print(p1)
-}
-plot.EIF.CPTAC.phos.LUAD("EIF4G1")
-lapply(EIF.gene, plot.EIF.CPTAC.phos.LUAD)
-
 plot.EIF4.CPTAC.pro.LUAD <- function(){
   get.clinic.data <- function (){
     CPTAC.LUAD.Sample <- read_excel(
@@ -7107,692 +6779,6 @@ plot.EIF4.CPTAC.pro.LUAD <- function(){
   nor.phos.plot()
   }
 plot.EIF4.CPTAC.pro.LUAD()
-
-plot.EIF4G1.CPTAC.pro.LUAD <- function(){
-  CPTAC.LUAD.Sample <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
-  CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
-  CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
-    !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
-  row.names(CPTAC.LUAD.Sample.ID) <- CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`
-  CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
-  
-  CPTAC.LUAD.clinic <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx", sheet = 2)
-  CPTAC.LUAD.clinic.Sampletype <- merge(CPTAC.LUAD.clinic,
-                                        CPTAC.LUAD.Sample,
-                                        by.x = "case_id", 
-                                        by.y = "Participant ID (case_id)")
-  #colnames(EIF.CPTAC.LUAD.clinic.Sampletype)
-  CPTAC.LUAD.clinic.Sampletype <- CPTAC.LUAD.clinic.Sampletype[ ,
-                                                                c("tumor_stage_pathological", 
-                                                                  "Aliquot (Specimen Label)", 
-                                                                  "Type")]
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$Type == "Normal"] <- "Normal"
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage I","Stage IA","Stage IB")] <- "Stage I"
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage II","Stage IIA","Stage IIB")] <- "Stage II"
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage III","Stage IIIA","Stage IIIB")] <- "Stage III"
-  
-  CPTAC.LUAD.Proteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv",data.table = FALSE)
-  EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[CPTAC.LUAD.Proteomics$Gene %in% c("EIF4G1"), ]
-  row.names(EIF.CPTAC.LUAD.Proteomics) <- EIF.CPTAC.LUAD.Proteomics$Gene
-  EIF.CPTAC.LUAD.Proteomics <- select(EIF.CPTAC.LUAD.Proteomics, -contains("Unshared"))
-  
-  EIF.CPTAC.LUAD.Proteomics$Gene <- NULL
-  EIF.CPTAC.LUAD.Proteomics <- EIF.CPTAC.LUAD.Proteomics[1:(length(EIF.CPTAC.LUAD.Proteomics)-6)]
-  EIF.CPTAC.LUAD.Proteomics.t <- data.table::transpose(EIF.CPTAC.LUAD.Proteomics)
-  rownames(EIF.CPTAC.LUAD.Proteomics.t) <- colnames(EIF.CPTAC.LUAD.Proteomics)
-  colnames(EIF.CPTAC.LUAD.Proteomics.t) <- rownames(EIF.CPTAC.LUAD.Proteomics)
-  rownames(EIF.CPTAC.LUAD.Proteomics.t) <- sub(" Log Ratio","",rownames(EIF.CPTAC.LUAD.Proteomics.t)) 
-  
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype <- merge(EIF.CPTAC.LUAD.Proteomics.t,
-                                                       CPTAC.LUAD.clinic.Sampletype,
-                                                       by.x  = "row.names",
-                                                       by.y  = "Aliquot (Specimen Label)")
-  row.names(EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype) <- EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$Row.names
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$Row.names <- NULL
-  
-  df <- melt(EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype ,
-             variable.name = 'Gene')
-  df$tumor_stage_pathological <- as.factor(df$tumor_stage_pathological)
-  levels(df$tumor_stage_pathological)
-  levels(df$Gene)
-  
-  p1 <- ggplot(data = df,
-               aes(x     = tumor_stage_pathological,  
-                   #x     = x.ordered, # order primary disease
-                   y     = 2**value,
-                   color = Gene)) + #ylim(0, 2)+
-    stat_n_text(size = 4, fontface = "bold", angle = 90, hjust = 0) +
-    #stat_n_text(size     = 5, 
-    #  fontface = "bold", 
-    #  hjust    = 0) +
-    geom_boxplot(
-      #alpha    = .01,
-      #size     = .75,
-      #width    = 1,
-      #outlier.shape = 19,
-      position = position_dodge(width = .9)
-    ) +  #geom_jitter(width = 0.2) +
-    #facet_grid(~ Gene, scales = "free", space  = "free") +
-    labs(x = NULL,
-         y = paste("normalized RNA counts")) +
-    facet_rep_wrap(~ Gene, 
-                   scales = 'free_y', 
-                   repeat.tick.labels = c('left','bottom'))+
-    #scale_y_continuous(limits = c(0, 2.5))+
-    theme_bw() +
-    theme(
-      plot.title      = black_bold_12,
-      axis.title.x    = black_bold_12,
-      axis.title.y    = element_blank(),
-      axis.text.x     = black_bold_12_45,
-      axis.text.y     = black_bold_12,
-      axis.line.x     = element_line(color = "black"),
-      axis.line.y     = element_line(color = "black"),
-      panel.grid      = element_blank(),
-      legend.position = "none",
-      strip.text      = black_bold_12
-    ) +
-    stat_compare_means(
-      comparisons = list(c("Normal", "Stage I"),
-                         c("Normal", "Stage II"),
-                         c("Normal", "Stage III")),
-      method      = "t.test", 
-      label       = "p.signif", #label.y = 1,
-      size        = 4)
-  print(p1)
-  
-  
-  CPTAC.LUAD.Phosproteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv",data.table = FALSE)
-  EIF.CPTAC.LUAD.Phosproteomics <- CPTAC.LUAD.Phosproteomics[CPTAC.LUAD.Phosproteomics$Gene %in% "EIF4G1", ]
-  colnames(EIF.CPTAC.LUAD.Phosproteomics) <- sub(" Log Ratio", "", colnames(EIF.CPTAC.LUAD.Phosproteomics))
-  
-  row.names(EIF.CPTAC.LUAD.Phosproteomics) <- EIF.CPTAC.LUAD.Phosproteomics$Phosphosite
-  EIF.CPTAC.LUAD.Phosproteomics$Phosphosite <- NULL
-  
-  EIF.CPTAC.LUAD.Phosproteomics <- EIF.CPTAC.LUAD.Phosproteomics[1:(length(EIF.CPTAC.LUAD.Phosproteomics)-3)]
-  EIF.CPTAC.LUAD.Phosproteomics.t <- t(EIF.CPTAC.LUAD.Phosproteomics)
-  
-  EIF.CPTAC.LUAD.Phosproteomics.Sampletype <- merge(EIF.CPTAC.LUAD.Phosproteomics.t,
-                                                    CPTAC.LUAD.clinic.Sampletype,
-                                                    by.x  = "row.names",
-                                                    by.y  = "Aliquot (Specimen Label)")
-  rownames(EIF.CPTAC.LUAD.Phosproteomics.Sampletype) <- EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Row.names
-  EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Row.names <- NULL
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$tumor_stage_pathological <- NULL
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$Type <- NULL
-  EIF.CPTAC.LUAD.phos.proteomics.Sampletype <- merge(EIF.CPTAC.LUAD.Phosproteomics.Sampletype,
-                                                     EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype,
-                                                     by  = "row.names")
-  row.names(EIF.CPTAC.LUAD.phos.proteomics.Sampletype) <- EIF.CPTAC.LUAD.phos.proteomics.Sampletype$Row.names
-  EIF.CPTAC.LUAD.phos.proteomics.Sampletype$Row.names <- NULL
-  
-  
-  
-  df2 <- melt(EIF.CPTAC.LUAD.phos.proteomics.Sampletype ,
-              variable.name = 'Gene')
-  df2$Gene <- gsub(".*:",paste0("EIF4G1",":"),df2$Gene )
-  df2$Gene <- as.factor(df2$Gene)
-  levels(df2$Gene)
-  df2$Gene <- ordered(df2$Gene, 
-                      levels = c("EIF4G1", "EIF4G1:t212",
-                                 "EIF4G1:t212t214","EIF4G1:t212t218",
-                                 "EIF4G1:t214","EIF4G1:t214t218",
-                                 "EIF4G1:t218","EIF4G1:s503","EIF4G1:t654",
-                                 "EIF4G1:s711","EIF4G1:s1035","EIF4G1:s1068",
-                                 "EIF4G1:t1080s1087","EIF4G1:t1080s1099",
-                                 "EIF4G1:s1084","EIF4G1:s1084s1087",
-                                 "EIF4G1:s1084s1099","EIF4G1:s1087",
-                                 "EIF4G1:s1099","EIF4G1:s1151s1154","EIF4G1:s1152s1154",
-                                 "EIF4G1:s1201","EIF4G1:s1206",
-                                 "EIF4G1:s1216","EIF4G1:t1218",
-                                 "EIF4G1:s1238","EIF4G1:s1245"    
-                      ))
-  df2$Gene <- droplevels(df2$Gene)
-  df2 <- df2[!is.na(df2$Gene), ]
-  color <- function(){
-    n <- 7
-    qual_col_pals <- brewer.pal.info[brewer.pal.info$category == 'qual',]
-    col_vector <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))}
-  col_vector <- color()
-  p2 <- ggplot(data = df2,
-               aes(x    = tumor_stage_pathological,  
-                   y    = 2**value,
-                   fill = Gene)) + #ylim(0, 2)+
-    stat_n_text(size = 4, fontface = "bold", 
-                angle = 90, hjust = 0) +
-    geom_boxplot(#alpha    = .01, #alpha will conflict color
-      #size     = .75,
-      #width    = 1,
-      outlier.shape = 19,
-      position = position_dodge(width = .9)) +
-    scale_color_manual(values = col_vector)+
-    labs(x = NULL,
-         y = paste("normalized RNA counts")) +
-    facet_rep_wrap(~ Gene, 
-                   scales = 'free_y', 
-                   nrow   = 3, 
-                   repeat.tick.labels = c('left','bottom'))+
-    theme_bw() +
-    theme(plot.title      = black_bold_12,
-          axis.title.x    = black_bold_12,
-          axis.title.y    = element_blank(),
-          axis.text.x     = black_bold_12_45,
-          axis.text.y     = black_bold_12,
-          axis.line.x     = element_line(color = "black"),
-          axis.line.y     = element_line(color = "black"),
-          panel.grid      = element_blank(),
-          legend.position = "none",
-          strip.text      = black_bold_12) +
-    stat_compare_means(
-      comparisons = list(c("Normal", "Stage I"),
-                         c("Normal", "Stage II"),
-                         c("Normal", "Stage III")),
-      method      = "t.test", 
-      label       = "p.signif", #label.y = 1,
-      size        = 4)
-  print(p2)
-  ggsave(
-    path        = "~/Documents/EIF_output/CPTAC", 
-    filename    = paste0("EIF4G1phospro.pdf"), 
-    plot        = p2,
-    width       = 16, 
-    height      = 12, 
-    useDingbats = FALSE)
-}
-plot.EIF4G1.CPTAC.pro.LUAD()
-
-plot.EIF4EBP1.CPTAC.pro.LUAD <- function(){
-  CPTAC.LUAD.Sample <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
-  CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
-  CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
-    !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
-  row.names(CPTAC.LUAD.Sample.ID) <- CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`
-  CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
-  
-  CPTAC.LUAD.clinic <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx", sheet = 2)
-  CPTAC.LUAD.clinic.Sampletype <- merge(CPTAC.LUAD.clinic,
-                                        CPTAC.LUAD.Sample,
-                                        by.x = "case_id", 
-                                        by.y = "Participant ID (case_id)")
-  #colnames(EIF.CPTAC.LUAD.clinic.Sampletype)
-  CPTAC.LUAD.clinic.Sampletype <- CPTAC.LUAD.clinic.Sampletype[ ,
-                                                                c("tumor_stage_pathological", 
-                                                                  "Aliquot (Specimen Label)", 
-                                                                  "Type")]
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$Type == "Normal"] <- "Normal"
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage I","Stage IA","Stage IB")] <- "Stage I"
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage II","Stage IIA","Stage IIB")] <- "Stage II"
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage III","Stage IIIA","Stage IIIB")] <- "Stage III"
-  
-  CPTAC.LUAD.Proteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv",data.table = FALSE)
-  EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[CPTAC.LUAD.Proteomics$Gene %in% c("EIF4EBP1"), ]
-  row.names(EIF.CPTAC.LUAD.Proteomics) <- EIF.CPTAC.LUAD.Proteomics$Gene
-  EIF.CPTAC.LUAD.Proteomics <- select(EIF.CPTAC.LUAD.Proteomics, -contains("Unshared"))
-  
-  EIF.CPTAC.LUAD.Proteomics$Gene <- NULL
-  EIF.CPTAC.LUAD.Proteomics <- EIF.CPTAC.LUAD.Proteomics[1:(length(EIF.CPTAC.LUAD.Proteomics)-6)]
-  EIF.CPTAC.LUAD.Proteomics.t <- data.table::transpose(EIF.CPTAC.LUAD.Proteomics)
-  rownames(EIF.CPTAC.LUAD.Proteomics.t) <- colnames(EIF.CPTAC.LUAD.Proteomics)
-  colnames(EIF.CPTAC.LUAD.Proteomics.t) <- rownames(EIF.CPTAC.LUAD.Proteomics)
-  rownames(EIF.CPTAC.LUAD.Proteomics.t) <- sub(" Log Ratio","",rownames(EIF.CPTAC.LUAD.Proteomics.t)) 
-  
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype <- merge(
-    EIF.CPTAC.LUAD.Proteomics.t,
-    CPTAC.LUAD.clinic.Sampletype,
-    by.x  = "row.names",
-    by.y  = "Aliquot (Specimen Label)")
-  row.names(EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype) <- EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$Row.names
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$Row.names <- NULL
-  
-  df <- melt(EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype ,
-             variable.name = 'Gene')
-  df$tumor_stage_pathological <- as.factor(df$tumor_stage_pathological)
-  levels(df$tumor_stage_pathological)
-  levels(df$Gene)
-  
-  p1 <- ggplot(data = df,
-               aes(x     = tumor_stage_pathological,  
-                   #x     = x.ordered, # order primary disease
-                   y     = 2**value,
-                   color = Gene)) + #ylim(0, 2)+
-    stat_n_text(size = 4, fontface = "bold", angle = 90, hjust = 0) +
-    #stat_n_text(size     = 5, 
-    #  fontface = "bold", 
-    #  hjust    = 0) +
-    geom_boxplot(
-      #alpha    = .01,
-      #size     = .75,
-      #width    = 1,
-      #outlier.shape = 19,
-      position = position_dodge(width = .9)
-    ) +  #geom_jitter(width = 0.2) +
-    #facet_grid(~ Gene, scales = "free", space  = "free") +
-    labs(x = NULL,
-         y = paste("normalized RNA counts")) +
-    facet_rep_wrap(~ Gene, 
-                   scales = 'free_y', 
-                   repeat.tick.labels = c('left','bottom'))+
-    #scale_y_continuous(limits = c(0, 2.5))+
-    theme_bw() +
-    theme(
-      plot.title      = black_bold_12,
-      axis.title.x    = black_bold_12,
-      axis.title.y    = element_blank(),
-      axis.text.x     = black_bold_12_45,
-      axis.text.y     = black_bold_12,
-      axis.line.x     = element_line(color = "black"),
-      axis.line.y     = element_line(color = "black"),
-      panel.grid      = element_blank(),
-      legend.position = "none",
-      strip.text      = black_bold_12
-    ) +
-    stat_compare_means(
-      comparisons = list(c("Normal", "Stage I"),
-                         c("Normal", "Stage II"),
-                         c("Normal", "Stage III")),
-      method      = "t.test", 
-      label       = "p.signif", #label.y = 1,
-      size        = 4)
-  print(p1)
-  
-  
-  CPTAC.LUAD.Phosproteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv",data.table = FALSE)
-  EIF.CPTAC.LUAD.Phosproteomics <- CPTAC.LUAD.Phosproteomics[CPTAC.LUAD.Phosproteomics$Gene %in% "EIF4EBP1", ]
-  colnames(EIF.CPTAC.LUAD.Phosproteomics) <- sub(" Log Ratio", "", colnames(EIF.CPTAC.LUAD.Phosproteomics))
-  
-  row.names(EIF.CPTAC.LUAD.Phosproteomics) <- EIF.CPTAC.LUAD.Phosproteomics$Phosphosite
-  EIF.CPTAC.LUAD.Phosproteomics$Phosphosite <- NULL
-  
-  EIF.CPTAC.LUAD.Phosproteomics <- EIF.CPTAC.LUAD.Phosproteomics[1:(length(EIF.CPTAC.LUAD.Phosproteomics)-3)]
-  EIF.CPTAC.LUAD.Phosproteomics.t <- t(EIF.CPTAC.LUAD.Phosproteomics)
-  
-  EIF.CPTAC.LUAD.Phosproteomics.Sampletype <- merge(
-    EIF.CPTAC.LUAD.Phosproteomics.t,
-    CPTAC.LUAD.clinic.Sampletype,
-    by.x  = "row.names",
-    by.y  = "Aliquot (Specimen Label)")
-  rownames(EIF.CPTAC.LUAD.Phosproteomics.Sampletype) <- EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Row.names
-  EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Row.names <- NULL
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$tumor_stage_pathological <- NULL
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$Type <- NULL
-  EIF.CPTAC.LUAD.phos.proteomics.Sampletype <- merge(EIF.CPTAC.LUAD.Phosproteomics.Sampletype,
-                                                     EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype,
-                                                     by  = "row.names")
-  row.names(EIF.CPTAC.LUAD.phos.proteomics.Sampletype) <- EIF.CPTAC.LUAD.phos.proteomics.Sampletype$Row.names
-  EIF.CPTAC.LUAD.phos.proteomics.Sampletype$Row.names <- NULL
-  
-  
-  
-  df2 <- melt(EIF.CPTAC.LUAD.phos.proteomics.Sampletype ,
-              variable.name = 'Gene')
-  df2$Gene <- gsub(".*:",paste0("EIF4EBP1",":"),df2$Gene )
-  df2$Gene <- as.factor(df2$Gene)
-  levels(df2$Gene)
-  df2$Gene <- ordered(df2$Gene, 
-                      levels = c("EIF4EBP1","EIF4EBP1:s101","EIF4EBP1:s35t46",
-                                 "EIF4EBP1:s65","EIF4EBP1:s65t68","EIF4EBP1:s83", 
-                                 "EIF4EBP1:s85","EIF4EBP1:s86",
-                                 "EIF4EBP1:s94","EIF4EBP1:s96",
-                                 "EIF4EBP1:t36t46", "EIF4EBP1:t37t46",
-                                 "EIF4EBP1:t70"   
-                      ))
-  df2$Gene <- droplevels(df2$Gene)
-  df2 <- df2[!is.na(df2$Gene), ]
-  color <- function(){
-    n <- 15
-    qual_col_pals <- brewer.pal.info[brewer.pal.info$category == 'qual',]
-    col_vector <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))}
-  col_vector <- color()
-  p2 <- ggplot(data = df2,
-               aes(x     = tumor_stage_pathological,  
-                   #x     = x.ordered, # order primary disease
-                   y     = 2**value,
-                   color = Gene)) + #ylim(0, 2)+
-    stat_n_text(size = 4, fontface = "bold", angle = 90, hjust = 0) +
-    geom_boxplot(
-      #alpha    = .01,
-      #size     = .75,
-      #width    = 1,
-      outlier.shape = 19,
-      position = position_dodge(width = .9)
-    ) +
-    scale_color_manual(values = col_vector)+
-    labs(x = NULL,
-         y = paste("normalized RNA counts")) +
-    facet_rep_wrap(~ Gene, 
-                   scales = 'free_y', 
-                   nrow   = 3, 
-                   repeat.tick.labels = c('left','bottom'))+
-    theme_bw() +
-    theme(
-      plot.title      = black_bold_12,
-      axis.title.x    = black_bold_12,
-      axis.title.y    = element_blank(),
-      axis.text.x     = black_bold_12_45,
-      axis.text.y     = black_bold_12,
-      axis.line.x     = element_line(color = "black"),
-      axis.line.y     = element_line(color = "black"),
-      panel.grid      = element_blank(),
-      legend.position = "none",
-      strip.text      = black_bold_12
-    ) +
-    stat_compare_means(
-      comparisons = list(c("Normal", "Stage I"),
-                         c("Normal", "Stage II"),
-                         c("Normal", "Stage III")),
-      method      = "t.test", 
-      label       = "p.signif", #label.y = 1,
-      size        = 4)
-  print(p2)
-  ggsave(
-    path        = "~/Documents/EIF_output/CPTAC", 
-    filename    = paste0("EIF4EBP1phospro.pdf"), 
-    plot        = p2,
-    width       = 16, 
-    height      = 12, 
-    useDingbats = FALSE)
-}
-plot.EIF4EBP1.CPTAC.pro.LUAD()
-
-plot.EIF4A1.CPTAC.pro.LUAD <- function(){
-  CPTAC.LUAD.Sample <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
-  CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
-  CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
-    !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
-  row.names(CPTAC.LUAD.Sample.ID) <- CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`
-  CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
-  
-  CPTAC.LUAD.clinic <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx", sheet = 2)
-  CPTAC.LUAD.clinic.Sampletype <- merge(CPTAC.LUAD.clinic,
-                                        CPTAC.LUAD.Sample,
-                                        by.x = "case_id", 
-                                        by.y = "Participant ID (case_id)")
-  #colnames(EIF.CPTAC.LUAD.clinic.Sampletype)
-  CPTAC.LUAD.clinic.Sampletype <- CPTAC.LUAD.clinic.Sampletype[ ,
-                                                                c("tumor_stage_pathological", 
-                                                                  "Aliquot (Specimen Label)", 
-                                                                  "Type")]
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$Type == "Normal"] <- "Normal"
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage I","Stage IA","Stage IB")] <- "Stage I"
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage II","Stage IIA","Stage IIB")] <- "Stage II"
-  CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage III","Stage IIIA","Stage IIIB")] <- "Stage III"
-  
-  CPTAC.LUAD.Proteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv",data.table = FALSE)
-  EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[CPTAC.LUAD.Proteomics$Gene %in% c("EIF4A1", "EIF4E"), ]
-  row.names(EIF.CPTAC.LUAD.Proteomics) <- EIF.CPTAC.LUAD.Proteomics$Gene
-  EIF.CPTAC.LUAD.Proteomics <- select(EIF.CPTAC.LUAD.Proteomics, -contains("Unshared"))
-  
-  EIF.CPTAC.LUAD.Proteomics$Gene <- NULL
-  EIF.CPTAC.LUAD.Proteomics <- EIF.CPTAC.LUAD.Proteomics[1:(length(EIF.CPTAC.LUAD.Proteomics)-6)]
-  EIF.CPTAC.LUAD.Proteomics.t <- data.table::transpose(EIF.CPTAC.LUAD.Proteomics)
-  rownames(EIF.CPTAC.LUAD.Proteomics.t) <- colnames(EIF.CPTAC.LUAD.Proteomics)
-  colnames(EIF.CPTAC.LUAD.Proteomics.t) <- rownames(EIF.CPTAC.LUAD.Proteomics)
-  rownames(EIF.CPTAC.LUAD.Proteomics.t) <- sub(" Log Ratio","",rownames(EIF.CPTAC.LUAD.Proteomics.t)) 
-  
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype <- merge(
-    EIF.CPTAC.LUAD.Proteomics.t,
-    CPTAC.LUAD.clinic.Sampletype,
-    by.x  = "row.names",
-    by.y  = "Aliquot (Specimen Label)")
-  row.names(EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype) <- EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$Row.names
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$Row.names <- NULL
-  
-  df <- melt(EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype ,
-             variable.name = 'Gene')
-  df$tumor_stage_pathological <- as.factor(df$tumor_stage_pathological)
-  levels(df$tumor_stage_pathological)
-  levels(df$Gene)
-  
-  p1 <- ggplot(data = df,
-               aes(x     = tumor_stage_pathological,  
-                   #x     = x.ordered, # order primary disease
-                   y     = 2**value,
-                   color = Gene)) + #ylim(0, 2)+
-    stat_n_text(size = 4, fontface = "bold", angle = 90, hjust = 0) +
-    #stat_n_text(size     = 5, 
-    #  fontface = "bold", 
-    #  hjust    = 0) +
-    geom_boxplot(
-      #alpha    = .01,
-      #size     = .75,
-      #width    = 1,
-      #outlier.shape = 19,
-      position = position_dodge(width = .9)
-    ) +  #geom_jitter(width = 0.2) +
-    #facet_grid(~ Gene, scales = "free", space  = "free") +
-    labs(x = NULL,
-         y = paste("normalized RNA counts")) +
-    facet_rep_wrap(~ Gene, 
-                   scales = 'free_y', 
-                   repeat.tick.labels = c('left','bottom'))+
-    #scale_y_continuous(limits = c(0, 2.5))+
-    theme_bw() +
-    theme(
-      plot.title      = black_bold_12,
-      axis.title.x    = black_bold_12,
-      axis.title.y    = element_blank(),
-      axis.text.x     = black_bold_12_45,
-      axis.text.y     = black_bold_12,
-      axis.line.x     = element_line(color = "black"),
-      axis.line.y     = element_line(color = "black"),
-      panel.grid      = element_blank(),
-      legend.position = "none",
-      strip.text      = black_bold_12
-    ) +
-    stat_compare_means(
-      comparisons = list(c("Normal", "Stage I"),
-                         c("Normal", "Stage II"),
-                         c("Normal", "Stage III")),
-      method      = "t.test", 
-      label       = "p.signif", #label.y = 1,
-      size        = 4)
-  print(p1)
-  
-  
-  CPTAC.LUAD.Phosproteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv",data.table = FALSE)
-  EIF.CPTAC.LUAD.Phosproteomics <- CPTAC.LUAD.Phosproteomics[CPTAC.LUAD.Phosproteomics$Gene %in% c("EIF4A1"), ]
-  colnames(EIF.CPTAC.LUAD.Phosproteomics) <- sub(" Log Ratio", "", colnames(EIF.CPTAC.LUAD.Phosproteomics))
-  
-  row.names(EIF.CPTAC.LUAD.Phosproteomics) <- EIF.CPTAC.LUAD.Phosproteomics$Phosphosite
-  EIF.CPTAC.LUAD.Phosproteomics$Phosphosite <- NULL
-  
-  EIF.CPTAC.LUAD.Phosproteomics <- EIF.CPTAC.LUAD.Phosproteomics[1:(length(EIF.CPTAC.LUAD.Phosproteomics)-3)]
-  EIF.CPTAC.LUAD.Phosproteomics.t <- t(EIF.CPTAC.LUAD.Phosproteomics)
-  
-  EIF.CPTAC.LUAD.Phosproteomics.Sampletype <- merge(
-    EIF.CPTAC.LUAD.Phosproteomics.t,
-    CPTAC.LUAD.clinic.Sampletype,
-    by.x  = "row.names",
-    by.y  = "Aliquot (Specimen Label)")
-  rownames(EIF.CPTAC.LUAD.Phosproteomics.Sampletype) <- EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Row.names
-  EIF.CPTAC.LUAD.Phosproteomics.Sampletype$Row.names <- NULL
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$tumor_stage_pathological <- NULL
-  EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype$Type <- NULL
-  EIF.CPTAC.LUAD.phos.proteomics.Sampletype <- merge(EIF.CPTAC.LUAD.Phosproteomics.Sampletype,
-                                                     EIF.CPTAC.LUAD.Proteomics.clinic.Sampletype,
-                                                     by  = "row.names")
-  row.names(EIF.CPTAC.LUAD.phos.proteomics.Sampletype) <- EIF.CPTAC.LUAD.phos.proteomics.Sampletype$Row.names
-  EIF.CPTAC.LUAD.phos.proteomics.Sampletype$Row.names <- NULL
-  
-  
-  
-  df2 <- melt(EIF.CPTAC.LUAD.phos.proteomics.Sampletype ,
-              variable.name = 'Gene')
-  df2$Gene <- gsub(".*:",paste0("EIF4A1",":"),df2$Gene )
-  df2$Gene <- as.factor(df2$Gene)
-  levels(df2$Gene)
-  df2$Gene <- ordered(df2$Gene, 
-                      levels = c("EIF4A1", #"EIF4A1:s205",
-                                 "EIF4A1:s78","EIF4E"#"EIF4A1:t207","EIF4A1:y70"   
-                      ))
-  df2$Gene <- droplevels(df2$Gene)
-  df2 <- df2[!is.na(df2$Gene), ]
-  color <- function(){
-    n <- 15
-    qual_col_pals <- brewer.pal.info[brewer.pal.info$category == 'qual',]
-    col_vector <- unlist(mapply(brewer.pal, qual_col_pals$maxcolors, rownames(qual_col_pals)))}
-  col_vector <- color()
-  p2 <- ggplot(data = df2,
-               aes(x     = tumor_stage_pathological,  
-                   #x     = x.ordered, # order primary disease
-                   y     = 2**value,
-                   color = Gene)) + #ylim(0, 2)+
-    stat_n_text(size = 4, fontface = "bold", angle = 90, hjust = 0) +
-    geom_boxplot(
-      #alpha    = .01,
-      #size     = .75,
-      #width    = 1,
-      outlier.shape = 19,
-      position = position_dodge(width = .9)
-    ) +
-    scale_color_manual(values = col_vector)+
-    labs(x = NULL,
-         y = paste("normalized RNA counts")) +
-    facet_rep_wrap(~ Gene, 
-                   scales = 'free_y', 
-                   nrow   = 3, 
-                   repeat.tick.labels = c('left','bottom'))+
-    theme_bw() +
-    theme(
-      plot.title      = black_bold_12,
-      axis.title.x    = black_bold_12,
-      axis.title.y    = element_blank(),
-      axis.text.x     = black_bold_12_45,
-      axis.text.y     = black_bold_12,
-      axis.line.x     = element_line(color = "black"),
-      axis.line.y     = element_line(color = "black"),
-      panel.grid      = element_blank(),
-      legend.position = "none",
-      strip.text      = black_bold_12
-    ) +
-    stat_compare_means(
-      comparisons = list(c("Normal", "Stage I"),
-                         c("Normal", "Stage II"),
-                         c("Normal", "Stage III")),
-      method      = "t.test", 
-      label       = "p.signif", #label.y = 1,
-      size        = 4)
-  print(p2)
-  ggsave(
-    path        = "~/Documents/EIF_output/CPTAC", 
-    filename    = paste0("EIF4EBP1phospro.pdf"), 
-    plot        = p2,
-    width       = 16, 
-    height      = 12, 
-    useDingbats = FALSE)
-}
-plot.EIF4A1.CPTAC.pro.LUAD()
-
-
-######################################################
-plot.EIF.protein <- function(x) {
-  drawProteins::get_features("Q04637") ->
-    eIF4G1
-  drawProteins::feature_to_dataframe(eIF4G1) -> rel_data
-  head(rel_data[1:4])
-  write.csv(rel_data,"~/Documents/MyData.csv")
-  rel_data2 <- read.csv(file = '~/Documents/MyData2.csv')
-  
-  
-  draw_canvas(rel_data2) -> p
-  p <- draw_chains(p, rel_data2)
-  #p <- draw_domains(p, rel_data2)
-  p <- draw_regions(p, rel_data2)
-  #p <- draw_motif(p, rel_data)
-  p <- draw_phospho(p, rel_data2, size = 3) 
-
-  
-  p <- p + theme_bw(base_size = 20) + # white backgnd & change text size
-    theme(panel.grid.minor=element_blank(), 
-          panel.grid.major=element_blank()) +
-    theme(axis.ticks = element_blank(), 
-          axis.text.y = element_blank()) +
-    theme(panel.border = element_blank())+
-    theme(legend.position="top") + labs(fill="")
-  p
-  
-  ggsave(
-    path        = "~/Documents/EIF_output/CPTAC", 
-    filename    = paste0("EIF4G1diagram.pdf"), 
-    plot        = p,
-    width       = 16, 
-    height      = 6, 
-    useDingbats = FALSE)
-}
-
-### plot the scatter plot
-plot.cor.scatter <- function(x){
-  tumor.type <- c("Primary Tumor", "Metastatic")
-  TCGA.sampletype.all <- TCGA.sampletype.all[
-    TCGA.sampletype.all$sample_type %in% tumor.type, ]
-  TCGA.sampletype.all$sample_type <- as.factor(
-    TCGA.sampletype.all$sample_type)
-  TCGA.sampletype.all$sample_type <- factor(TCGA.sampletype.all$sample_type,
-                                            levels = c("Primary Tumor", "Metastatic"))
-  TCGA.sampletype.all$`_primary_disease` <- as.factor(
-    TCGA.sampletype.all$`_primary_disease`)
-  levels(TCGA.sampletype.all$sample_type)
-  levels(TCGA.sampletype.all$`_primary_disease`)
-  plotdata <- TCGA.sampletype.all %>% select(x,
-                                             c("EIF4E", "EIF4G1", "EIF4A1"), "sample_type")
-  black_bold_16 <- element_text(
-    color  = "black",
-    face   = "bold",
-    family = "Tahoma",
-    size   = 16
-  )
-  p1 <- ggscatter(data = plotdata,
-                  x          = x,
-                  y          = c("EIF4E", "EIF4G1", "EIF4A1"),
-                  # ylim      = c(4, 18),
-                  combine    = TRUE,
-                  ylab       = "log2(RNA expression)",
-                  size       = 1,
-                  color      = "sample_type",
-                  palette    = "aaas",
-                  # facet.by = "sample_type", #scales = "free_x",
-                  add        = "reg.line", # Add regression line
-                  fullrange  = TRUE, # Extending the regression line
-                  font.label = "bold",
-                  repel      = TRUE, # repel labels to avoid overlapping
-                  shape      = "sample_type", # Change point shape by sample_type
-                  rug        = TRUE,    # Add marginal rug
-                  conf.int   = TRUE,
-                  cor.coef   = TRUE, # Add correlation coefficient. see ?stat_cor
-                  cor.coeff.args = list(aes(color       = sample_type),
-                                        method      = "pearson",
-                                        label.y.npc = "bottom",
-                                        size        = 6)) +
-    theme_bw() +
-    theme(
-      plot.title      = black_bold_16,
-      axis.title      = black_bold_16,
-      axis.text.x     = black_bold_16,
-      axis.text.y     = black_bold_16,
-      axis.line.x     = element_line(color = "black"),
-      axis.line.y     = element_line(color = "black"),
-      panel.grid      = element_blank(),
-      legend.position = c(0.18, 0.9),
-      legend.title    = element_blank(),
-      legend.text     = black_bold_16,
-      strip.text      = black_bold_16
-    )
-  print(p1)
-}
-plot.cor.scatter(x = "CCNB1")
-lapply(EIF.gene, plot.cor.scatter, y = "CCNB1")
 
 
 
