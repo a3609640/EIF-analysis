@@ -51,6 +51,7 @@ library(vcd)
 library(vip)
 
 data.file.directory <- "~/Downloads"
+output.directory <- "~/Documents/EIF_output"
 
 EIF.gene <- c("EIF4E",
               "EIF4G1",
@@ -98,7 +99,7 @@ color <- function(){
 col_vector <- color()
 
 create.folders <- function() {
-  mainDir <- "~/Documents/EIF_output/"
+  mainDir <- paste0(output.directory, "/")
   subfolder_names <- c("Expression","CNV","PCA","KM","Cox","Heatmap") 
   for (j in 1:length(subfolder_names)){
     folder<-dir.create(paste0(mainDir,subfolder_names[j]),
@@ -126,7 +127,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv(
-      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
                                       !duplicated(colnames(TCGA.pancancer))]
@@ -176,7 +177,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
     M <- cor_5$r
     p_mat <- cor_5$P
     pdf(file.path(
-      path        = "~/Documents/EIF_output/Expression", 
+      path        = paste0(output.directory, "/Expression"), 
       filename    = "EIFmediancor.pdf"), 
       width       = 6, 
       height      = 6, 
@@ -205,7 +206,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
     p_mat <- cor_5$P
     
     pdf(file.path(
-      path        = "~/Documents/EIF_output/Expression", 
+      path        = paste0(output.directory, "/Expression"),
       filename    = "EIFsumPCAcor.pdf"), 
       width       = 6, 
       height      = 6, 
@@ -295,7 +296,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
       )
     print(p1)
     ggsave(
-      path        = "~/Documents/EIF_output/Expression/TCGA", 
+      path        = paste0(output.directory, "/Expression/TCGA"),
       filename    = "EIFexpressionTCGA.pdf", 
       plot        = p1,
       width       = 8, 
@@ -351,7 +352,7 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
       ) 
     print(p2)
     ggsave(
-      path        = "~/Documents/EIF_output/Expression/TCGA", 
+      path        = paste0(output.directory, "/Expression/TCGA"),
       filename    = "EIFsumexpressionTCGA.pdf", 
       plot        = p2,
       width       = 7, 
@@ -481,7 +482,7 @@ plot.boxgraph.EIF.RNAseq.GTEX <- function (EIF.gene) {
         )
       print(p1)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression/GTEX", 
+        path        = paste0(output.directory, "/Expression/GTEX"),
         filename    = "EIFexpressionGTEX.pdf", 
         plot        = p1,
         width       = 8, 
@@ -540,7 +541,7 @@ plot.boxgraph.EIF.RNAseq.GTEX <- function (EIF.gene) {
         ) 
       print(p2)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression/GTEX", 
+        path        = paste0(output.directory, "/Expression/GTEX"),
         filename    = "EIFsumexpressionGTEX.pdf", 
         plot        = p2,
         width       = 7, 
@@ -774,7 +775,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function (EIF.gene) {
       p <-  arrangeGrob(g1grob, g2grob) #generates g
       print(p)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression", 
+        path        = paste0(output.directory, "/Expression"),
         filename    = "EIFexpressionTCGAGTEX.pdf", 
         plot        = p,
         width       = 8, 
@@ -904,7 +905,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function (EIF.gene) {
       p <-  arrangeGrob(g1grob, g2grob) #generates g
       print(p)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression", 
+        path        = paste0(output.directory, "/Expression"),
         filename    = "EIFsumexpressionTCGAGTEX.pdf", 
         plot        = p,
         width       = 7, 
@@ -1044,7 +1045,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function (EIF.gene) {
       p <-  arrangeGrob(g1grob, g2grob) #generates g
       print(p)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression", 
+        path        = paste0(output.directory, "/Expression"),
         filename    = "EIFexprTCGA.pdf", 
         plot        = p,
         width       = 8, 
@@ -1175,7 +1176,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function (EIF.gene) {
       p <-  arrangeGrob(g1grob, g2grob) #generates g
       print(p)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression", 
+        path        = paste0(output.directory, "/Expression"),
         filename    = "EIFexprGTEX.pdf", 
         plot        = p,
         width       = 7, 
@@ -1342,7 +1343,7 @@ plot.boxgraph.EIF.ratio.TCGA <- function (EIF.gene) {
               strip.background     = element_blank(),
               strip.text.x         = element_blank())
       print(p1)
-      ggsave(path        = "~/Documents/EIF_output/Expression", 
+      ggsave(path        = paste0(output.directory, "/Expression"),
              filename    = "EIFratio.pdf", 
              plot        = p1,
              width       = 9, 
@@ -1419,7 +1420,7 @@ plot.boxgraph.EIF.ratio.TCGA <- function (EIF.gene) {
         guides(col = guide_legend(nrow = 1))
       print(p2)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression", 
+        path        = paste0(output.directory, "/Expression"),
         filename    = "EIFsumratio.pdf", 
         plot        = p2,
         width       = 12.5, 
@@ -1500,7 +1501,7 @@ plot.boxgraph.EIF.ratio.TCGA <- function (EIF.gene) {
         guides(col = guide_legend(nrow = 1))
       print(p2)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression", 
+        path        = paste0(output.directory, "/Expression"),
         filename    = "EIFsumratio2.pdf", 
         plot        = p2,
         width       = 12.5, 
@@ -1652,7 +1653,7 @@ plot.boxgraph.EIF.ratio.GTEX <- function (EIF.gene) {
           strip.text.x         = element_blank())
       print(p1)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression/GTEX", 
+        path        = paste0(output.directory, "/Expression/GTEX"),
         filename    = "EIFratioGTEX.pdf", 
         plot        = p1,
         width       = 12.5, 
@@ -1729,7 +1730,7 @@ plot.boxgraph.EIF.ratio.GTEX <- function (EIF.gene) {
         guides(col = guide_legend(nrow = 1))
       print(p2)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression/GTEX", 
+        path        = paste0(output.directory, "/Expression/GTEX"),
         filename    = "EIFsumratio2GTEX.pdf", 
         plot        = p2,
         width       = 12.5, 
@@ -1810,7 +1811,7 @@ plot.boxgraph.EIF.ratio.GTEX <- function (EIF.gene) {
         guides(col = guide_legend(nrow = 1))
       print(p2)
       ggsave(
-        path        = "~/Documents/EIF_output/Expression/GTEX", 
+        path        = paste0(output.directory, "/Expression/GTEX"),
         filename    = "EIFsumratioGTEX.pdf", 
         plot        = p2,
         width       = 12.5, 
@@ -2106,7 +2107,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function (EIF.gene) {
       p <-  arrangeGrob(g1grob, g2grob) #generates g
       print(p)
       
-      ggsave(path        = "~/Documents/EIF_output/Expression", 
+      ggsave(path        = paste0(output.directory, "/Expression"),
              filename    = "EIFratiozoom.pdf", 
              plot        = p,
              width       = 15, 
@@ -2272,7 +2273,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function (EIF.gene) {
       print(p)
       
       ggsave(
-        path        = "~/Documents/EIF_output/Expression", 
+        path        = paste0(output.directory, "/Expression"),
         filename    = "EIFsumratio2.pdf", 
         plot        = p,
         width       = 12.5, 
@@ -2437,7 +2438,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function (EIF.gene) {
       p <-  arrangeGrob(g1grob, g2grob) #generates g
       print(p)
       
-      ggsave(path        = "~/Documents/EIF_output/Expression", 
+      ggsave(path        = paste0(output.directory, "/Expression"),
              filename    = "EIFratiosumTCGA.pdf", 
              plot        = p,
              width       = 11, 
@@ -2598,7 +2599,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function (EIF.gene) {
       print(p)
       
       ggsave(
-        path        = "~/Documents/EIF_output/Expression", 
+        path        = paste0(output.directory, "/Expression"),
         filename    = "EIFratiosumGTEX.pdf", 
         plot        = p,
         width       = 10, 
@@ -2742,7 +2743,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
         label       = "p.signif", 
         size        = 6)
     print(p1)
-    ggsave(path        = "~/Documents/EIF_output/Expression", 
+    ggsave(path        = paste0(output.directory, "/Expression"),
            filename    = "EIFexpressionviolin.pdf", 
            plot        = p1,
            width       = 7.5, 
@@ -2801,7 +2802,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
                            c("Metastatic",    "Primary Tumor")),
         method = "t.test", label = "p.signif", size = 6)
     print(p2)
-    ggsave(path        = "~/Documents/EIF_output/Expression", 
+    ggsave(path        = paste0(output.directory, "/Expression"),
            filename    = "sumviolin.pdf", 
            plot        = p2,
            width       = 1.8, 
@@ -3009,7 +3010,7 @@ plot.violingraph.EIF.ratio.TCGA <- function (EIF.gene) {
         size   = 6, 
         hjust  = 0)
     print(p1)
-    ggsave(path        = "~/Documents/EIF_output/Expression", 
+    ggsave(path        = paste0(output.directory, "/Expression"),
            filename    = "EIFratioviolin.pdf", 
            plot        = p1,
            width       = 9, 
@@ -3080,7 +3081,7 @@ plot.violingraph.EIF.ratio.TCGA <- function (EIF.gene) {
         hjust       = 0)
     print(p2)
     ggsave(
-      path        = "~/Documents/EIF_output/Expression", 
+      path        = paste0(output.directory, "/Expression"),
       filename    = "EIFsumratioviolin.pdf", 
       plot        = p2,
       width       = 4.8, 
@@ -3153,7 +3154,7 @@ plot.violingraph.EIF.ratio.TCGA <- function (EIF.gene) {
         hjust       = 0)
     print(p3)
     ggsave(
-      path        = "~/Documents/EIF_output/Expression", 
+      path        = paste0(output.directory, "/Expression"),
       filename    = "EIFsumratioviolin2.pdf", 
       plot        = p3,
       width       = 4.8, 
@@ -3270,7 +3271,7 @@ plot.bargraph.EIF.CNV.TCGA <- function (EIF) {
                                    'darkred')) 
     print(p1)
     ggsave(
-      path        = "~/Documents/EIF_output/CNV", 
+      path        = paste0(output.directory, "/CNV"), 
       filename    = paste0(EIF, "pancancerCNV.pdf"), 
       plot        = p1,
       width       = 9, 
@@ -3373,7 +3374,7 @@ plot.bargraph.EIF.CNV.sum <- function (EIF) {
                         values = c('darkblue','blue','lightgreen','red','darkred')) 
     print(p1)
     ggsave(
-      path        = "~/Documents/EIF_output/CNV", 
+      path        = paste0(output.directory, "/CNV"), 
       filename    = "EIFCNVsum.pdf", 
       plot        = p1,
       width       = 7, 
@@ -3439,7 +3440,7 @@ plot.matrix.EIF.CNV.corr <- function (EIF) {
     M <- cor_5$r
     p_mat <- cor_5$P
     pdf(file.path(
-      path        = "~/Documents/EIF_output/CNV", 
+      path        = paste0(output.directory, "/CNV"), 
       filename    = "EIFCNVcormatrix.pdf"), 
       width       = 8, 
       height      = 8, 
@@ -3558,7 +3559,7 @@ plot.violin.EIF.CNV.RNAseq <- function (EIF) {
     
     print(p1)
     ggsave(
-      path        = "~/Documents/EIF_output/CNV", 
+      path        = paste0(output.directory, "/CNV"), 
       filename    = paste0(EIF,"CNV&RNAseq.pdf"), 
       plot        = p1,
       width       = 6.5, 
@@ -3684,7 +3685,7 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function (EIF) {
       )
     print(p1)
     ggsave(
-      path        = "~/Documents/EIF_output/CNV", 
+      path        = paste0(output.directory, "/CNV"), 
       filename    = paste0(EIF, "pancancerCNVratio.pdf"), 
       plot        = p1,
       width       = 8, 
@@ -3903,7 +3904,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
             legend.text       = black_bold_16)
     print(biplot)
     ggsave(
-      path        = "~/Documents/EIF_output/PCA/All", 
+      path        = paste0(output.directory, "/PCA/All"), 
       filename    = "EIFPCAall.pdf", 
       plot        = biplot,
       width       = 8, 
@@ -3950,7 +3951,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/All", 
+        path        = paste0(output.directory, "/PCA/All"), 
         filename    = paste0("EIFPCAall",sample,".pdf"), 
         plot        = biplot,
         width       = 8, 
@@ -4002,7 +4003,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_12)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/All", 
+        path        = paste0(output.directory, "/PCA/All"), 
         filename    = paste0("EIFPCAall",sample,"color.pdf"), 
         plot        = biplot,
         width       = 8, 
@@ -4052,7 +4053,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_12)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/All", 
+        path        = paste0(output.directory, "/PCA/All"), 
         filename    = paste0("EIFPCAall",sample,"color.pdf"), 
         plot        = biplot,
         width       = 8, 
@@ -4167,7 +4168,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
         axis.text.y       = black_bold_16)
     print(eig)
     ggsave(
-      path        = "~/Documents/EIF_output/PCA/All", 
+      path        = paste0(output.directory, "/PCA/All"), 
       filename    = "EIFPCAeig.pdf", 
       plot        = eig,
       width       = 8, 
@@ -4181,7 +4182,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
     var <- get_pca_var(res.pca)
     corrplot(var$contrib, is.corr=FALSE)  
     
-    pdf(file.path(path        = "~/Documents/EIF_output/PCA/All", 
+    pdf(file.path(path        = paste0(output.directory, "/PCA/All"), 
                   filename    = "EIFPCAcor.pdf"), 
         width       = 9, 
         height      = 9, 
@@ -4260,7 +4261,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
         legend.text       = black_bold_16)
     print(biplot)
     ggsave(
-      path        = "~/Documents/EIF_output/PCA/All", 
+      path        = paste0(output.directory, "/PCA/All"), 
       filename    = "EIFPCAall-brain.pdf", 
       plot        = biplot,
       width       = 8, 
@@ -4307,7 +4308,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/All", 
+        path        = paste0(output.directory, "/PCA/All"), 
         filename    = paste0("EIFPCAall",sample,"-brain.pdf"), 
         plot        = biplot,
         width       = 8, 
@@ -4359,7 +4360,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/All", 
+        path        = paste0(output.directory, "/PCA/All"), 
         filename    = paste0("EIFPCAall",sample,"-brain color.pdf"), 
         plot        = biplot,
         width       = 8, 
@@ -4408,7 +4409,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/All", 
+        path        = paste0(output.directory, "/PCA/All"), 
         filename    = paste0("EIFPCAall",sample,"-brain color.pdf"), 
         plot        = biplot,
         width       = 8, 
@@ -4466,7 +4467,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
         axis.text.y       = black_bold_16)
     print(eig)
     ggsave(
-      path        = "~/Documents/EIF_output/PCA/All", 
+      path        = paste0(output.directory, "/PCA/All"), 
       filename    = "EIFPCAeig-brain.pdf", 
       plot        = eig,
       width       = 8, 
@@ -4480,7 +4481,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
     var <- get_pca_var(res.pca)
     corrplot(var$contrib, is.corr=FALSE)  
     
-    pdf(file.path(path        = "~/Documents/EIF_output/PCA/All", 
+    pdf(file.path(path        = paste0(output.directory, "/PCA/All"), 
                   filename    = "EIFPCAcor-brain.pdf"), 
         width       = 9, 
         height      = 9, 
@@ -4619,7 +4620,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
         legend.text       = black_bold_16)
     print(biplot)
     ggsave(
-      path        = "~/Documents/EIF_output/PCA/All", 
+      path        = paste0(output.directory, "/PCA/All"), 
       filename    = "EIFsumPCAall.pdf", 
       plot        = biplot,
       width       = 8, 
@@ -4666,7 +4667,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/All", 
+        path        = paste0(output.directory, "/PCA/All"), 
         filename    = paste0("EIFsumPCAall",sample,".pdf"), 
         plot        = biplot,
         width       = 8, 
@@ -4753,7 +4754,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
         axis.text.y       = black_bold_16)
     print(eig)
     ggsave(
-      path        = "~/Documents/EIF_output/PCA/All", 
+      path        = paste0(output.directory, "/PCA/All"), 
       filename    = "EIFsumPCAeig.pdf", 
       plot        = eig,
       width       = 8, 
@@ -4765,7 +4766,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
     corrplot(var$contrib, is.corr=FALSE)    
     
     pdf(file.path(
-      path        = "~/Documents/EIF_output/PCA/All", 
+      path        = paste0(output.directory, "/PCA/All"), 
       filename    = "EIFsumcor.pdf"), 
       width       = 9, 
       height      = 9, 
@@ -4932,7 +4933,7 @@ plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = paste0(x,"EIFPCA.pdf"), 
         plot        = biplot,
         width       = 8, 
@@ -4959,7 +4960,7 @@ plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
           axis.text.y     = black_bold_16)
       print(eig)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = paste0(x,"EIFeig.pdf"), 
         plot        = eig,
         width       = 8, 
@@ -4986,7 +4987,7 @@ plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
             axis.text.y       = black_bold_16)
         print(p)
         ggsave(
-          path        = "~/Documents/EIF_output/PCA/TCGA", 
+          path        = paste0(output.directory, "/PCA/TCGA"),
           filename    = paste0("EIFcontri",x,".pdf"), 
           plot        = p,
           width       = 8, 
@@ -4999,7 +5000,7 @@ plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
       #corrplot(var$contrib, is.corr=FALSE)    
       #fviz_pca_var(res.pca, col.var="contrib")
       pdf(file.path(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = paste0(x,"EIFPCAcor.pdf")), 
         width       = 9, 
         height      = 9, 
@@ -5096,7 +5097,7 @@ plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = paste0(x,"EIFsumPCA.pdf"), 
         plot        = biplot,
         width       = 8, 
@@ -5123,7 +5124,7 @@ plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
           axis.text.y      = black_bold_16)
       print(eig)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = paste0(x,"EIFsumeig.pdf"), 
         plot        = eig,
         width       = 8, 
@@ -5150,7 +5151,7 @@ plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
             axis.text.y       = black_bold_16)
         print(p)
         ggsave(
-          path        = "~/Documents/EIF_output/PCA/TCGA", 
+          path        = paste0(output.directory, "/PCA/TCGA"),
           filename    = paste0("EIFsumcontri",x,".pdf"), 
           plot        = p,
           width       = 8, 
@@ -5163,7 +5164,7 @@ plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
       #corrplot(var$contrib, is.corr=FALSE)    
       #fviz_pca_var(res.pca, col.var="contrib")
       pdf(file.path(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = paste0(x,"EIFsumPCAcor.pdf")), 
         width       = 9, 
         height      = 9, 
@@ -5309,7 +5310,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
               legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = "EIFPCAprimary.pdf", 
         plot        = biplot,
         width       = 8, 
@@ -5386,7 +5387,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
               axis.text.x      = black_bold_16,
               axis.text.y      = black_bold_16)
       print(eig)
-      ggsave(path        = "~/Documents/EIF_output/PCA/TCGA", 
+      ggsave(path        = paste0(output.directory, "/PCA/TCGA"),
              filename    = "EIFeigprimary.pdf", 
              plot        = eig,
              width       = 8, 
@@ -5395,7 +5396,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
       var <- get_pca_var(res.pca)
       #fviz_pca_var(res.pca, col.var="contrib")
       
-      pdf(file.path(path = "~/Documents/EIF_output/PCA/TCGA", 
+      pdf(file.path(path = paste0(output.directory, "/PCA/TCGA"),
                     filename = "EIFcorprimary.pdf"), 
           width       = 9, 
           height      = 9, 
@@ -5479,7 +5480,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
               legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = "EIFPCAmetastatic.pdf", 
         plot        = biplot,
         width       = 8, 
@@ -5528,7 +5529,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
               axis.text.x      = black_bold_16,
               axis.text.y      = black_bold_16)
       print(eig)
-      ggsave(path        = "~/Documents/EIF_output/PCA/TCGA", 
+      ggsave(path        = paste0(output.directory, "/PCA/TCGA"),
              filename    = "EIFeigmetastatic.pdf", 
              plot        = eig,
              width       = 8, 
@@ -5537,7 +5538,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
       var <- get_pca_var(res.pca)
       #fviz_pca_var(res.pca, col.var="contrib")
       
-      pdf(file.path(path = "~/Documents/EIF_output/PCA/TCGA", 
+      pdf(file.path(path = paste0(output.directory, "/PCA/TCGA"),
                     filename = "EIFcormetastatic.pdf"), 
           width       = 9, 
           height      = 9, 
@@ -5628,7 +5629,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = "EIFsumPCAprimary.pdf", 
         plot        = biplot,
         width       = 8, 
@@ -5681,7 +5682,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
           axis.text.y       = black_bold_16)
       print(eig)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = "EIFsumeigprimary.pdf", 
         plot        = eig,
         width       = 8, 
@@ -5690,7 +5691,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
       var <- get_pca_var(res.pca)
       #fviz_pca_var(res.pca, col.var="contrib")
       
-      pdf(file.path(path = "~/Documents/EIF_output/PCA/TCGA", 
+      pdf(file.path(path = paste0(output.directory, "/PCA/TCGA"),
                     filename = "EIFsumcorprimary.pdf"), 
           width       = 9, 
           height      = 9, 
@@ -5779,7 +5780,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = "EIFsumPCAmetastatic.pdf", 
         plot        = biplot,
         width       = 8, 
@@ -5832,7 +5833,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
           axis.text.y       = black_bold_16)
       print(eig)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/TCGA", 
+        path        = paste0(output.directory, "/PCA/TCGA"),
         filename    = "EIFsumeigmetastatic.pdf", 
         plot        = eig,
         width       = 8, 
@@ -5841,7 +5842,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
       var <- get_pca_var(res.pca)
       #fviz_pca_var(res.pca, col.var="contrib")
       
-      pdf(file.path(path = "~/Documents/EIF_output/PCA/TCGA", 
+      pdf(file.path(path = paste0(output.directory, "/PCA/TCGA"),
                     filename = "EIFsumcormetastatic.pdf"), 
           width       = 9, 
           height      = 9, 
@@ -6080,7 +6081,7 @@ plot.EIF.GTEX.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/GTEX", 
+        path        = paste0(output.directory, "/PCA/GTEX"),
         filename    = "EIFPCAGTEX.pdf", 
         plot        = biplot,
         width       = 8, 
@@ -6163,7 +6164,7 @@ plot.EIF.GTEX.PCA.all <- function (EIF.list) {
       print(eig)
       
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/GTEX", 
+        path        = paste0(output.directory, "/PCA/GTEX"),
         filename    = "EIFeigGTEX.pdf", 
         plot        = eig,
         width       = 8, 
@@ -6172,7 +6173,7 @@ plot.EIF.GTEX.PCA.all <- function (EIF.list) {
       var <- get_pca_var(res.pca)
       #fviz_pca_var(res.pca, col.var="contrib")
       
-      pdf(file.path(path = "~/Documents/EIF_output/PCA/GTEX", 
+      pdf(file.path(path = paste0(output.directory, "/PCA/GTEX"),
                     filename = "EIFcorGTEX.pdf"), 
           width       = 9, 
           height      = 9, 
@@ -6327,7 +6328,7 @@ plot.EIF.GTEX.PCA.all <- function (EIF.list) {
           legend.text       = black_bold_16)
       print(biplot)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/GTEX", 
+        path        = paste0(output.directory, "/PCA/GTEX"),
         filename    = "EIFsumGTEX.pdf", 
         plot        = biplot,
         width       = 8, 
@@ -6408,7 +6409,7 @@ plot.EIF.GTEX.PCA.all <- function (EIF.list) {
           axis.text.y       = black_bold_16)
       print(eig)
       ggsave(
-        path        = "~/Documents/EIF_output/PCA/GTEX", 
+        path        = paste0(output.directory, "/PCA/GTEX"),
         filename    = "EIFsumeigGTEX.pdf", 
         plot        = eig,
         width       = 8, 
@@ -6417,7 +6418,7 @@ plot.EIF.GTEX.PCA.all <- function (EIF.list) {
       var <- get_pca_var(res.pca)
       #fviz_pca_var(res.pca, col.var="contrib")
       
-      pdf(file.path(path = "~/Documents/EIF_output/PCA/GTEX", 
+      pdf(file.path(path = paste0(output.directory, "/PCA/GTEX"),
                     filename = "EIFsumcorGTEX.pdf"), 
           width       = 9, 
           height      = 9, 
@@ -6515,7 +6516,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function(){
     p_mat <- cor_5$P
     
     pdf(file.path(
-      path        = "~/Documents/EIF_output/PCA/CPTAC", 
+      path        = paste0(output.directory, "/PCA/CPTAC"),
       filename    = "EIFsumLUADcor.pdf"), 
       width       = 6, 
       height      = 6, 
@@ -6583,7 +6584,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function(){
       legend.text       = black_bold_16)
   print(biplot)
   ggsave(
-    path        = "~/Documents/EIF_output/PCA/CPTAC", 
+    path        = paste0(output.directory, "/PCA/CPTAC"),
     filename    = "EIFLUADPCA.pdf", 
     plot        = biplot,
     width       = 8, 
@@ -6609,7 +6610,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function(){
       axis.text.y      = black_bold_16)
   print(eig)
   ggsave(
-    path        = "~/Documents/EIF_output/PCA/CPTAC", 
+    path        = paste0(output.directory, "/PCA/CPTAC"),
     filename    = "EIFLUADEig.pdf", 
     plot        = eig,
     width       = 8, 
@@ -6618,7 +6619,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function(){
   var <- get_pca_var(res.pca)
   #fviz_pca_var(res.pca, col.var="contrib")
   pdf(file.path(
-    path        = "~/Documents/EIF_output/PCA/CPTAC", 
+    path        = paste0(output.directory, "/PCA/CPTAC"),
     filename    = "EIFLUADcor.pdf"), 
     width       = 9, 
     height      = 9, 
@@ -6710,7 +6711,7 @@ plot.EIF.CPTAC.PCA.BRCA <- function(){
       legend.text          = black_bold_16)
   print(biplot)
   ggsave(
-    path        = "~/Documents/EIF_output/PCA/CPTAC", 
+    path        = paste0(output.directory, "/PCA/CPTAC"),
     filename    = "EIFBRCAPCA.pdf", 
     plot        = biplot,
     width       = 8, 
@@ -6736,7 +6737,7 @@ plot.EIF.CPTAC.PCA.BRCA <- function(){
       axis.text.y      = black_bold_16)
   print(eig)
   ggsave(
-    path        = "~/Documents/EIF_output/PCA/CPTAC", 
+    path        = paste0(output.directory, "/PCA/CPTAC"),
     filename    = "EIFBRCAEig.pdf", 
     plot        = eig,
     width       = 8, 
@@ -6745,7 +6746,7 @@ plot.EIF.CPTAC.PCA.BRCA <- function(){
   var <- get_pca_var(res.pca)
   #fviz_pca_var(res.pca, col.var="contrib")
   pdf(file.path(
-    path        = "~/Documents/EIF_output/PCA/CPTAC", 
+    path        = paste0(output.directory, "/PCA/CPTAC"),
     filename    = "EIFBRCAcor.pdf"), 
     width       = 9, 
     height      = 9, 
@@ -6899,7 +6900,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
     
     print(KM)
     ggsave(
-      path        = "~/Documents/EIF_output/KM", 
+      path        = paste0(output.directory, "/KM"),
       filename    = paste(EIF," all tumors KM.pdf"), 
       plot        = KM,
       width       = 6, 
@@ -7050,7 +7051,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
         fontface = "bold")
     print(KM)
     ggsave(
-      path        = "~/Documents/EIF_output/KM", 
+      path        = paste0(output.directory, "/KM"),
       filename    = paste(EIF, tumor,"KM.pdf"), 
       plot        = KM,
       width       = 6, 
@@ -7411,7 +7412,7 @@ plot.coxph.EIF.all.tumors <- function(){
   # par(mfrow=c(3,2))
   # For plotting options, type '?plot.glmnet' in R console
   pdf(file.path(
-    path        = "~/Documents/EIF_output/Cox", 
+    path        = paste0(output.directory, "/Cox"),
     filename    = "EIFlasso.pdf"), 
     width       = 6, 
     height      = 6, 
@@ -7433,7 +7434,7 @@ plot.coxph.EIF.all.tumors <- function(){
   M <- cor_5$r
   p_mat <- cor_5$P
   pdf(file.path(
-    path        = "~/Documents/EIF_output/Cox", 
+    path        = paste0(output.directory, "/Cox"),
     filename    = "EIFcormatrix.pdf"), 
     width       = 8, 
     height      = 8, 
@@ -7587,7 +7588,7 @@ plot.coxph.EIF.lung.tumor <- function(tumor){
       c("P Value", data$p),
       c("P Value for\nInteraction", data$pinteraction))
     
-    pdf(file    = paste0("~/Documents/EIF_output/Cox/", 
+    pdf(file    = paste0(output.directory, "/Cox/", 
                          tumor, 
                          "EIFuniCox.pdf"),
         width   = 10, 
@@ -7661,7 +7662,7 @@ plot.coxph.EIF.lung.tumor <- function(tumor){
     
     
     pdf(
-      file   = paste0("~/Documents/EIF_output/Cox/", 
+      file   = paste0(output.directory, "/Cox/", 
                       tumor, 
                       "EIFmultiCox.pdf"),
       width  = 10, 
@@ -7811,7 +7812,7 @@ plot.coxph.EIF.lung.tumor <- function(tumor){
   M <- cor_5$r
   p_mat <- cor_5$P
   pdf(file.path(
-    path        = "~/Documents/EIF_output/Cox", 
+    path        = paste0(output.directory, "/Cox"),
     filename    = paste0(tumor, "EIFcormatrix.pdf")), 
     width       = 8, 
     height      = 8, 
@@ -7941,7 +7942,7 @@ plot.coxph.EIF.breast.tumor <- function(tumor){
       ggtheme           = ggplot2::theme_bw(base_size = 7))
   print(p)
   ggsave(
-    path        = "~/Documents/EIF_output/Cox", 
+    path        = paste0(output.directory, "/Cox"),
     filename    = paste0(tumor, "EIFuniCox.pdf"),
     plot        = p,
     width       = 5, 
@@ -7968,7 +7969,7 @@ plot.coxph.EIF.breast.tumor <- function(tumor){
                     HR_x_limits       = c(0.4, 2.9)) #more breaks on the X axis
   print(p2)
   ggsave(
-    path        = "~/Documents/EIF_output/Cox", 
+    path        = paste0(output.directory, "/Cox"),
     filename    = paste0(tumor, "EIFmultiCox.pdf"), 
     plot        = p2,
     width       = 5, 
@@ -7995,7 +7996,7 @@ plot.coxph.EIF.breast.tumor <- function(tumor){
                     HR_x_limits       = c(0.5, 2.7)) #more breaks on the X axis
   print(p3)
   ggsave(
-    path        = "~/Documents/EIF_output/Cox", 
+    path        = paste0(output.directory, "/Cox"),
     filename    = paste0(tumor, "EIFsummultiCox.pdf"), 
     plot        = p3,
     width       = 5, 
@@ -8008,7 +8009,7 @@ plot.coxph.EIF.breast.tumor <- function(tumor){
   M <- cor_5$r
   p_mat <- cor_5$P
   pdf(file.path(
-    path        = "~/Documents/EIF_output/Cox", 
+    path        = paste0(output.directory, "/Cox"),
     filename    = paste0(tumor, "EIFcormatrix.pdf")), 
     width       = 8, 
     height      = 8, 
@@ -8135,7 +8136,7 @@ plot.Venn.all <- function() {
                                    cex    = 1.25))
       print(p1)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste("all",z,"posVenn.pdf"), 
         plot        = p1,
         width       = 8, 
@@ -8183,7 +8184,7 @@ plot.Venn.all <- function() {
                                cex    = 1.25))
       print(p2)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste("all", z, "pos4Venn.pdf"), 
         plot        = p2,
         width       = 8, 
@@ -8223,7 +8224,7 @@ plot.Venn.all <- function() {
                                    cex    = 1.25))
       print(p1)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste("all",z,"negVenn.pdf"), 
         plot        = p1,
         width       = 8, 
@@ -8271,7 +8272,7 @@ plot.Venn.all <- function() {
                                    cex    = 1.25))
       print(p2)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste("all", z, "neg4Venn.pdf"), 
         plot        = p2,
         width       = 8, 
@@ -8311,7 +8312,7 @@ plot.Venn.all <- function() {
                                    cex    = 1.25))
       print(p1)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste("all",z,"posnegVenn.pdf"), 
         plot        = p1,
         width       = 8, 
@@ -8358,7 +8359,7 @@ plot.Venn.all <- function() {
                                cex    = 1.25))
       print(p2)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste("all", z, "posneg4Venn.pdf"), 
         plot        = p2,
         width       = 8, 
@@ -8453,7 +8454,7 @@ plot.Venn.all <- function() {
       )
     print(p1)
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste("all posCORs.pdf"), 
       plot        = p1,
       width       = 8, 
@@ -8492,7 +8493,7 @@ plot.Venn.all <- function() {
       )
     print(p2)
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste("all negCORs.pdf"), 
       plot        = p2,
       width       = 8, 
@@ -8615,7 +8616,7 @@ plot.Venn.lung <- function(x) {
                                    cex        = 1.5))
       print(p1)
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste(x,z,"posVenn.pdf"), 
         plot        = p1,
         width       = 8, 
@@ -8661,7 +8662,7 @@ plot.Venn.lung <- function(x) {
                                cex    = 1.25))
       print(p2)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste(x, z, "pos4Venn.pdf"), 
         plot        = p2,
         width       = 8, 
@@ -8703,7 +8704,7 @@ plot.Venn.lung <- function(x) {
                                    cex        = 1.5))
       print(p1)
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste(x,z,"negVenn.pdf"), 
         plot        = p1,
         width       = 8, 
@@ -8749,7 +8750,7 @@ plot.Venn.lung <- function(x) {
                                cex    = 1.25))
       print(p2)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste(x, z, "neg4Venn.pdf"), 
         plot        = p2,
         width       = 8, 
@@ -8790,7 +8791,7 @@ plot.Venn.lung <- function(x) {
                                    cex    = 1.25))
       print(p1)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste(x,z,"posnegVenn.pdf"), 
         plot        = p1,
         width       = 8, 
@@ -8837,7 +8838,7 @@ plot.Venn.lung <- function(x) {
                                cex    = 1.25))
       print(p2)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste(x, z, "posneg4Venn.pdf"), 
         plot        = p2,
         width       = 8, 
@@ -8929,7 +8930,7 @@ plot.Venn.lung <- function(x) {
       )
     print(p1)
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste(x,"posCORs.pdf"), 
       plot        = p1,
       width       = 8, 
@@ -8968,7 +8969,7 @@ plot.Venn.lung <- function(x) {
       )
     print(p2)
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste(x,"negCORs.pdf"), 
       plot        = p2,
       width       = 8, 
@@ -9137,7 +9138,7 @@ plot.heatmap.total <- function() {
             annotation_legend_side = "top")
   
   pdf(file.path(
-    path        = "~/Documents/EIF_output/Heatmap", 
+    path        =paste0(output.directory, "/Heatmap"),
     filename    = "All tumors heatmap.pdf"), 
     width       = 8, 
     height      = 8, 
@@ -9193,7 +9194,7 @@ plot.heatmap.total <- function() {
             strip.text   = black_bold_16)
     print(p1)    
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste("all tumors GO.pdf"), 
       plot        = p1,
       width       = 10, 
@@ -9218,7 +9219,7 @@ plot.heatmap.total <- function() {
             strip.text   = black_bold_16)
     print(p2)    
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste("all tumors KEGG.pdf"), 
       plot        = p2,
       width       = 12, 
@@ -9243,7 +9244,7 @@ plot.heatmap.total <- function() {
             strip.text   = black_bold_16)
     print(p3)
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste("all tumors REACTOME.pdf"), 
       plot        = p3,
       width       = 12, 
@@ -9364,7 +9365,7 @@ plot.heatmap.lung <- function(x){
                                    cex        = 1.5))
       print(p1)
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste(x,"Venn.pdf"), 
         plot        = p1,
         width       = 8, 
@@ -9454,7 +9455,7 @@ plot.heatmap.lung <- function(x){
             annotation_legend_side = "top")
   
   pdf(file.path(
-    path        = "~/Documents/EIF_output/Heatmap", 
+    path        =paste0(output.directory, "/Heatmap"),
     filename    = paste(x, "tumors heatmap.pdf")), 
     width       = 8, 
     height      = 8, 
@@ -9507,7 +9508,7 @@ plot.heatmap.lung <- function(x){
             strip.text   = black_bold_16)
     print(p1)
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste(x,"Go.pdf"), 
       plot        = p1,
       width       = 10, 
@@ -9531,7 +9532,7 @@ plot.heatmap.lung <- function(x){
             strip.text   = black_bold_16)
     print(p2)
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste(x,"KEGG.pdf"), 
       plot        = p2,
       width       = 12, 
@@ -9555,7 +9556,7 @@ plot.heatmap.lung <- function(x){
             strip.text   = black_bold_16)
     print(p3)
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste(x,"REACTOME.pdf"), 
       plot        = p3,
       width       = 14, 
@@ -9608,7 +9609,7 @@ plot.heatmap.lung <- function(x){
       show_colnames  = FALSE)
     print(p4)
     ggsave(
-      path        = "~/Documents/EIF_output/Heatmap", 
+      path        =paste0(output.directory, "/Heatmap"),
       filename    = paste(x,"cluster3 heatmap.pdf"), 
       plot        = p4,
       width       = 8, 
@@ -9729,7 +9730,7 @@ plot.heatmap.GTEX <- function() {
                                cex    = 1.25))
       print(p1)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste("all healthy Venn.pdf"), 
         plot        = p1,
         width       = 8, 
@@ -9991,7 +9992,7 @@ plot.heatmap.TCGA <- function() {
                                cex    = 1.25))
       print(p1)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste("all tumor Venn.pdf"), 
         plot        = p1,
         width       = 8, 
@@ -10034,7 +10035,7 @@ plot.heatmap.TCGA <- function() {
                                cex    = 1.25))
       print(p2)    
       ggsave(
-        path        = "~/Documents/EIF_output/Heatmap", 
+        path        =paste0(output.directory, "/Heatmap"),
         filename    = paste("all tumor 4Venn.pdf"), 
         plot        = p2,
         width       = 8, 
@@ -11336,7 +11337,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function(){
                            label       = "p.signif", label.y = c(1.7,1.9,2.1),
                            size        = 4)
       print(p2)
-      ggsave(path        = "~/Documents/EIF_output/CPTAC", 
+      ggsave(path        = paste0(output.directory, "/CPTAC"),
              filename    = paste0(str_remove(x, ":"), "pro.pdf"), 
              plot        = p2,
              width       = 2.5, 
@@ -11404,7 +11405,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function(){
                            label       = "p.signif", label.y = c(7.2,8.4,9.6),
                            size        = 4)
       print(p2)
-      ggsave(path        = "~/Documents/EIF_output/CPTAC", 
+      ggsave(path        = paste0(output.directory, "/CPTAC"),
              filename    = paste0(str_remove(x, ":"), "phospro.pdf"), 
              plot        = p2,
              width       = 2.5, 
@@ -11627,7 +11628,7 @@ plot.EIF4G1.CPTAC.pro.LUAD <- function(){
       size        = 4)
   print(p2)
   ggsave(
-    path        = "~/Documents/EIF_output/CPTAC", 
+    path        = paste0(output.directory, "/CPTAC"),
     filename    = paste0("EIF4G1phospro.pdf"), 
     plot        = p2,
     width       = 16, 
@@ -11824,7 +11825,7 @@ plot.EIF4EBP1.CPTAC.pro.LUAD <- function(){
       size        = 4)
   print(p2)
   ggsave(
-    path        = "~/Documents/EIF_output/CPTAC", 
+    path        = paste0(output.directory, "/CPTAC"),
     filename    = paste0("EIF4EBP1phospro.pdf"), 
     plot        = p2,
     width       = 16, 
@@ -12017,7 +12018,7 @@ plot.EIF4A1.CPTAC.pro.LUAD <- function(){
       size        = 4)
   print(p2)
   ggsave(
-    path        = "~/Documents/EIF_output/CPTAC", 
+    path        = paste0(output.directory, "/CPTAC"),
     filename    = paste0("EIF4EBP1phospro.pdf"), 
     plot        = p2,
     width       = 16, 
@@ -12033,8 +12034,8 @@ plot.EIF.protein <- function(x) {
     eIF4G1
   drawProteins::feature_to_dataframe(eIF4G1) -> rel_data
   head(rel_data[1:4])
-  write.csv(rel_data,"~/Documents/MyData.csv")
-  rel_data2 <- read.csv(file = '~/Documents/MyData2.csv')
+  write.csv(rel_data,paste0(output.directory, "/MyData.csv"))
+  rel_data2 <- read.csv(file = paste0(output.directory('/MyData2.csv')))
   
   
   draw_canvas(rel_data2) -> p
@@ -12055,7 +12056,7 @@ plot.EIF.protein <- function(x) {
   p
   
   ggsave(
-    path        = "~/Documents/EIF_output/CPTAC", 
+    path        = paste0(output.directory, "/CPTAC"),
     filename    = paste0("EIF4G1diagram.pdf"), 
     plot        = p,
     width       = 16, 
