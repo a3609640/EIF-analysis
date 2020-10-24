@@ -37,32 +37,33 @@ Please download all datasets from the following weblinks and store them at the f
 ```
 This project makes use of data files that must be fetched from remote sources.  The necessary links are provided below.  Note that the .gz files must be unzipped after they are downloaded.
 
-### Xena DATA
-https://pancanatlas.xenahubs.net/download/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena.gz
-https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
-https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
-https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_data_by_genes.gz
+### TCGA and GTEX DATA
+#### TCGA CNV dataset (thresholded)
 https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes.gz
-https://toil.xenahubs.net/download/GTEX_phenotype.gz
-https://toil.xenahubs.net/download/gtex_RSEM_Hugo_norm_count.gz
-https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
+#### TCGA CNV dataset
+https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_data_by_genes.gz
+#### TCGA CNV ratio dataset
+https://pancanatlas.xenahubs.net/download/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena.gz
+#### TCGA RNA-Seq dataset
+https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
+#### TCGA sample type annotation
+https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
+#### TCGA OS data ##
 https://xenabrowser.net/datapages/?dataset=Survival_SupplementalTable_S1_20171025_xena_sp&host=https%3A%2F%2Fpancanatlas.xenahubs.net
+#### TCGA and GTEX RNA-Seq dataset
+https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
+#### TCGA and GTEX sample type annotation
+download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
 
 ### CPTAC DATA
-
 #### CPTAC LUAD Proteomics
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_Proteome_CDAP_Protein_Report.r1/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv
-
 #### CPTAC LUAD Phosproteomics
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_Phosphoproteome_CDAP_Protein_Report.r1/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv
-
 #### CPTAC LUAD Sample Annotation
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_metadata/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx
-
 #### CPTAC Clinical Data
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_metadata/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx
-
 
 ## LIBRARIES
 The work here depends upon many R libraries.

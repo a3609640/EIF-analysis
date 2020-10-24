@@ -508,7 +508,6 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function (EIF) {
   pan.TCGA.CNV <- function(){
     #download https://pancanatlas.xenahubs.net/download/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena.gz
     TCGA.pancancer <- fread(
-      #paste0(data.file.directory, "/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
       paste0(data.file.directory, "/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena"),
       data.table = FALSE)
     TCGA.pancancer <- as.data.frame(TCGA.pancancer)
@@ -573,7 +572,7 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function (EIF) {
     col = sample(col_vector, n)
     return(col)
   }
-  col_vector <- color(33)
+  #col_vector <- color(33)
   
   make.plot <- function (EIF) {
     sts <- boxplot.stats(EIF.TCGA.CNV.anno.subset.long$CNV)$stats
@@ -4012,6 +4011,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
     colnames(TCGA.RNAseq_transpose) <- EIF
     
     ## get OS data ##
+    # download https://xenabrowser.net/datapages/?dataset=Survival_SupplementalTable_S1_20171025_xena_sp&host=https%3A%2F%2Fpancanatlas.xenahubs.net
     TCGA.OS <- fread(
       paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE)
