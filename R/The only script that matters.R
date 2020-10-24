@@ -4129,7 +4129,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
     
     print(KM)
     ggsave(
-      path        = paste0(output.directory, "/PCA/KM"), 
+      path        = paste0(output.directory, "/KM"), 
       filename    = paste(EIF," all tumors KM.pdf"), 
       plot        = KM,
       width       = 6, 
@@ -4281,7 +4281,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
         fontface = "bold")
     print(KM)
     ggsave(
-      path        = paste0(output.directory, "/PCA/KM"), 
+      path        = paste0(output.directory, "/KM"), 
       filename    = paste(EIF, tumor,"KM.pdf"), 
       plot        = KM,
       width       = 6, 
