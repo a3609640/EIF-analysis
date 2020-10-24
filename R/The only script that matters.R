@@ -97,6 +97,7 @@ color <- function(){
 col_vector <- color()
 ##############################################
 
+
 ## Figure 1 ##
 ################################################################
 ## stacked bar plots for eIF4F CNV status across tumor groups ## 
@@ -563,16 +564,6 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function (EIF) {
   EIF.TCGA.CNV.anno.subset.long <- pancancer.TCGA.EIF()
   class(EIF.TCGA.CNV.anno.subset.long$CNV)
   # reorder bars by explicitly ordering factor levels
-  color <- function(x){
-    n <- x
-    qual_col_pals <- brewer.pal.info[brewer.pal.info$category == 'qual',]
-    col_vector <- unlist(mapply(brewer.pal, 
-                                qual_col_pals$maxcolors, 
-                                rownames(qual_col_pals)))
-    col = sample(col_vector, n)
-    return(col)
-  }
-  #col_vector <- color(33)
   
   make.plot <- function (EIF) {
     sts <- boxplot.stats(EIF.TCGA.CNV.anno.subset.long$CNV)$stats
@@ -3544,7 +3535,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function (EIF.list) {
                tl.col      = "black")
       dev.off()
       corrplot(var$cos2, #cos2 is better than contribute
-               title = "PCA (Primary tumors)",
+               title = "PCA (Metastatic tumors)",
                is.corr     = FALSE, 
                tl.cex      = 1.5, 
                number.cex  = 1.5, 
@@ -3655,70 +3646,6 @@ plot.EIF.GTEX.PCA.all.tissue <- function (EIF.list) {
     ## remove the last two columns 
     df1 <- EIF.TCGA.RNAseq.anno.subset[1:(length(EIF.TCGA.RNAseq.anno.subset)-2)]
     rownames(df1) <- NULL
-    
-    plot.PCA.prcomp <- function(){
-      # the variables should be scaled to have unit variance 
-      PCA <- prcomp(df1, scale = TRUE)
-      # Extract PC axes for plotting
-      PCAvalues <- data.frame(Sample.type = EIF.TCGA.RNAseq.anno.subset$primary.site, 
-                              PCA$x)
-      # Extract loadings of the variables
-      PCAloadings <- data.frame(Variables = rownames(PCA$rotation), PCA$rotation)
-      # Plot
-      plot.PCA.3D <- function(){
-        get_colors <- function(groups, group.col = palette()){
-          groups <- as.factor(groups)
-          ngrps <- length(levels(groups))
-          if(ngrps > length(group.col)) 
-            group.col <- rep(group.col, ngrps)
-          color <- group.col[as.numeric(groups)]
-          names(color) <- as.vector(groups)
-          return(color)
-        }
-        cols <- get_colors(PCAvalues$Sample.type, brewer.pal(n=4, name="Dark2"))
-        plot3d(PCAvalues[,2:4], col = col_vector)
-        legend3d("topright", legend =  levels(PCAvalues$Sample.type), 
-                 pch = 16, col = brewer.pal(n = 4, name="Dark2"), 
-                 cex = 1)}
-      plot.PCA.3D()
-      p <- ggplot(PCAvalues,
-                  aes(x      = PC1,
-                      y      = PC2,
-                      colour = Sample.type)) +
-        geom_point(size = 0.2) +
-        geom_segment(data = PCAloadings,
-                     aes(
-                       x     = 0,
-                       y     = 0,
-                       xend  = (PC1*5),
-                       yend  = (PC2*5)),
-                     arrow = arrow(length = unit(1/3, "picas")),
-                     color = "black") +
-        annotate("text",
-                 size     = 6,
-                 fontface = "bold",
-                 x        = (PCAloadings$PC1*5),
-                 y        = (PCAloadings$PC2*5),
-                 label    = PCAloadings$Variables) +
-        # stat_n_text(geom = "label") +
-        ggtitle("Principal Component Analysis") +
-        theme(
-          plot.background   = element_blank(),
-          plot.title        = black_bold_16,
-          panel.background  = element_rect(
-            fill  = 'transparent',
-            color = 'black',
-            size  = 1),
-          axis.title        = black_bold_16,
-          axis.text         = black_bold_16,
-          legend.title      = element_blank(),
-          legend.position   = c(0.3, 0.93),
-          legend.background = element_blank(),
-          legend.text       = black_bold_16,
-          legend.key        = element_blank())
-      print(p)
-    }
-    plot.PCA.prcomp()
     
     plot.pca.factomineR <- function(){
       res.pca <- PCA(df1, 
@@ -6051,6 +5978,7 @@ plot.heatmap.lung <- function(x){
   
 }
 plot.heatmap.lung(x = "Lung")
+
 
 ## Figure 6 ## 
 ######################################
