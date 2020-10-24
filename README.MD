@@ -76,6 +76,7 @@ BiocManager::install(c("clusterProfiler",
                        "data.table",
                        "dendextend",
                        "descr",
+                       "devtools"
                        "dplyr",
                        "EnvStats",
                        "eulerr",
@@ -98,6 +99,7 @@ BiocManager::install(c("clusterProfiler",
                        "limma",
                        "missMDA",
                        "org.Hs.eg.db",
+                       "pca3d",
                        "pheatmap",
                        "plotmo",
                        "RColorBrewer",
@@ -115,6 +117,11 @@ BiocManager::install(c("clusterProfiler",
                        "vcd",
                        "vip"
 ), update = TRUE, ask = FALSE)
+```
+
+This is also necessary:
+```
+devtools::install_github("zeehio/facetscales")
 ```
 
 ## OUTPUT
