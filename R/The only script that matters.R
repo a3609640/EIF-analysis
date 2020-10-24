@@ -4354,7 +4354,7 @@ plot.coxph.EIF.all.tumors <- function(){
       c("P Value for\nInteraction", data$pinteraction))
     
     
-    pdf(file   = paste0(output.directory, '/EIF_output/Cox/EIFUniCox.pdf'),
+    pdf(file   = paste0(output.directory, '/Cox/EIFUniCox.pdf'),
         width  = 10, 
         height = 8,onefile=F) 
     p <- forestplot(
