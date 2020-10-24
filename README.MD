@@ -35,12 +35,13 @@ Please download all datasets from the following weblinks and store them at the f
 ```
 ~/Download/
 ```
-This project makes use of the following data files that must be fetched from remote sources:
+This project makes use of data files that must be fetched from remote sources.  The necessary links are provided below.  Note that the .gz files must be unzipped after they are downloaded.
 
 ### Xena DATA
 https://pancanatlas.xenahubs.net/download/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena.gz
 https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
 https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
+https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_data_by_genes.gz
 https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes.gz
 https://toil.xenahubs.net/download/GTEX_phenotype.gz
 https://toil.xenahubs.net/download/gtex_RSEM_Hugo_norm_count.gz
