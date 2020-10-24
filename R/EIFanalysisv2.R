@@ -50,6 +50,8 @@ library(tidyverse)
 library(vcd)
 library(vip)
 
+data.file.directory <- "~/Downloads"
+
 EIF.gene <- c("EIF4E",
               "EIF4G1",
               "EIF4A1",
@@ -120,11 +122,11 @@ plot.boxgraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.pancancer <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"), 
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
                                       !duplicated(colnames(TCGA.pancancer))]
@@ -363,7 +365,7 @@ plot.boxgraph.EIF.RNAseq.TCGA(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1"))
 
 plot.boxgraph.EIF.RNAseq.GTEX <- function (EIF.gene) {
   tissue.GTEX.TCGA.gene <- function(){
-    TCGA.GTEX.anno <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+    TCGA.GTEX.anno <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
     TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
     row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
@@ -375,7 +377,7 @@ plot.boxgraph.EIF.RNAseq.GTEX <- function (EIF.gene) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"), 
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -556,7 +558,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function (EIF.gene) {
   pan.TCGA.gene <- function(){
     TCGA.pancancer <- fread(
       #"~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count",
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE)
     # use sample column for the rowname
     TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
@@ -570,7 +572,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function (EIF.gene) {
     
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv(
-      "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
@@ -1194,11 +1196,11 @@ plot.boxgraph.EIF.ratio.TCGA <- function (EIF.gene) {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.pancancer <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
                                       !duplicated(colnames(TCGA.pancancer))]
@@ -1513,7 +1515,7 @@ plot.boxgraph.EIF.ratio.TCGA(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1"))
 
 plot.boxgraph.EIF.ratio.GTEX <- function (EIF.gene) {
   tissue.GTEX.TCGA.gene <- function(){
-    TCGA.GTEX.anno <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+    TCGA.GTEX.anno <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
     TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
     row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
@@ -1525,7 +1527,7 @@ plot.boxgraph.EIF.ratio.GTEX <- function (EIF.gene) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -1825,7 +1827,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function (EIF.gene) {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.pancancer <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count",
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE)
     TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
                                       !duplicated(colnames(TCGA.pancancer))]
@@ -1838,7 +1840,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function (EIF.gene) {
     
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv(
-      "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
@@ -2616,7 +2618,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1"))
 plot.violingraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
   tissue.GTEX.TCGA.gene <- function(){
     TCGA.GTEX.anno <- read_tsv(
-      "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
     TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
     row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
@@ -2629,7 +2631,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -2857,7 +2859,7 @@ plot.violingraph.EIF.RNAseq.TCGA (c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1"))
 ############################################################
 plot.violingraph.EIF.ratio.TCGA <- function (EIF.gene) {
   tissue.GTEX.TCGA.gene <- function(){
-    TCGA.GTEX.anno <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+    TCGA.GTEX.anno <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
     TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
     row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
@@ -2869,7 +2871,7 @@ plot.violingraph.EIF.ratio.TCGA <- function (EIF.gene) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"), 
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -3170,7 +3172,7 @@ plot.bargraph.EIF.CNV.TCGA <- function (EIF) {
   pan.TCGA.CNV <- function(){
     # download https://pancanatlas.xenahubs.net/download/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena.gz
     TCGA.pancancer <- fread(
-      "~/Downloads/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes", 
+      paste0(data.file.directory, "/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
       #"~/Downloads/GDC-PANCAN.gistic.tsv",
       data.table = FALSE)
     TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$Sample),
@@ -3183,7 +3185,7 @@ plot.bargraph.EIF.CNV.TCGA <- function (EIF) {
     
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- readr::read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")))
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
@@ -3283,11 +3285,11 @@ plot.bargraph.EIF.CNV.sum <- function (EIF) {
   pan.TCGA.CNV <- function(EIF){
     # download https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes.gz
     TCGA.CNV <- fread(
-      "~/Downloads/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes", 
+      paste0(data.file.directory, "/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- readr::read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.CNV1 <- TCGA.CNV[!duplicated(TCGA.CNV$Sample),
                           !duplicated(colnames(TCGA.CNV))]
@@ -3387,11 +3389,11 @@ plot.matrix.EIF.CNV.corr <- function (EIF) {
   pan.TCGA.CNV <- function(EIF){
     # https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_data_by_genes.gz
     TCGA.CNV <- fread(
-      "~/Downloads/Gistic2_CopyNumber_Gistic2_all_data_by_genes", 
+      paste0(data.file.directory, "/Gistic2_CopyNumber_Gistic2_all_data_by_genes"),
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- readr::read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.CNV1 <- TCGA.CNV[!duplicated(TCGA.CNV$Sample),
                           !duplicated(colnames(TCGA.CNV))]
@@ -3465,10 +3467,10 @@ plot.violin.EIF.CNV.RNAseq <- function (EIF) {
   pan.TCGA.gene <- function(EIF){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE)
     TCGA.CNV <- fread(
-      "~/Downloads/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes", 
+      paste0(data.file.directory, "/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
       data.table = FALSE)
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.RNAseq1 <- TCGA.RNAseq[!duplicated(TCGA.RNAseq$sample),
@@ -3573,7 +3575,7 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function (EIF) {
     #download https://pancanatlas.xenahubs.net/download/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena.gz
     TCGA.pancancer <- fread(
       #"~/Downloads/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes", 
-      "~/Downloads/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena",
+      paste0(data.file.directory, "/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena"),
       data.table = FALSE)
     TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
                                       !duplicated(colnames(TCGA.pancancer))]
@@ -3585,7 +3587,7 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function (EIF) {
     
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- readr::read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
@@ -3700,7 +3702,7 @@ lapply(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1","MYC","PTEN"),
 plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
   tissue.GTEX.TCGA.gene <- function(){
     TCGA.GTEX.anno <- read_tsv(
-      "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
     TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
     row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
@@ -3712,7 +3714,7 @@ plot.EIF.TCGA.GTEX.PCA.all <- function (EIF.list) {
     colnames(subset) <- c("sample.type", "primary.disease","primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -4816,7 +4818,7 @@ plot.EIF.TCGA.GTEX.PCA.all(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1",
 plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
   tissue.GTEX.TCGA.gene <- function(){
     TCGA.GTEX.anno <- read_tsv(
-      "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
     #TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
     row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
@@ -4828,7 +4830,7 @@ plot.EIF.TCGA.GTEX.PCA.each <- function (EIF.list, tissue) {
     colnames(subset) <- c("sample.type", "primary.site", "primary.disease")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -5187,7 +5189,7 @@ plot.EIF.TCGA.GTEX.PCA.each(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1",
 plot.EIF.TCGA.PCA.all <- function (EIF.list) {
   tissue.GTEX.TCGA.gene <- function(){
     TCGA.GTEX.anno <- read_tsv(
-      "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
     TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
     row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
@@ -5200,7 +5202,7 @@ plot.EIF.TCGA.PCA.all <- function (EIF.list) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -5894,7 +5896,7 @@ plot.EIF.TCGA.PCA.all(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1",
 plot.EIF.GTEX.PCA.all <- function (EIF.list) {
   tissue.GTEX.TCGA.gene <- function(){
     TCGA.GTEX.anno <- read_tsv(
-      "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
     TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
     row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
@@ -5906,7 +5908,7 @@ plot.EIF.GTEX.PCA.all <- function (EIF.list) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -6469,7 +6471,7 @@ plot.EIF.GTEX.PCA.all(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1",
 
 plot.EIF.CPTAC.PCA.LUAD <- function(){
   CPTAC.LUAD.Sample <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
+    paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx"))
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
     !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
@@ -6477,7 +6479,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function(){
   CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
   
   CPTAC.LUAD.Proteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv",data.table = FALSE)
+    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),data.table = FALSE)
   EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[CPTAC.LUAD.Proteomics$Gene %in% c("EIF4E", "EIF4G1", "EIF4A1","PABPC1", "MKNK1","MKNK2", "MYC","EIF4EBP1"), ]
   row.names(EIF.CPTAC.LUAD.Proteomics) <- EIF.CPTAC.LUAD.Proteomics$Gene
   EIF.CPTAC.LUAD.Proteomics <- select(EIF.CPTAC.LUAD.Proteomics, -contains("Unshared"))
@@ -6635,7 +6637,7 @@ plot.EIF.CPTAC.PCA.LUAD()
 
 plot.EIF.CPTAC.PCA.BRCA <- function(){
   CPTAC.BRCA.Sample <- read_excel(
-    "~/Downloads/S039_Breast_Cancer_Prospective_Collection_Specimens_r1.xlsx")
+    paste0(data.file.directory, "/S039_Breast_Cancer_Prospective_Collection_Specimens_r1.xlsx"))
   CPTAC.BRCA.Sample.ID <- CPTAC.BRCA.Sample[ ,c("Sample Type", "Specimen Label")]
   CPTAC.BRCA.Sample.ID <- CPTAC.BRCA.Sample.ID[
     !duplicated(CPTAC.BRCA.Sample.ID$`Specimen Label`), ]
@@ -6644,7 +6646,7 @@ plot.EIF.CPTAC.PCA.BRCA <- function(){
   CPTAC.BRCA.Sample.ID$`Specimen Label` <- NULL
   
   CPTAC.BRCA.Proteomics <- fread(
-    "~/Downloads/CPTAC2_Breast_Prospective_Collection_BI_Proteome.tmt10.tsv",
+    paste0(data.file.directory, "/CPTAC2_Breast_Prospective_Collection_BI_Proteome.tmt10.tsv"),
     data.table = FALSE)
   EIF.CPTAC.BRCA.Proteomics <- CPTAC.BRCA.Proteomics[CPTAC.BRCA.Proteomics$Gene %in% c("EIF4E", "EIF4G1", "EIF4A1","EIF4EBP1","PABPC1","MKNK1","MKNK2", "MYC"), ,drop = FALSE]
   EIF.CPTAC.BRCA.Proteomics <- select(EIF.CPTAC.BRCA.Proteomics, -contains("Unshared"))
@@ -6769,7 +6771,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
     ## get TCGA pancancer RNAseq data ##
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE)
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.RNAseq1 <- TCGA.RNAseq[!duplicated(TCGA.RNAseq$sample),
@@ -6784,7 +6786,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
     
     ## get OS data ##
     TCGA.OS <- fread(
-      "~/Downloads/Survival_SupplementalTable_S1_20171025_xena_sp", 
+      paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE)
     TCGA.OS1 <- TCGA.OS[!duplicated(TCGA.OS$sample),
                         !duplicated(colnames(TCGA.OS))]
@@ -6794,7 +6796,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
     
     ## get sample type data ##
     TCGA.sampletype <- readr::read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
@@ -6925,7 +6927,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
     ## get TCGA pancancer RNAseq data ##
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE)
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.RNAseq1 <- TCGA.RNAseq[!duplicated(TCGA.RNAseq$sample),
@@ -6941,7 +6943,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
     ## get OS data ##
     # download https://xenabrowser.net/datapages/?dataset=Survival_SupplementalTable_S1_20171025_xena_sp&host=https%3A%2F%2Fpancanatlas.xenahubs.net
     TCGA.OS <- fread(
-      "~/Downloads/Survival_SupplementalTable_S1_20171025_xena_sp", 
+      paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE)
     TCGA.OS1 <- TCGA.OS[!duplicated(TCGA.OS$sample),
                         !duplicated(colnames(TCGA.OS))]
@@ -6951,7 +6953,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
     
     ## get sample type data ##
     TCGA.sampletype <- readr::read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
@@ -7083,7 +7085,7 @@ plot.coxph.EIF.all.tumors <- function(){
     ## get TCGA pancancer RNAseq data ##
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE)
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.RNAseq1 <- TCGA.RNAseq[!duplicated(TCGA.RNAseq$sample),
@@ -7098,7 +7100,7 @@ plot.coxph.EIF.all.tumors <- function(){
     
     ## get OS data ##
     TCGA.OS <- fread(
-      "~/Downloads/Survival_SupplementalTable_S1_20171025_xena_sp", 
+      paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE)
     TCGA.OS1 <- TCGA.OS[!duplicated(TCGA.OS$sample),
                         !duplicated(colnames(TCGA.OS))]
@@ -7108,7 +7110,7 @@ plot.coxph.EIF.all.tumors <- function(){
     
     ## get sample type data ##
     TCGA.sampletype <- readr::read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
@@ -7458,7 +7460,7 @@ plot.coxph.EIF.lung.tumor <- function(tumor){
     ## get TCGA pancancer RNAseq data ##
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE)
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.RNAseq1 <- TCGA.RNAseq[!duplicated(TCGA.RNAseq$sample),
@@ -7473,7 +7475,7 @@ plot.coxph.EIF.lung.tumor <- function(tumor){
     
     ## get OS data ##
     TCGA.OS <- fread(
-      "~/Downloads/Survival_SupplementalTable_S1_20171025_xena_sp", 
+      paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE)
     TCGA.OS1 <- TCGA.OS[!duplicated(TCGA.OS$sample),
                         !duplicated(colnames(TCGA.OS))]
@@ -7483,7 +7485,7 @@ plot.coxph.EIF.lung.tumor <- function(tumor){
     
     ## get sample type data ##
     TCGA.sampletype <- readr::read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
@@ -7836,7 +7838,7 @@ plot.coxph.EIF.breast.tumor <- function(tumor){
     ## get TCGA pancancer RNAseq data ##
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE)
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.RNAseq1 <- TCGA.RNAseq[!duplicated(TCGA.RNAseq$sample),
@@ -7851,7 +7853,7 @@ plot.coxph.EIF.breast.tumor <- function(tumor){
     
     ## get OS data ##
     TCGA.OS <- fread(
-      "~/Downloads/Survival_SupplementalTable_S1_20171025_xena_sp", 
+      paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE)
     TCGA.OS1 <- TCGA.OS[!duplicated(TCGA.OS$sample),
                         !duplicated(colnames(TCGA.OS))]
@@ -7861,7 +7863,7 @@ plot.coxph.EIF.breast.tumor <- function(tumor){
     
     ## get sample type data ##
     TCGA.sampletype <- readr::read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype$sample <- NULL
     TCGA.sampletype$sample_type_id <- NULL
@@ -8033,7 +8035,7 @@ plot.coxph.EIF.breast.tumor(c("breast invasive carcinoma"))
 #####################################
 ### find posCOR and negCOR in the overlapping CORs from all cancer cases
 plot.Venn.all <- function() {
-  Lung <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  Lung <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
   Lung <- Lung[!duplicated(Lung$sample), ]
   Lung <- na.omit(Lung)
   row.names(Lung) <- Lung$sample
@@ -8045,7 +8047,7 @@ plot.Venn.all <- function() {
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -8504,11 +8506,11 @@ plot.Venn.all()
 ### find posCOR and negCOR in the overlapping CORs from lung cancer cases
 plot.Venn.lung <- function(x) {
   # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-  Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  Sampletype <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
   tissue.GTEX.TCGA.gene <- function(x){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE)
     Lung <- Sampletype[Sampletype$`_primary_site` == x,]
     Lung.ID <- as.vector(Lung$sample)
@@ -8980,7 +8982,7 @@ plot.Venn.lung(x = "Lung")
 ### use TCGA-TARGET-GTEX dataset ###
 ### plot heatmapand pathway analysis on clusters from all cancer cases ###
 plot.heatmap.total <- function() {
-  Lung <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  Lung <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
   Lung <- Lung[!duplicated(Lung$sample), ]
   Lung <- na.omit(Lung)
   row.names(Lung) <- Lung$sample
@@ -8992,7 +8994,7 @@ plot.heatmap.total <- function() {
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -9256,11 +9258,11 @@ plot.heatmap.total()
 ### plot heatmapand pathway analysis on clusters from lung cancer cases ###
 plot.heatmap.lung <- function(x){
   # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-  Sampletype <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+  Sampletype <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
   tissue.GTEX.TCGA.gene <- function(x){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE)
     Lung <- Sampletype[Sampletype$`_primary_site` == x,]
     Lung.ID <- as.vector(Lung$sample)
@@ -9621,7 +9623,7 @@ plot.heatmap.lung(x = "Breast")
 ### use TCGA-TARGET-GTEX dataset
 plot.heatmap.GTEX <- function() {
   get.GTEX.annotation <- function(){
-    Sample.type.annotation <- read_tsv("~/Downloads/TcgaTargetGTEX_phenotype.txt")
+    Sample.type.annotation <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     Sample.type.annotation <- Sample.type.annotation[
       !duplicated(Sample.type.annotation$sample), ]
     Sample.type.annotation <- as.data.frame(Sample.type.annotation)
@@ -9642,7 +9644,7 @@ plot.heatmap.GTEX <- function() {
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -9881,7 +9883,7 @@ plot.heatmap.GTEX()
 plot.heatmap.TCGA <- function() {
   get.TCGA.annotation <- function(){
     Sample.type.annotation <- read_tsv(
-      "~/Downloads/TcgaTargetGTEX_phenotype.txt")
+      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
     Sample.type.annotation <- Sample.type.annotation[
       !duplicated(Sample.type.annotation$sample), ]
     Sample.type.annotation <- as.data.frame(Sample.type.annotation)
@@ -9903,7 +9905,7 @@ plot.heatmap.TCGA <- function() {
   tissue.GTEX.TCGA.gene <- function(){
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      "~/Downloads/TcgaTargetGtex_RSEM_Hugo_norm_count", 
+      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX <- TCGA.GTEX[!duplicated(TCGA.GTEX$sample),
@@ -10176,11 +10178,11 @@ plot.heatmap.all.TCGA <- function () {
   pan.TCGA.gene <- function(){
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.pancancer <- fread(
-      "~/Downloads/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena", 
+      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE)
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- read_tsv(
-      "~/Downloads/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv"))
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
     TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
                                       !duplicated(colnames(TCGA.pancancer))]
@@ -10399,9 +10401,9 @@ plot.heatmap.all.TCGA()
 ### use GTEx dataset
 plot.heatmap.all.GTEx <- function () {
   # download https://toil.xenahubs.net/download/gtex_RSEM_Hugo_norm_count.gz
-  TCGA.pancancer <- fread("~/Downloads/gtex_RSEM_Hugo_norm_count", data.table=FALSE)
+  TCGA.pancancer <- fread(paste0(data.file.directory, "/gtex_RSEM_Hugo_norm_count"), data.table=FALSE)
   # download https://toil.xenahubs.net/download/GTEX_phenotype.gz
-  TCGA.sampletype <- read_tsv("~/Downloads/GTEX_phenotype")
+  TCGA.sampletype <- read_tsv(paste0(data.file.directory, "/GTEX_phenotype"))
   # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
   TCGA.pancancer1 <- TCGA.pancancer[!duplicated(TCGA.pancancer$sample),
                                     !duplicated(colnames(TCGA.pancancer))]
@@ -10629,7 +10631,7 @@ plot.heatmap.all.GTEx()
 ######################################################
 plot.EIF.CPTAC.phos.LUAD <- function(x){
   CPTAC.LUAD.Sample <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
+    paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx"))
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
     !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
@@ -10637,7 +10639,7 @@ plot.EIF.CPTAC.phos.LUAD <- function(x){
   CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
   
   CPTAC.LUAD.Phosproteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv",data.table = FALSE)
+    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv"),data.table = FALSE)
   EIF.CPTAC.LUAD.Phosproteomics <- CPTAC.LUAD.Phosproteomics[CPTAC.LUAD.Phosproteomics$Gene %in% x, ]
   colnames(EIF.CPTAC.LUAD.Phosproteomics) <- sub(" Log Ratio", "", colnames(EIF.CPTAC.LUAD.Phosproteomics))
   
@@ -10713,14 +10715,14 @@ lapply(EIF.gene, plot.EIF.CPTAC.phos.LUAD)
 plot.EIF4.CPTAC.pro.LUAD <- function(){
   get.clinic.data <- function (){
     CPTAC.LUAD.Sample <- read_excel(
-      "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
+      paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx"))
     CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
     CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
       !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
     row.names(CPTAC.LUAD.Sample.ID) <- CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`
     CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
     CPTAC.LUAD.clinic <- read_excel(
-      "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx", sheet = 2)
+      paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx"), sheet = 2)
     CPTAC.LUAD.clinic.Sampletype <- merge(CPTAC.LUAD.clinic,
                                           CPTAC.LUAD.Sample,
                                           by.x = "case_id", 
@@ -10738,7 +10740,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function(){
   
   get.proteomics.data <- function (x) {
     CPTAC.LUAD.Proteomics <- fread(
-      "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv",data.table = FALSE)
+      paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),data.table = FALSE)
     EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[
       CPTAC.LUAD.Proteomics$Gene %in% x, ]
     row.names(EIF.CPTAC.LUAD.Proteomics) <- EIF.CPTAC.LUAD.Proteomics$Gene
@@ -10992,7 +10994,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function(){
   
   get.proteomics.phosproteomics.data <- function(){
     CPTAC.LUAD.Phosproteomics <- fread(
-      "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv",
+      paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv"),
       data.table = FALSE)
   
     get.phos.data <- function(x){
@@ -11439,7 +11441,7 @@ plot.EIF4.CPTAC.pro.LUAD()
 
 plot.EIF4G1.CPTAC.pro.LUAD <- function(){
   CPTAC.LUAD.Sample <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
+    paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx"))
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
     !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
@@ -11447,7 +11449,7 @@ plot.EIF4G1.CPTAC.pro.LUAD <- function(){
   CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
   
   CPTAC.LUAD.clinic <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx", sheet = 2)
+    paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx"), sheet = 2)
   CPTAC.LUAD.clinic.Sampletype <- merge(CPTAC.LUAD.clinic,
                                         CPTAC.LUAD.Sample,
                                         by.x = "case_id", 
@@ -11463,7 +11465,7 @@ plot.EIF4G1.CPTAC.pro.LUAD <- function(){
   CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage III","Stage IIIA","Stage IIIB")] <- "Stage III"
   
   CPTAC.LUAD.Proteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv",data.table = FALSE)
+    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),data.table = FALSE)
   EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[CPTAC.LUAD.Proteomics$Gene %in% c("EIF4G1"), ]
   row.names(EIF.CPTAC.LUAD.Proteomics) <- EIF.CPTAC.LUAD.Proteomics$Gene
   EIF.CPTAC.LUAD.Proteomics <- select(EIF.CPTAC.LUAD.Proteomics, -contains("Unshared"))
@@ -11535,7 +11537,7 @@ plot.EIF4G1.CPTAC.pro.LUAD <- function(){
   
   
   CPTAC.LUAD.Phosproteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv",data.table = FALSE)
+    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv"),data.table = FALSE)
   EIF.CPTAC.LUAD.Phosproteomics <- CPTAC.LUAD.Phosproteomics[CPTAC.LUAD.Phosproteomics$Gene %in% "EIF4G1", ]
   colnames(EIF.CPTAC.LUAD.Phosproteomics) <- sub(" Log Ratio", "", colnames(EIF.CPTAC.LUAD.Phosproteomics))
   
@@ -11636,7 +11638,7 @@ plot.EIF4G1.CPTAC.pro.LUAD()
 
 plot.EIF4EBP1.CPTAC.pro.LUAD <- function(){
   CPTAC.LUAD.Sample <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
+    paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx"))
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
     !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
@@ -11644,7 +11646,7 @@ plot.EIF4EBP1.CPTAC.pro.LUAD <- function(){
   CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
   
   CPTAC.LUAD.clinic <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx", sheet = 2)
+    paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx"), sheet = 2)
   CPTAC.LUAD.clinic.Sampletype <- merge(CPTAC.LUAD.clinic,
                                         CPTAC.LUAD.Sample,
                                         by.x = "case_id", 
@@ -11660,7 +11662,7 @@ plot.EIF4EBP1.CPTAC.pro.LUAD <- function(){
   CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage III","Stage IIIA","Stage IIIB")] <- "Stage III"
   
   CPTAC.LUAD.Proteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv",data.table = FALSE)
+    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),data.table = FALSE)
   EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[CPTAC.LUAD.Proteomics$Gene %in% c("EIF4EBP1"), ]
   row.names(EIF.CPTAC.LUAD.Proteomics) <- EIF.CPTAC.LUAD.Proteomics$Gene
   EIF.CPTAC.LUAD.Proteomics <- select(EIF.CPTAC.LUAD.Proteomics, -contains("Unshared"))
@@ -11733,7 +11735,7 @@ plot.EIF4EBP1.CPTAC.pro.LUAD <- function(){
   
   
   CPTAC.LUAD.Phosproteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv",data.table = FALSE)
+    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv"),data.table = FALSE)
   EIF.CPTAC.LUAD.Phosproteomics <- CPTAC.LUAD.Phosproteomics[CPTAC.LUAD.Phosproteomics$Gene %in% "EIF4EBP1", ]
   colnames(EIF.CPTAC.LUAD.Phosproteomics) <- sub(" Log Ratio", "", colnames(EIF.CPTAC.LUAD.Phosproteomics))
   
@@ -11833,7 +11835,7 @@ plot.EIF4EBP1.CPTAC.pro.LUAD()
 
 plot.EIF4A1.CPTAC.pro.LUAD <- function(){
   CPTAC.LUAD.Sample <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
+    paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx"))
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[ ,c("Aliquot (Specimen Label)", "Type")]
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
     !duplicated(CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`), ]
@@ -11841,7 +11843,7 @@ plot.EIF4A1.CPTAC.pro.LUAD <- function(){
   CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
   
   CPTAC.LUAD.clinic <- read_excel(
-    "~/Downloads/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx", sheet = 2)
+    paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx"), sheet = 2)
   CPTAC.LUAD.clinic.Sampletype <- merge(CPTAC.LUAD.clinic,
                                         CPTAC.LUAD.Sample,
                                         by.x = "case_id", 
@@ -11857,7 +11859,7 @@ plot.EIF4A1.CPTAC.pro.LUAD <- function(){
   CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological[CPTAC.LUAD.clinic.Sampletype$tumor_stage_pathological %in% c("Stage III","Stage IIIA","Stage IIIB")] <- "Stage III"
   
   CPTAC.LUAD.Proteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv",data.table = FALSE)
+    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),data.table = FALSE)
   EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[CPTAC.LUAD.Proteomics$Gene %in% c("EIF4A1", "EIF4E"), ]
   row.names(EIF.CPTAC.LUAD.Proteomics) <- EIF.CPTAC.LUAD.Proteomics$Gene
   EIF.CPTAC.LUAD.Proteomics <- select(EIF.CPTAC.LUAD.Proteomics, -contains("Unshared"))
@@ -11930,7 +11932,7 @@ plot.EIF4A1.CPTAC.pro.LUAD <- function(){
   
   
   CPTAC.LUAD.Phosproteomics <- fread(
-    "~/Downloads/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv",data.table = FALSE)
+    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv"),data.table = FALSE)
   EIF.CPTAC.LUAD.Phosproteomics <- CPTAC.LUAD.Phosproteomics[CPTAC.LUAD.Phosproteomics$Gene %in% c("EIF4A1"), ]
   colnames(EIF.CPTAC.LUAD.Phosproteomics) <- sub(" Log Ratio", "", colnames(EIF.CPTAC.LUAD.Phosproteomics))
   
