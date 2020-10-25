@@ -248,7 +248,7 @@ plot.bargraph.EIF.CNV.TCGA <- function(EIF) {
         )
       )
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/CNV"),
       filename = paste0(EIF, "pancancerCNV.pdf"),
       plot = p1,
@@ -378,7 +378,7 @@ plot.bargraph.EIF.CNV.sum <- function(EIF) {
         values = c("darkblue", "blue", "lightgreen", "red", "darkred")
       )
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/CNV"),
       filename = "EIFCNVsum.pdf",
       plot = p1,
@@ -554,7 +554,7 @@ plot.violin.EIF.CNV.RNAseq <- function(EIF) {
         width = 0.25,
         color = "black"
       ) +
-      facet_grid(. ~ Gene) +
+      ggplot2::facet_grid(. ~ Gene) +
       # scale_fill_manual(values = c("#0072B2", "#56B4E9", "#009E73",
       #                             "#CC79A7", "#D55E00")) + #for color-blind palettes
       scale_color_manual(values = c(
@@ -607,7 +607,7 @@ plot.violin.EIF.CNV.RNAseq <- function(EIF) {
       )
 
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/CNV"),
       filename = paste0(EIF, "CNV&RNAseq.pdf"),
       plot = p1,
@@ -742,7 +742,7 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function(EIF) {
         strip.text = black_bold_12
       )
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/CNV"),
       filename = paste0(EIF, "pancancerCNVratio.pdf"),
       plot = p1,
@@ -1047,7 +1047,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
       grid.arrange(g1grob, g2grob)
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Expression"),
         filename = "EIFexpressionTCGAGTEX.pdf",
         plot = p,
@@ -1203,7 +1203,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
       grid.arrange(g1grob, g2grob)
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Expression"),
         filename = "EIFsumexpressionTCGAGTEX.pdf",
         plot = p,
@@ -1379,7 +1379,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
       grid.arrange(g1grob, g2grob)
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Expression"),
         filename = "EIFexprTCGA.pdf",
         plot = p,
@@ -1544,7 +1544,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
       grid.arrange(g1grob, g2grob)
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Expression"),
         filename = "EIFexprGTEX.pdf",
         plot = p,
@@ -1775,8 +1775,8 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         )) +
         # for color-blind palettes
         facet_wrap(~label, scales = "free_x") +
-        facet_grid(~label, scales = "free_x", space = "free") +
-        # facet_grid_sc(cols = vars(label), shrink = TRUE,
+        ggplot2::facet_grid(~label, scales = "free_x", space = "free") +
+        # ggplot2::facet_grid_sc(cols = vars(label), shrink = TRUE,
         #              scales = list(y = scales_y),
         #              space = "free") +
         guides(colour = guide_legend(nrow = 1)) +
@@ -1868,7 +1868,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         )) +
         # for color-blind palettes
         facet_wrap(~label, scales = "free_x") +
-        facet_grid(~label, scales = "free_x", space = "free") +
+        ggplot2::facet_grid(~label, scales = "free_x", space = "free") +
         guides(colour = guide_legend(nrow = 1)) +
         stat_n_text(
           size = 5,
@@ -1908,7 +1908,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
 
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Expression"),
         filename = "EIFratiozoom.pdf",
         plot = p,
@@ -1974,7 +1974,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
           position = position_dodge(width = 0.9)
         ) +
         facet_wrap(~label) +
-        facet_grid(cols = vars(label)) +
+        ggplot2::facet_grid(cols = vars(label)) +
         stat_summary(
           fun.y = "median",
           geom = "line", # alpha = 0.5,
@@ -2064,7 +2064,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
           position = position_dodge(width = 0.9)
         ) +
         facet_wrap(~label) +
-        facet_grid(cols = vars(label)) +
+        ggplot2::facet_grid(cols = vars(label)) +
         stat_summary(
           fun.y = "median",
           geom = "line", # alpha = 0.5,
@@ -2107,7 +2107,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
 
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Expression"),
         filename = "EIFsumratio2.pdf",
         plot = p,
@@ -2176,8 +2176,8 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         ) +
         scale_color_manual(values = c("#009E73", "#CC79A7", "#0072B2", "#D55E00")) + # for color-blind palettes
         facet_wrap(~label, scales = "free_x") +
-        facet_grid(~label, scales = "free_x", space = "free") +
-        # facet_grid_sc(cols = vars(label), shrink = TRUE,
+        ggplot2::facet_grid(~label, scales = "free_x", space = "free") +
+        # ggplot2::facet_grid_sc(cols = vars(label), shrink = TRUE,
         #              scales = list(y = scales_y),
         #              space = "free") +
         labs(
@@ -2269,7 +2269,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
           linetype = "dashed"
         ) +
         facet_wrap(~label) +
-        facet_grid(cols = vars(label)) +
+        ggplot2::facet_grid(cols = vars(label)) +
         # stat_summary(
         #  fun.y = "median",
         #  geom = 'line', # alpha = 0.5,
@@ -2313,7 +2313,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
 
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Expression"),
         filename = "EIFratiosumTCGA.pdf",
         plot = p,
@@ -2376,7 +2376,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
           linetype = "dashed"
         ) +
         facet_wrap(~label, scales = "free_x") +
-        facet_grid(~label, scales = "free_x", space = "free") +
+        ggplot2::facet_grid(~label, scales = "free_x", space = "free") +
         scale_color_manual(
           values = c("#009E73", "#CC79A7", "#0072B2", "#D55E00")
         ) + # for color-blind palettes
@@ -2470,7 +2470,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
           linetype = "dashed"
         ) +
         facet_wrap(~label) +
-        facet_grid(cols = vars(label)) +
+        ggplot2::facet_grid(cols = vars(label)) +
         # stat_summary(
         #  fun.y = "median",
         #  geom = 'line', # alpha = 0.5,
@@ -2512,7 +2512,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
 
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Expression"),
         filename = "EIFratiosumGTEX.pdf",
         plot = p,
@@ -2636,7 +2636,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
       )
     ) +
       stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
-      facet_grid(. ~ variable,
+      ggplot2::facet_grid(. ~ variable,
         scales = "free",
         space  = "free"
       ) +
@@ -2692,7 +2692,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
         size = 6
       )
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Expression"),
       filename = "EIFexpressionviolin.pdf",
       plot = p1,
@@ -2723,7 +2723,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
         color = "black",
         position = position_dodge(width = .9)
       ) +
-      facet_grid(. ~ variable,
+      ggplot2::facet_grid(. ~ variable,
         scales = "free",
         space  = "free"
       ) +
@@ -2767,7 +2767,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
         method = "t.test", label = "p.signif", size = 6
       )
     print(p2)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Expression"),
       filename = "sumviolin.pdf",
       plot = p2,
@@ -2785,7 +2785,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
       )
     ) +
       stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
-      facet_grid(~sample.type,
+      ggplot2::facet_grid(~sample.type,
         scales = "free",
         space  = "free"
       ) +
@@ -2971,7 +2971,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
         outlier.colour = NA
       ) +
       stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
-      facet_grid(~variable,
+      ggplot2::facet_grid(~variable,
         scales = "free",
         space  = "free"
       ) +
@@ -3023,7 +3023,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
         hjust = 0
       )
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Expression"),
       filename = "EIFratioviolin.pdf",
       plot = p1,
@@ -3062,7 +3062,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
         angle = 90,
         hjust = 0
       ) +
-      facet_grid(~variable,
+      ggplot2::facet_grid(~variable,
         scales = "free",
         space  = "free"
       ) +
@@ -3121,7 +3121,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
         hjust = 0
       )
     print(p2)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Expression"),
       filename = "EIFsumratioviolin.pdf",
       plot = p2,
@@ -3160,7 +3160,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
         angle = 90,
         hjust = 0
       ) +
-      facet_grid(~variable,
+      ggplot2::facet_grid(~variable,
         scales = "free",
         space  = "free"
       ) +
@@ -3219,7 +3219,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
         hjust = 0
       )
     print(p3)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Expression"),
       filename = "EIFsumratioviolin2.pdf",
       plot = p3,
@@ -3453,7 +3453,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         legend.text = black_bold_16
       )
     print(biplot)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/PCA/All"),
       filename = "EIFPCAall.pdf",
       plot = biplot,
@@ -3505,7 +3505,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
           legend.text = black_bold_16
         )
       print(biplot)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/All"),
         filename = paste0("EIFPCAall", sample, ".pdf"),
         plot = biplot,
@@ -3561,7 +3561,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
           legend.text = black_bold_12
         )
       print(biplot)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA"),
         filename = paste0("EIFPCAall", sample, "color.pdf"),
         plot = biplot,
@@ -3616,7 +3616,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
           legend.text = black_bold_12
         )
       print(biplot)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/All"),
         filename = paste0("EIFPCAall", sample, "color.pdf"),
         plot = biplot,
@@ -3650,7 +3650,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         axis.text.y = black_bold_16
       )
     print(eig)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/PCA/All"),
       filename = "EIFPCAeig.pdf",
       plot = eig,
@@ -3859,7 +3859,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
           legend.text = black_bold_16
         )
       print(biplot)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/TCGA"),
         filename = paste0(x, "EIFPCA.pdf"),
         plot = biplot,
@@ -3890,7 +3890,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
           axis.text.y = black_bold_16
         )
       print(eig)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/TCGA"),
         filename = paste0(x, "EIFeig.pdf"),
         plot = eig,
@@ -3922,7 +3922,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
             axis.text.y = black_bold_16
           )
         print(p)
-        ggsave(
+        ggplot2::ggsave(
           path = paste0(output.directory, "/PCA/TCGA"),
           filename = paste0("EIFcontri", x, ".pdf"),
           plot = p,
@@ -4098,7 +4098,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
           legend.text = black_bold_16
         )
       print(biplot)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/TCGA"),
         filename = "EIFPCAprimary.pdf",
         plot = biplot,
@@ -4129,7 +4129,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
           axis.text.y = black_bold_16
         )
       print(eig)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/TCGA"),
         filename = "EIFeigprimary.pdf",
         plot = eig,
@@ -4249,7 +4249,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
           legend.text = black_bold_16
         )
       print(biplot)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/TCGA"),
         filename = "EIFPCAmetastatic.pdf",
         plot = biplot,
@@ -4280,7 +4280,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
           axis.text.y = black_bold_16
         )
       print(eig)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/TCGA"),
         filename = "EIFeigmetastatic.pdf",
         plot = eig,
@@ -4483,7 +4483,7 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
           legend.text = black_bold_16
         )
       print(biplot)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/GTEX"),
         filename = "EIFPCAGTEX.pdf",
         plot = biplot,
@@ -4515,7 +4515,7 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
         )
       print(eig)
 
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/PCA/GTEX"),
         filename = "EIFeigGTEX.pdf",
         plot = eig,
@@ -4676,7 +4676,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
       legend.text = black_bold_16
     )
   print(biplot)
-  ggsave(
+  ggplot2::ggsave(
     path = paste0(output.directory, "/PCA"),
     filename = "EIFLUADPCA.pdf",
     plot = biplot,
@@ -4706,7 +4706,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
       axis.text.y = black_bold_16
     )
   print(eig)
-  ggsave(
+  ggplot2::ggsave(
     path = paste0(output.directory, "/PCA"),
     filename = "EIFLUADEig.pdf",
     plot = eig,
@@ -4848,8 +4848,6 @@ plot.km.EIF.all.tumors <- function(EIF) {
     df$SurvObj <- with(df, Surv(OS.time, OS == 1))
     df <- na.omit(df)
     km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
-    # TODO: Here and below, 'survdiff' is called without values for
-    #       'subset' and 'na.action', which have no default values.
     stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0) # rho = 0 log-rank
     p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
     p.val <- signif(p.val, 3)
@@ -4904,7 +4902,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
       )
 
     print(KM)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/KM"),
       filename = paste(EIF, " all tumors KM.pdf"),
       plot = KM,
@@ -5062,7 +5060,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
         fontface = "bold"
       )
     print(KM)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/KM"),
       filename = paste(EIF, tumor, "KM.pdf"),
       plot = KM,
@@ -5072,6 +5070,81 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
     )
   }
   plot.KM(EIF, tumor)
+}
+
+plot.multivariate <- function(df, covariate_names, data.np, output.file, plot.title, x.tics, x.range) {
+  df %>%
+    analyse_multivariate(vars(OS.time, OS), covariates = vars(EIF4E, EIF4A1, EIF4G1, EIF4G2, PABPC1, EIF4EBP1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC), covariate_name_dict = covariate_names) -> result1
+  data <- as.data.frame(result1["summaryAsFrame"], col.names = NULL) # remove summaryASFrame in colnames
+  
+  # Testing proportional Hazards assumption on univariate analysis
+  mv_fit <- coxph(Surv(OS.time, OS) ~ EIF4E + EIF4A1 + EIF4G1 + EIF4EBP1 + EIF4G2 + PABPC1 + MKNK1 + MKNK2 +
+                    MTOR + RPTOR + RPS6KB1 + MYC, data = df)
+  test.ph <- cox.zph(mv_fit)
+  test <- print(test.ph)
+  f <- test[, 3, drop = FALSE]
+  colnames(f) <- "pinteraction"
+  
+  data <- merge(data, f, by.x = "factor.id", by.y = "row.names")
+  data[, 4:11] <- round(data[, 4:11], digits = 3)
+  data[, 4:6] <- round(data[, 4:6], digits = 2)
+  data$np <- data.np
+  data <- as.data.frame(data)
+  data$HRCI <- paste0(data$HR, " (", data$Lower_CI, "-", data$Upper_CI, ")")
+  data$p[data$p < 0.001] <- "<0.001"
+  data$pinteraction[data$pinteraction < 0.001] <- "<0.001"
+  data <- data[order(data$HR), ]
+  tabletext1 <- cbind(
+    c("Gene", data$factor.id),
+    c("No. of\nPatients", data$np),
+    c("Hazard Ratio\n(95% CI)", data$HRCI),
+    c("P Value", data$p),
+    c("P Value for\nInteraction", data$pinteraction)
+  )
+  
+  pdf(
+    file = output.file,
+    width = 10,
+    height = 8,
+    onefile = F
+  )
+  p <- forestplot(
+    labeltext = tabletext1,
+    graph.pos = 3, graphwidth = unit(6, "cm"),
+    hrzl_lines = list(
+      "1" = gpar(lwd = 1, col = "black"),
+      "2" = gpar(lwd = 1, col = "black")
+    ),
+    #  "3.75" = gpar(lwd=60, lineend="butt", columns=c(2:6), col="#99999922")),
+    #  "3" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
+    #  "7" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
+    #  "9" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922")),
+    mean = c(NA, data$HR),
+    lower = c(NA, data$Lower_CI),
+    upper = c(NA, data$Upper_CI),
+    title = plot.title,
+    xlab = "     <---Good prognosis---    ---Poor prognosis--->",
+    txt_gp = fpTxtGp(
+      label = gpar(cex = 1.2),
+      ticks = gpar(cex = 1.2),
+      xlab = gpar(cex = 1.2),
+      title = gpar(cex = 1.2)
+    ),
+    col = fpColors(box = "black", lines = "black"),
+    xticks = x.tics,
+    clip = x.range,
+    zero = 1,
+    cex = 1.2,
+    lineheight = "auto", # height of the graph
+    boxsize = 0.2,
+    colgap = unit(3, "mm"), # the gap between column
+    lwd.ci = 2,
+    ci.vertices = FALSE,
+    ci.vertices.height = 0.02,
+    new_page = getOption("forestplot_new_page", FALSE)
+  )
+  dev.off()
+  print(p)
 }
 
 ## Cox regression model
@@ -5278,86 +5351,14 @@ plot.coxph.EIF.all.tumors <- function() {
   }
   plot.univariate()
 
-  # TODO: The function plot.multivariate() is defined in multiple places with
-  #       only a few small implementation differences between them.  A single
-  #       variant should be defined in the outer scope, with arguments to drive
-  #       different behaviors.  For example, the graph title and the tick marks
-  #       for the x-axis ought to be arguments to that function.
-  plot.multivariate <- function() {
-    df %>%
-      analyse_multivariate(vars(OS.time, OS), covariates = vars(EIF4E, EIF4A1, EIF4G1, EIF4G2, PABPC1, EIF4EBP1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC), covariate_name_dict = covariate_names) -> result1
-    data <- as.data.frame(result1["summaryAsFrame"], col.names = NULL) # remove summaryASFrame in colnames
-
-    # Testing proportional Hazards assumption on univariate analysis
-    mv_fit <- coxph(Surv(OS.time, OS) ~ EIF4E + EIF4A1 + EIF4G1 + EIF4EBP1 + EIF4G2 + PABPC1 + MKNK1 + MKNK2 +
-      MTOR + RPTOR + RPS6KB1 + MYC, data = df)
-    test.ph <- cox.zph(mv_fit)
-    test <- print(test.ph)
-    f <- test[, 3, drop = FALSE]
-    colnames(f) <- "pinteraction"
-
-    data <- merge(data, f, by.x = "factor.id", by.y = "row.names")
-    data[, 4:11] <- round(data[, 4:11], digits = 3)
-    data[, 4:6] <- round(data[, 4:6], digits = 2)
-    data$np <- 10235
-    data <- as.data.frame(data)
-    data$HRCI <- paste0(data$HR, " (", data$Lower_CI, "-", data$Upper_CI, ")")
-    data$p[data$p < 0.001] <- "<0.001"
-    data$pinteraction[data$pinteraction < 0.001] <- "<0.001"
-    data <- data[order(data$HR), ]
-    tabletext1 <- cbind(
-      c("Gene", data$factor.id),
-      c("No. of\nPatients", data$np),
-      c("Hazard Ratio\n(95% CI)", data$HRCI),
-      c("P Value", data$p),
-      c("P Value for\nInteraction", data$pinteraction)
-    )
-
-    pdf(
-      file = paste0(output.directory, "/Cox/EIFmultiCox.pdf"),
-      width = 10,
-      height = 8,
-      onefile = F
-    )
-    p <- forestplot(
-      labeltext = tabletext1,
-      graph.pos = 3, graphwidth = unit(6, "cm"),
-      hrzl_lines = list(
-        "1" = gpar(lwd = 1, col = "black"),
-        "2" = gpar(lwd = 1, col = "black")
-      ),
-      #  "3.75" = gpar(lwd=60, lineend="butt", columns=c(2:6), col="#99999922")),
-      #  "3" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
-      #  "7" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
-      #  "9" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922")),
-      mean = c(NA, data$HR),
-      lower = c(NA, data$Lower_CI),
-      upper = c(NA, data$Upper_CI),
-      title = "Multivariate Cox proportional-hazards regression analysis (all tumor types)",
-      xlab = "     <---Good prognosis---    ---Poor prognosis--->",
-      txt_gp = fpTxtGp(
-        label = gpar(cex = 1.2),
-        ticks = gpar(cex = 1.2),
-        xlab = gpar(cex = 1.2),
-        title = gpar(cex = 1.2)
-      ),
-      col = fpColors(box = "black", lines = "black"),
-      xticks = c(0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8),
-      clip = c(0.6, 1.8), # range of x axis
-      zero = 1,
-      cex = 1.2,
-      lineheight = "auto", # height of the graph
-      boxsize = 0.2,
-      colgap = unit(3, "mm"), # the gap between column
-      lwd.ci = 2,
-      ci.vertices = FALSE,
-      ci.vertices.height = 0.02,
-      new_page = getOption("forestplot_new_page", FALSE)
-    )
-    dev.off()
-    print(p)
-  }
-  plot.multivariate()
+  plot.multivariate(
+    df = df,
+    covariate_names = covariate_names,
+    data.np = 10235,
+    output.file = paste0(output.directory, "/Cox/EIFmultiCox.pdf"),
+    plot.title = "Multivariate Cox proportional-hazards regression analysis (all tumor types)",
+    x.tics = c(0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8),
+    x.range = c(0.6, 1.8))
 }
 
 plot.coxph.EIF.each.tumor <- function(tumor) {
@@ -5574,83 +5575,14 @@ plot.coxph.EIF.each.tumor <- function(tumor) {
   }
   plot.univariate()
 
-  plot.multivariate <- function() {
-    df %>%
-      analyse_multivariate(vars(OS.time, OS), covariates = vars(EIF4E, EIF4A1, EIF4G1, EIF4G2, PABPC1, EIF4EBP1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC), covariate_name_dict = covariate_names) -> result1
-    data <- as.data.frame(result1["summaryAsFrame"], col.names = NULL) # remove summaryASFrame in colnames
-
-    # Testing proportional Hazards assumption on univariate analysis
-    mv_fit <- coxph(Surv(OS.time, OS) ~ EIF4E + EIF4A1 + EIF4G1 + EIF4EBP1 + EIF4G2 + PABPC1 + MKNK1 + MKNK2 +
-      MTOR + RPTOR + RPS6KB1 + MYC, data = df)
-    test.ph <- cox.zph(mv_fit)
-    test <- print(test.ph)
-    f <- test[, 3, drop = FALSE]
-    colnames(f) <- "pinteraction"
-
-    data <- merge(data, f, by.x = "factor.id", by.y = "row.names")
-    data[, 4:11] <- round(data[, 4:11], digits = 3)
-    data[, 4:6] <- round(data[, 4:6], digits = 2)
-    data$np <- 517
-    data <- as.data.frame(data)
-    data$HRCI <- paste0(data$HR, " (", data$Lower_CI, "-", data$Upper_CI, ")")
-    data$p[data$p < 0.001] <- "<0.001"
-    data$pinteraction[data$pinteraction < 0.001] <- "<0.001"
-    data <- data[order(data$HR), ]
-    tabletext1 <- cbind(
-      c("Gene", data$factor.id),
-      c("No. of\nPatients", data$np),
-      c("Hazard Ratio\n(95% CI)", data$HRCI),
-      c("P Value", data$p),
-      c("P Value for\nInteraction", data$pinteraction)
-    )
-
-    pdf(
-      file = paste0(
-        output.directory, "/Cox/",
-        tumor,
-        "EIFmultiCox.pdf"
-      ),
-      width = 10,
-      height = 8, onefile = F
-    )
-    p <- forestplot(
-      labeltext = tabletext1,
-      graph.pos = 3, graphwidth = unit(6, "cm"),
-      hrzl_lines = list(
-        "1" = gpar(lwd = 1, col = "black"),
-        "2" = gpar(lwd = 1, col = "black")
-      ),
-      #  "3.75" = gpar(lwd=60, lineend="butt", columns=c(2:6), col="#99999922")),
-      #  "3" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
-      #  "7" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
-      #  "9" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922")),
-      mean = c(NA, data$HR),
-      lower = c(NA, data$Lower_CI),
-      upper = c(NA, data$Upper_CI),
-      title = "Multivariate Cox proportional-hazards regression analysis (lung adenocarcinoma)",
-      xlab = "<---Good prognosis---    ---Poor prognosis--->",
-      txt_gp = fpTxtGp(
-        label = gpar(cex = 1.2),
-        ticks = gpar(cex = 1.2),
-        xlab = gpar(cex = 1.2),
-        title = gpar(cex = 1.2)
-      ),
-      col = fpColors(box = "black", lines = "black"),
-      xticks = c(0.5, 0.8, 1.1, 1.4, 1.7, 2, 2.3, 2.6),
-      clip = c(0.5, 2.6), # range of x axis
-      zero = 1,
-      cex = 1.2,
-      lineheight = "auto", # height of the graph
-      boxsize = 0.2,
-      colgap = unit(3, "mm"), # the gap between column
-      lwd.ci = 2,
-      ci.vertices = FALSE,
-      ci.vertices.height = 0.02,
-      new_page = getOption("forestplot_new_page", FALSE)
-    )
-    dev.off()
-  }
-  plot.multivariate()
+  plot.multivariate(
+    df = df,
+    covariate_names = covariate_names,
+    data.np = 517,
+    output.file = paste0(output.directory, "/Cox/", tumor, "EIFmultiCox.pdf"),
+    plot.title = "Multivariate Cox proportional-hazards regression analysis (lung adenocarcinoma)",
+    x.tics = c(0.5, 0.8, 1.1, 1.4, 1.7, 2, 2.3, 2.6),
+    x.range = c(0.5, 2.6))
 }
 
 
@@ -5793,7 +5725,7 @@ plot.Venn.all <- function() {
         )
       )
       print(p2)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Heatmap"),
         filename = paste("all", z, "pos4Venn.pdf"),
         plot = p2,
@@ -5854,7 +5786,7 @@ plot.Venn.all <- function() {
         )
       )
       print(p2)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Heatmap"),
         filename = paste("all", z, "neg4Venn.pdf"),
         plot = p2,
@@ -5962,7 +5894,7 @@ plot.Venn.all <- function() {
         strip.text = black_bold_18
       )
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste("all posCORs.pdf"),
       plot = p1,
@@ -6007,7 +5939,7 @@ plot.Venn.all <- function() {
         strip.text = black_bold_18
       )
     print(p2)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste("all negCORs.pdf"),
       plot = p2,
@@ -6161,7 +6093,7 @@ plot.Venn.lung <- function(x) {
         )
       )
       print(p2)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Heatmap"),
         filename = paste(x, z, "pos4Venn.pdf"),
         plot = p2,
@@ -6222,7 +6154,7 @@ plot.Venn.lung <- function(x) {
         )
       )
       print(p2)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Heatmap"),
         filename = paste(x, z, "neg4Venn.pdf"),
         plot = p2,
@@ -6328,7 +6260,7 @@ plot.Venn.lung <- function(x) {
         strip.text = black_bold_18
       )
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste(x, "posCORs.pdf"),
       plot = p1,
@@ -6373,7 +6305,7 @@ plot.Venn.lung <- function(x) {
         strip.text = black_bold_18
       )
     print(p2)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste(x, "negCORs.pdf"),
       plot = p2,
@@ -6659,7 +6591,7 @@ plot.heatmap.total <- function() {
         strip.text = black_bold_16
       )
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste("all tumors GO.pdf"),
       plot = p1,
@@ -6688,7 +6620,7 @@ plot.heatmap.total <- function() {
         strip.text = black_bold_16
       )
     print(p2)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste("all tumors KEGG.pdf"),
       plot = p2,
@@ -6717,7 +6649,7 @@ plot.heatmap.total <- function() {
         strip.text = black_bold_16
       )
     print(p3)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste("all tumors REACTOME.pdf"),
       plot = p3,
@@ -6867,7 +6799,7 @@ plot.heatmap.lung <- function(x) {
         )
       )
       print(p1)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/Heatmap"),
         filename = paste(x, "Venn.pdf"),
         plot = p1,
@@ -7057,7 +6989,7 @@ plot.heatmap.lung <- function(x) {
         strip.text = black_bold_16
       )
     print(p1)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste(x, "Go.pdf"),
       plot = p1,
@@ -7085,7 +7017,7 @@ plot.heatmap.lung <- function(x) {
         strip.text = black_bold_16
       )
     print(p2)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste(x, "KEGG.pdf"),
       plot = p2,
@@ -7113,7 +7045,7 @@ plot.heatmap.lung <- function(x) {
         strip.text = black_bold_16
       )
     print(p3)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste(x, "REACTOME.pdf"),
       plot = p3,
@@ -7172,7 +7104,7 @@ plot.heatmap.lung <- function(x) {
       show_colnames = FALSE
     )
     print(p4)
-    ggsave(
+    ggplot2::ggsave(
       path = paste0(output.directory, "/Heatmap"),
       filename = paste(x, "cluster3 heatmap.pdf"),
       plot = p4,
@@ -7299,7 +7231,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         ncol = 7,
         repeat.tick.labels = c("x", "y")
       ) +
-      # facet_grid_sc(cols = vars(Gene),
+      # ggplot2::facet_grid_sc(cols = vars(Gene),
       #              scales = list(y = scales_y))+
       theme_bw() +
       theme(
@@ -7364,7 +7296,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         ncol = 7,
         repeat.tick.labels = c("x", "y")
       ) +
-      # facet_grid_sc(cols = vars(Gene),
+      # ggplot2::facet_grid_sc(cols = vars(Gene),
       #              scales = list(y = scales_y))+
       theme_bw() +
       theme(
@@ -7446,7 +7378,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         ncol = 7,
         repeat.tick.labels = c("x", "y")
       ) +
-      # facet_grid_sc(cols = vars(Gene),
+      # ggplot2::facet_grid_sc(cols = vars(Gene),
       #              scales = list(y = scales_y))+
       theme_bw() +
       theme(
@@ -7519,7 +7451,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         ncol = 7,
         repeat.tick.labels = c("x", "y")
       ) +
-      # facet_grid_sc(cols = vars(Gene),
+      # ggplot2::facet_grid_sc(cols = vars(Gene),
       #              scales = list(y = scales_y))+
       theme_bw() +
       theme(
@@ -7743,7 +7675,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         # scale_fill_manual(values = col_vector) +
         # scale_fill_brewer(palette="Dark2")+
         scale_fill_discrete(drop = F) +
-        facet_grid(. ~ Gene) +
+        ggplot2::facet_grid(. ~ Gene) +
         facet_wrap(~Gene, scales = "free_y") +
         # facet_rep_wrap(~ Gene,
         #               scales = 'free_y',
@@ -7940,7 +7872,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         # scale_fill_manual(values = col_vector) +
         # scale_fill_brewer(palette="Dark2")+
         scale_fill_discrete(drop = F) +
-        facet_grid(. ~ Gene) +
+        ggplot2::facet_grid(. ~ Gene) +
         facet_wrap(~Gene) +
         # facet_rep_wrap(~ Gene,
         #               scales = 'free_y',
@@ -7971,7 +7903,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
           size = 4
         )
       print(p2)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/CPTAC"),
         filename = paste0(str_remove(x, ":"), "pro.pdf"),
         plot = p2,
@@ -8025,7 +7957,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         # scale_fill_manual(values = col_vector) +
         # scale_fill_brewer(palette="Dark2")+
         scale_fill_discrete(drop = F) +
-        facet_grid(. ~ Gene) +
+        ggplot2::facet_grid(. ~ Gene) +
         facet_wrap(~Gene) +
         # facet_rep_wrap(~ Gene,
         #               scales = 'free_y',
@@ -8056,7 +7988,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
           size = 4
         )
       print(p2)
-      ggsave(
+      ggplot2::ggsave(
         path = paste0(output.directory, "/CPTAC"),
         filename = paste0(str_remove(x, ":"), "phospro.pdf"),
         plot = p2,
@@ -8097,7 +8029,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
 
 # TODO: For non-Windows multicore systems, lapply() calls below could perhaps
 #       be made to execute simultaneously with mclapply().
-
+if (FALSE) {
 # Figure 1
 lapply(
   c("EIF4E", "EIF4G1", "EIF4A1", "EIF4EBP1", "MYC", "PTEN"),
@@ -8204,3 +8136,5 @@ plot.heatmap.lung(x = "Lung")
 
 # Figure 6
 plot.EIF4.CPTAC.pro.LUAD()
+
+}
