@@ -105,8 +105,9 @@ black_bold_18 <- element_text(
   size = 18
 )
 color <- function() {
-  n <- 32
+  n <- 32  # TODO: this variable is not used
   qual_col_pals <- brewer.pal.info[brewer.pal.info$category == "qual", ]
+  # TODO: col_vector, as defined in this scope, is not used
   col_vector <- unlist(mapply(
     brewer.pal,
     qual_col_pals$maxcolors,
@@ -333,6 +334,8 @@ plot.bargraph.EIF.CNV.sum <- function(EIF) {
     CNV.sum$variable <- factor(CNV.sum$variable,
       levels = c("PTEN", "EIF4E", "EIF4A1", "MYC", "EIF4EBP1", "EIF4G1")
     )
+    # TODO: The variables 'CNV', 'Freq', and 'variable' in the argument list
+    #       below are not defined.
     # reorder bars by explicitly ordering factor levels
     p1 <- ggplot(CNV.sum, aes(
       fill = CNV,
@@ -533,6 +536,7 @@ plot.violin.EIF.CNV.RNAseq <- function(EIF) {
   make.plot <- function(EIF) {
     p1 <- ggplot(
       data = TCGA.RNAseq.CNV,
+      # TODO: The variables 'CNV' and 'RNAseq' are not defined.
       aes(
         x = CNV,
         y = 2**RNAseq - 1,
@@ -880,6 +884,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
 
       f1 <- factor(pancancer.TCGA.EIF.long1$primary.disease)
       f.ordered1 <- fct_rev(f1)
+      # TODO: The variables 'value' and 'variable' below are not defined.
       p1 <- ggplot(
         data = pancancer.TCGA.EIF.long1,
         aes(
@@ -1069,6 +1074,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
 
       f1 <- factor(pancancer.TCGA.EIF.long2$primary.disease)
       f.ordered1 <- fct_rev(f1)
+      # TODO: The variables 'value' and 'variable' below are not defined.
       p1 <- ggplot(
         data = pancancer.TCGA.EIF.long2,
         aes(
@@ -4623,6 +4629,8 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
 
   df1 <- EIF.CPTAC.LUAD.Proteomics.Sampletype[1:(length(EIF.CPTAC.LUAD.Proteomics.Sampletype) - 1)]
   rownames(df1) <- NULL
+
+  # TODO: 'nb' is defined here but not used
   nb <- missMDA::estim_ncpPCA(df1, ncp.max = 5)
   res.comp <- missMDA::imputePCA(df1, ncp = 2)
 
@@ -4840,6 +4848,8 @@ plot.km.EIF.all.tumors <- function(EIF) {
     df$SurvObj <- with(df, Surv(OS.time, OS == 1))
     df <- na.omit(df)
     km <- survfit(SurvObj ~ df$Group, data = df, conf.type = "log-log")
+    # TODO: Here and below, 'survdiff' is called without values for
+    #       'subset' and 'na.action', which have no default values.
     stats <- survdiff(SurvObj ~ df$Group, data = df, rho = 0) # rho = 0 log-rank
     p.val <- 1 - pchisq(stats$chisq, length(stats$n) - 1)
     p.val <- signif(p.val, 3)
@@ -5159,6 +5169,8 @@ plot.coxph.EIF.all.tumors <- function() {
     RPS6KB1 = "RPS6KB1", MYC = "MYC"
   )
 
+  # TODO: RStudio flags multiple warnings with the implementation of
+  #       plot.univariate().
   plot.univariate <- function() {
     result <- map(
       vars(
@@ -5266,6 +5278,11 @@ plot.coxph.EIF.all.tumors <- function() {
   }
   plot.univariate()
 
+  # TODO: The function plot.multivariate() is defined in multiple places with
+  #       only a few small implementation differences between them.  A single
+  #       variant should be defined in the outer scope, with arguments to drive
+  #       different behaviors.  For example, the graph title and the tick marks
+  #       for the x-axis ought to be arguments to that function.
   plot.multivariate <- function() {
     df %>%
       analyse_multivariate(vars(OS.time, OS), covariates = vars(EIF4E, EIF4A1, EIF4G1, EIF4G2, PABPC1, EIF4EBP1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC), covariate_name_dict = covariate_names) -> result1
@@ -5446,6 +5463,10 @@ plot.coxph.EIF.each.tumor <- function(tumor) {
     RPS6KB1 = "RPS6KB1", MYC = "MYC"
   )
 
+  # TODO: Here as well, RStudio flags multiple implementation warnings.  If this
+  #       plot.univariate() is intended to work the same way as other inline
+  #       definitions of plot.univariate(), then the function should be
+  #       extracted to the outer scope and defined exactly once.
   plot.univariate <- function() {
     result <- map(
       vars(
@@ -5890,6 +5911,9 @@ plot.Venn.all <- function() {
   EIF.cor.tumor <- EIF.correlation(y = all.tumor.type, z = "tumor")
   EIF.cor.normal <- EIF.correlation(y = c("Normal Tissue"), z = "normal")
 
+  # TODO: The function plot.bargraph.CORs() is defined inline in multiple
+  #       places.  Investigate moving it to an outer scope, and perhaps using
+  #       function arguments e.g. to specify the output filename.
   plot.bargraph.CORs <- function() {
     EIF.cor.tumor$label <- "tumor"
     EIF.cor.tumor$gene <- row.names(EIF.cor.tumor)
@@ -5901,6 +5925,7 @@ plot.Venn.all <- function() {
     EIF.cor$gene <- factor(EIF.cor$gene, levels = c("EIF4EBP1", "EIF4A1", "EIF4G1", "EIF4E"))
     levels(EIF.cor$gene)
 
+    # TODO: The variables 'gene' and posCORs are not defined.
     p1 <- ggplot(
       data = EIF.cor,
       aes(
@@ -8078,13 +8103,18 @@ lapply(
   c("EIF4E", "EIF4G1", "EIF4A1", "EIF4EBP1", "MYC", "PTEN"),
   plot.bargraph.EIF.CNV.TCGA
 )
+
 plot.bargraph.EIF.CNV.sum(c("PTEN", "EIF4A1", "EIF4E", "MYC", "EIF4EBP1", "EIF4G1"))
+
 plot.matrix.EIF.CNV.corr(c("PTEN", "EIF4A1", "EIF4E", "MYC", "EIF4EBP1", "EIF4G1"))
+
 plot.violin.EIF.CNV.RNAseq("EIF4A1")
+
 lapply(
   c("PTEN", "EIF4A1", "EIF4E", "MYC", "EIF4EBP1", "EIF4G1"),
   plot.violin.EIF.CNV.RNAseq
 )
+
 lapply(
   c("EIF4E", "EIF4G1", "EIF4A1", "EIF4EBP1", "MYC", "PTEN"),
   plot.boxgraph.EIF.CNVratio.TCGA
@@ -8102,11 +8132,13 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue(c(
   "EIF4G1", "EIF4A1", "EIF4E", "EIF4EBP1",
   "PABPC1", "MKNK1", "MKNK2"
 ))
+
 plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue(c(
   "EIF4G1", "EIF4A1", "EIF4E", "EIF4EBP1",
   "PABPC1", "MKNK1", "MKNK2",
   "MYC", "JUN", "YY1"
 ))
+
 plot.EIF.TCGA.GTEX.PCA.each.tumor(
   c(
     "EIF4G1", "EIF4A1", "EIF4E", "EIF4EBP1",
@@ -8114,42 +8146,50 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor(
   ),
   "Lung"
 )
+
 plot.EIF.TCGA.PCA.all.tumor(c(
   "EIF4E", "EIF4G1", "EIF4A1", "EIF4EBP1",
   "PABPC1", "MKNK1", "MKNK2"
 ))
+
 plot.EIF.GTEX.PCA.all.tissue(c(
   "EIF4E", "EIF4G1", "EIF4A1", "EIF4EBP1",
   "PABPC1", "MKNK1", "MKNK2"
 ))
+
 plot.EIF.CPTAC.PCA.LUAD()
 
 
 # Figure 4
 plot.km.EIF.all.tumors("EIF4G1")
-lapply(c(
-  "EIF4E", "EIF4E2", "EIF4E3",
-  "EIF4G1", "EIF4G2", "EIF4G3",
-  "EIF4A1", "EIF4A2",
-  "EIF4EBP1", "PABPC1", "MKNK1", "MKNK2",
-  "DDX3X", "EIF4B", "EIF4H", "EIF2S1",
-  "EIF3A", "EIF3B", "EIF3C", "EIF3D",
-  "EIF3E", "EIF3F", "EIF3G", "EIF3H",
-  "EIF3I", "EIF3J", "EIF3K", "EIF3L", "EIF3M",
-  "EIF4B", "EIF4H",
-  "MTOR", "RPTOR", "RICTOR", "RPS6KB1", "MYC"
-), plot.km.EIF.all.tumors)
+lapply(
+  c(
+    "EIF4E", "EIF4E2", "EIF4E3",
+    "EIF4G1", "EIF4G2", "EIF4G3",
+    "EIF4A1", "EIF4A2",
+    "EIF4EBP1", "PABPC1", "MKNK1", "MKNK2",
+    "DDX3X", "EIF4B", "EIF4H", "EIF2S1",
+    "EIF3A", "EIF3B", "EIF3C", "EIF3D",
+    "EIF3E", "EIF3F", "EIF3G", "EIF3H",
+    "EIF3I", "EIF3J", "EIF3K", "EIF3L", "EIF3M",
+    "EIF4B", "EIF4H",
+    "MTOR", "RPTOR", "RICTOR", "RPS6KB1", "MYC"
+  ), plot.km.EIF.all.tumors
+)
+
 plot.km.EIF.each.tumor(
   EIF = "EIF4G1",
   tumor = c("lung adenocarcinoma")
 )
-lapply(c(
-  "EIF4E", "EIF4G1", "EIF4G2", "EIF4A1",
-  "EIF4EBP1", "PABPC1", "MKNK1", "MKNK2",
-  "MTOR", "RPTOR", "RPS6KB1", "MYC"
-),
-plot.km.EIF.each.tumor,
-tumor = "lung adenocarcinoma"
+
+lapply(
+  c(
+    "EIF4E", "EIF4G1", "EIF4G2", "EIF4A1",
+    "EIF4EBP1", "PABPC1", "MKNK1", "MKNK2",
+    "MTOR", "RPTOR", "RPS6KB1", "MYC"
+  ),
+  plot.km.EIF.each.tumor,
+  tumor = "lung adenocarcinoma"
 )
 plot.coxph.EIF.all.tumors()
 plot.coxph.EIF.each.tumor(c("lung adenocarcinoma"))
