@@ -5072,6 +5072,109 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
   plot.KM(EIF, tumor)
 }
 
+plot.univariate <- function(df, covariate_names, data.np, output.file, plot.title, x.tics, x.range) {
+  result <- map(
+    vars(
+      EIF4E, EIF4G1, EIF4G2, EIF4A1, # EIF4E+EIF4EBP1,
+      EIF4EBP1, PABPC1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC
+    ),
+    function(by) {
+      analyse_multivariate(df,
+                           vars(OS.time, OS),
+                           covariates = list(by), # covariates expects a list
+                           covariate_name_dict = covariate_names
+      )
+    }
+  )
+  
+  HR.table <- function(x) {
+    list <- as.data.frame(result[[x]]["summaryAsFrame"], col.names = NULL) # remove summaryASFrame in colnames
+    return(list)
+  }
+  a <- lapply(c(1:12), HR.table)
+  b <- do.call(rbind.data.frame, a)
+  
+  # Testing proportional Hazards assumption on univariate analysis
+  univ_formulas <- sapply(
+    covariate_names,
+    function(x) as.formula(paste("Surv(OS.time, OS)~", x))
+  )
+  univ_models <- lapply(
+    univ_formulas,
+    function(x) {
+      cox.zph(coxph(x, data = df))
+    }
+  )
+  coxassump <- function(x) {
+    c <- print(univ_models[[x]])
+    return(c)
+  }
+  univ_results <- lapply(covariate_names, coxassump)
+  d <- do.call(rbind.data.frame, univ_results)
+  e <- d[-grep("GLOBAL", rownames(d)), ]
+  rownames(e) <- gsub("\\..*", "", rownames(e))
+  f <- e[, 3, drop = FALSE]
+  colnames(f) <- "pinteraction"
+  
+  data <- merge(b, f, by.x = "factor.id", by.y = "row.names")
+  data[, 4:11] <- round(data[, 4:11], digits = 3)
+  data[, 4:6] <- round(data[, 4:6], digits = 2)
+  data$np <- data.np
+  data <- as.data.frame(data)
+  data$HRCI <- paste0(data$HR, " (", data$Lower_CI, "-", data$Upper_CI, ")")
+  data$p[data$p < 0.001] <- "<0.001"
+  data$pinteraction[data$pinteraction < 0.001] <- "<0.001"
+  data <- data[order(data$HR), ]
+  tabletext1 <- cbind(
+    c("Gene", data$factor.id),
+    c("No. of\nPatients", data$np),
+    c("Hazard Ratio\n(95% CI)", data$HRCI),
+    c("P Value", data$p),
+    c("P Value for\nInteraction", data$pinteraction)
+  )
+  
+  pdf(
+    file = output.file,
+    width = 10,
+    height = 8,
+    onefile = F
+  )
+  p <- forestplot(
+    labeltext = tabletext1,
+    graph.pos = 3, graphwidth = unit(6, "cm"),
+    hrzl_lines = list(
+      "1" = gpar(lwd = 1, col = "black"),
+      "2" = gpar(lwd = 1, col = "black")
+    ),
+    mean = c(NA, data$HR),
+    lower = c(NA, data$Lower_CI),
+    upper = c(NA, data$Upper_CI),
+    title = plot.title,
+    xlab = "<---Good prognosis---    ---Poor prognosis--->",
+    txt_gp = fpTxtGp(
+      label = gpar(cex = 1.2),
+      ticks = gpar(cex = 1.2),
+      xlab = gpar(cex = 1.2),
+      title = gpar(cex = 1.2)
+    ),
+    col = fpColors(box = "black", lines = "black"),
+    xticks = x.tics,
+    # xlog = 0,
+    clip = x.range,
+    zero = 1,
+    cex = 1.2,
+    lineheight = "auto", # height of the graph
+    boxsize = 0.2,
+    colgap = unit(3, "mm"), # the gap between column
+    lwd.ci = 2,
+    ci.vertices = FALSE,
+    ci.vertices.height = 0.02,
+    new_page = getOption("forestplot_new_page", FALSE)
+  )
+  dev.off()
+}
+
+
 plot.multivariate <- function(df, covariate_names, data.np, output.file, plot.title, x.tics, x.range) {
   df %>%
     analyse_multivariate(vars(OS.time, OS), covariates = vars(EIF4E, EIF4A1, EIF4G1, EIF4G2, PABPC1, EIF4EBP1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC), covariate_name_dict = covariate_names) -> result1
@@ -5242,115 +5345,15 @@ plot.coxph.EIF.all.tumors <- function() {
     RPS6KB1 = "RPS6KB1", MYC = "MYC"
   )
 
-  # TODO: RStudio flags multiple warnings with the implementation of
-  #       plot.univariate().
-  plot.univariate <- function() {
-    result <- map(
-      vars(
-        EIF4E, EIF4G1, EIF4G2, EIF4A1, # EIF4E+EIF4EBP1,
-        EIF4EBP1, PABPC1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC
-      ),
-      function(by) {
-        analyse_multivariate(df,
-          vars(OS.time, OS),
-          covariates = list(by), # covariates expects a list
-          covariate_name_dict = covariate_names
-        )
-      }
-    )
-
-    HR.table <- function(x) {
-      list <- as.data.frame(result[[x]]["summaryAsFrame"], col.names = NULL) # remove summaryASFrame in colnames
-      return(list)
-    }
-    a <- lapply(c(1:12), HR.table)
-    b <- do.call(rbind.data.frame, a)
-
-    # Testing proportional Hazards assumption on univariate analysis
-    univ_formulas <- sapply(
-      covariate_names,
-      function(x) as.formula(paste("Surv(OS.time, OS)~", x))
-    )
-    univ_models <- lapply(
-      univ_formulas,
-      function(x) {
-        cox.zph(coxph(x, data = df))
-      }
-    )
-    coxassump <- function(x) {
-      c <- print(univ_models[[x]])
-      return(c)
-    }
-    univ_results <- lapply(covariate_names, coxassump)
-    d <- do.call(rbind.data.frame, univ_results)
-    e <- d[-grep("GLOBAL", rownames(d)), ]
-    rownames(e) <- gsub("\\..*", "", rownames(e))
-    f <- e[, 3, drop = FALSE]
-    colnames(f) <- "pinteraction"
-
-    data <- merge(b, f, by.x = "factor.id", by.y = "row.names")
-    data[, 4:11] <- round(data[, 4:11], digits = 3)
-    data[, 4:6] <- round(data[, 4:6], digits = 2)
-    data$np <- 10235
-    data <- as.data.frame(data)
-    data$HRCI <- paste0(data$HR, " (", data$Lower_CI, "-", data$Upper_CI, ")")
-    data$p[data$p < 0.001] <- "<0.001"
-    data$pinteraction[data$pinteraction < 0.001] <- "<0.001"
-    data <- data[order(data$HR), ]
-    tabletext1 <- cbind(
-      c("Gene", data$factor.id),
-      c("No. of\nPatients", data$np),
-      c("Hazard Ratio\n(95% CI)", data$HRCI),
-      c("P Value", data$p),
-      c("P Value for\nInteraction", data$pinteraction)
-    )
-
-
-    pdf(
-      file = paste0(output.directory, "/Cox/EIFUniCox.pdf"),
-      width = 10,
-      height = 8, onefile = F
-    )
-    p <- forestplot(
-      labeltext = tabletext1,
-      graph.pos = 3, graphwidth = unit(6, "cm"),
-      hrzl_lines = list(
-        "1" = gpar(lwd = 1, col = "black"),
-        "2" = gpar(lwd = 1, col = "black")
-      ),
-      #  "3.75" = gpar(lwd=60, lineend="butt", columns=c(2:6), col="#99999922")),
-      #  "3" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
-      #  "7" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922"),
-      #  "9" = gpar(lwd=6, lineend="butt", columns=c(2:6), col="#99999922")),
-      mean = c(NA, data$HR),
-      lower = c(NA, data$Lower_CI),
-      upper = c(NA, data$Upper_CI),
-      title = "Univariate Cox proportional-hazards regression analysis (all tumor types)",
-      xlab = "     <---Good prognosis---    ---Poor prognosis--->",
-      txt_gp = fpTxtGp(
-        label = gpar(cex = 1.2),
-        ticks = gpar(cex = 1.2),
-        xlab = gpar(cex = 1.2),
-        title = gpar(cex = 1.2)
-      ),
-      col = fpColors(box = "black", lines = "black"),
-      xticks = c(0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8),
-      clip = c(0.6, 1.8), # range of x axis
-      zero = 1,
-      cex = 1.2,
-      lineheight = "auto", # height of the graph
-      boxsize = 0.2,
-      colgap = unit(3, "mm"), # the gap between column
-      lwd.ci = 2,
-      ci.vertices = FALSE,
-      ci.vertices.height = 0.02,
-      new_page = getOption("forestplot_new_page", FALSE)
-    )
-    dev.off()
-    print(p)
-  }
-  plot.univariate()
-
+  plot.univariate(
+    df = df,
+    covariate_names = covariate_names,
+    data.np = 10235,
+    output.file = paste0(output.directory, "/Cox/EIFUniCox.pdf"),
+    plot.title = "Univariate Cox proportional-hazards regression analysis (all tumor types)",
+    x.tics = c(0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8),
+    x.range = c(0.6, 1.8))
+  
   plot.multivariate(
     df = df,
     covariate_names = covariate_names,
@@ -5464,125 +5467,23 @@ plot.coxph.EIF.each.tumor <- function(tumor) {
     RPS6KB1 = "RPS6KB1", MYC = "MYC"
   )
 
-  # TODO: Here as well, RStudio flags multiple implementation warnings.  If this
-  #       plot.univariate() is intended to work the same way as other inline
-  #       definitions of plot.univariate(), then the function should be
-  #       extracted to the outer scope and defined exactly once.
-  plot.univariate <- function() {
-    result <- map(
-      vars(
-        EIF4E, EIF4G1, EIF4G2, EIF4A1, # EIF4E+EIF4EBP1,
-        EIF4EBP1, PABPC1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC
-      ),
-      function(by) {
-        analyse_multivariate(df,
-          vars(OS.time, OS),
-          covariates = list(by), # covariates expects a list
-          covariate_name_dict = covariate_names
-        )
-      }
-    )
-
-    HR.table <- function(x) {
-      list <- as.data.frame(result[[x]]["summaryAsFrame"], col.names = NULL) # remove summaryASFrame in colnames
-      return(list)
-    }
-    a <- lapply(c(1:12), HR.table)
-    b <- do.call(rbind.data.frame, a)
-
-    # Testing proportional Hazards assumption on univariate analysis
-    univ_formulas <- sapply(
-      covariate_names,
-      function(x) as.formula(paste("Surv(OS.time, OS)~", x))
-    )
-    univ_models <- lapply(
-      univ_formulas,
-      function(x) {
-        cox.zph(coxph(x, data = df))
-      }
-    )
-    coxassump <- function(x) {
-      c <- print(univ_models[[x]])
-      return(c)
-    }
-    univ_results <- lapply(covariate_names, coxassump)
-    d <- do.call(rbind.data.frame, univ_results)
-    e <- d[-grep("GLOBAL", rownames(d)), ]
-    rownames(e) <- gsub("\\..*", "", rownames(e))
-    f <- e[, 3, drop = FALSE]
-    colnames(f) <- "pinteraction"
-
-    data <- merge(b, f, by.x = "factor.id", by.y = "row.names")
-    data[, 4:11] <- round(data[, 4:11], digits = 3)
-    data[, 4:6] <- round(data[, 4:6], digits = 2)
-    data$np <- 517
-    data <- as.data.frame(data)
-    data$HRCI <- paste0(data$HR, " (", data$Lower_CI, "-", data$Upper_CI, ")")
-    data$p[data$p < 0.001] <- "<0.001"
-    data$pinteraction[data$pinteraction < 0.001] <- "<0.001"
-    data <- data[order(data$HR), ]
-    tabletext1 <- cbind(
-      c("Gene", data$factor.id),
-      c("No. of\nPatients", data$np),
-      c("Hazard Ratio\n(95% CI)", data$HRCI),
-      c("P Value", data$p),
-      c("P Value for\nInteraction", data$pinteraction)
-    )
-
-    pdf(
-      file = paste0(
-        output.directory, "/Cox/",
-        tumor,
-        "EIFuniCox.pdf"
-      ),
-      width = 10,
-      height = 8,
-      onefile = F
-    )
-    p <- forestplot(
-      labeltext = tabletext1,
-      graph.pos = 3, graphwidth = unit(6, "cm"),
-      hrzl_lines = list(
-        "1" = gpar(lwd = 1, col = "black"),
-        "2" = gpar(lwd = 1, col = "black")
-      ),
-      mean = c(NA, data$HR),
-      lower = c(NA, data$Lower_CI),
-      upper = c(NA, data$Upper_CI),
-      title = "Univariate Cox proportional-hazards regression analysis (lung adenocarcinoma)",
-      xlab = "<---Good prognosis---    ---Poor prognosis--->",
-      txt_gp = fpTxtGp(
-        label = gpar(cex = 1.2),
-        ticks = gpar(cex = 1.2),
-        xlab = gpar(cex = 1.2),
-        title = gpar(cex = 1.2)
-      ),
-      col = fpColors(box = "black", lines = "black"),
-      xticks = c(0.5, 0.9, 1.3, 1.7, 2.1),
-      # xlog = 0,
-      clip = c(0.5, 2.1), # range of x axis
-      zero = 1,
-      cex = 1.2,
-      lineheight = "auto", # height of the graph
-      boxsize = 0.2,
-      colgap = unit(3, "mm"), # the gap between column
-      lwd.ci = 2,
-      ci.vertices = FALSE,
-      ci.vertices.height = 0.02,
-      new_page = getOption("forestplot_new_page", FALSE)
-    )
-    dev.off()
-  }
-  plot.univariate()
-
+  plot.univariate(
+    df = df,
+    covariate_names = covariate_names,
+    data.np = 517,
+    output.file = paste0(output.directory, "/Cox/", tumor, "EIFUniCox.pdf"),
+    plot.title = "Univariate Cox proportional-hazards regression analysis (lung adenocarcinoma)",
+    x.tics = c(0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8),
+    x.range = c(0.6, 1.8))
+  
   plot.multivariate(
     df = df,
     covariate_names = covariate_names,
     data.np = 517,
     output.file = paste0(output.directory, "/Cox/", tumor, "EIFmultiCox.pdf"),
     plot.title = "Multivariate Cox proportional-hazards regression analysis (lung adenocarcinoma)",
-    x.tics = c(0.5, 0.8, 1.1, 1.4, 1.7, 2, 2.3, 2.6),
-    x.range = c(0.5, 2.6))
+    x.tics = c(0.5, 0.9, 1.3, 1.7, 2.1),
+    x.range = c(0.5, 2.1))
 }
 
 
@@ -8029,7 +7930,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
 
 # TODO: For non-Windows multicore systems, lapply() calls below could perhaps
 #       be made to execute simultaneously with mclapply().
-if (FALSE) {
+
 # Figure 1
 lapply(
   c("EIF4E", "EIF4G1", "EIF4A1", "EIF4EBP1", "MYC", "PTEN"),
@@ -8137,4 +8038,3 @@ plot.heatmap.lung(x = "Lung")
 # Figure 6
 plot.EIF4.CPTAC.pro.LUAD()
 
-}
