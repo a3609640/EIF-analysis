@@ -211,8 +211,7 @@ plot.bargraph.EIF.CNV.TCGA <- function (EIF) {
       useDingbats = FALSE)}
   make.plot(EIF)
 }
-lapply(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1","MYC","PTEN"), 
-       plot.bargraph.EIF.CNV.TCGA)
+
 
 plot.bargraph.EIF.CNV.sum <- function (EIF) {
   pan.TCGA.CNV <- function(EIF){
@@ -316,7 +315,6 @@ plot.bargraph.EIF.CNV.sum <- function (EIF) {
   make.CNV.sum.plot(EIF)
   
 }
-plot.bargraph.EIF.CNV.sum(c("PTEN", "EIF4A1", "EIF4E", "MYC", "EIF4EBP1", "EIF4G1"))
 
 plot.matrix.EIF.CNV.corr <- function (EIF) {
   pan.TCGA.CNV <- function(EIF){
@@ -395,7 +393,6 @@ plot.matrix.EIF.CNV.corr <- function (EIF) {
   }
   plot.EIF.CNV.cor()
 }
-plot.matrix.EIF.CNV.corr(c("PTEN", "EIF4A1", "EIF4E", "MYC", "EIF4EBP1", "EIF4G1"))
 
 plot.violin.EIF.CNV.RNAseq <- function (EIF) {
   pan.TCGA.gene <- function(EIF){
@@ -500,9 +497,6 @@ plot.violin.EIF.CNV.RNAseq <- function (EIF) {
       useDingbats = FALSE)}
   make.plot(EIF)
 }
-plot.violin.EIF.CNV.RNAseq("EIF4A1")
-lapply(c("PTEN", "EIF4A1", "EIF4E", "MYC", "EIF4EBP1", "EIF4G1"), 
-       plot.violin.EIF.CNV.RNAseq)
 
 plot.boxgraph.EIF.CNVratio.TCGA <- function (EIF) {
   pan.TCGA.CNV <- function(){
@@ -628,8 +622,6 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function (EIF) {
   }
   make.plot(EIF)
 }
-lapply(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1","MYC","PTEN"), 
-       plot.boxgraph.EIF.CNVratio.TCGA)
 
 
 ## Figure 2 ## 
@@ -1266,7 +1258,6 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function (EIF.gene) {
   make.plot()
   
 }
-plot.boxgraph.EIF.RNAseq.TCGA.GTEX(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1"))
 
 ##########################################
 ## boxplot for EIF ratios across tumors ##
@@ -2058,7 +2049,6 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function (EIF.gene) {
   }
   make.plot()
 }
-plot.boxgraph.EIF.ratio.TCGA.GTEX(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1"))
 
 ##################################################################
 ## violin plot for EIF expression in tumors vs adjacent normals ##
@@ -2304,7 +2294,6 @@ plot.violingraph.EIF.RNAseq.TCGA <- function (EIF.gene) {
   }
   make.plot()
 }
-plot.violingraph.EIF.RNAseq.TCGA (c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1"))
 
 #############################################################
 ## violin plot for EIF ratio in tumors vs adjacent normals ##
@@ -2617,7 +2606,6 @@ plot.violingraph.EIF.ratio.TCGA <- function (EIF.gene) {
   }
   make.plot()
 }
-plot.violingraph.EIF.ratio.TCGA (c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1"))
 
 
 ## Figure 3 ## 
@@ -3038,11 +3026,6 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function (EIF.list) {
   plot.pca.factomineR()
   
 }
-plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1", 
-                                          "PABPC1","MKNK1","MKNK2"))
-plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1", 
-                                          "PABPC1","MKNK1","MKNK2",
-                                          "MYC","JUN","YY1"))
 
 plot.EIF.TCGA.GTEX.PCA.each.tumor <- function (EIF.list, tissue) {
   tissue.GTEX.TCGA.gene <- function(){
@@ -3249,9 +3232,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function (EIF.list, tissue) {
   #lapply(disease.list, EIF.PCA.tissue)
   EIF.PCA.tissue(tissue)
 }
-plot.EIF.TCGA.GTEX.PCA.each.tumor(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1", 
-                                    "PABPC1","MKNK1","MKNK2","MYC"), 
-                                  "Lung")
+
 # stop here
 plot.EIF.TCGA.PCA.all.tumor <- function (EIF.list) {
   tissue.GTEX.TCGA.gene <- function(){
@@ -3578,8 +3559,6 @@ plot.EIF.TCGA.PCA.all.tumor <- function (EIF.list) {
     plot.pca.factomineR()}
   plot.metastatic.PCA()
 }
-plot.EIF.TCGA.PCA.all.tumor(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1",
-                              "PABPC1","MKNK1","MKNK2"))
 
 plot.EIF.GTEX.PCA.all.tissue <- function (EIF.list) {
   tissue.GTEX.TCGA.gene <- function(){
@@ -3846,8 +3825,6 @@ plot.EIF.GTEX.PCA.all.tissue <- function (EIF.list) {
   }
   plot.PCA()
 }
-plot.EIF.GTEX.PCA.all.tissue(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1",
-                               "PABPC1","MKNK1","MKNK2"))
 
 plot.EIF.CPTAC.PCA.LUAD <- function(){
   CPTAC.LUAD.Sample <- read_excel(
@@ -3986,7 +3963,6 @@ plot.EIF.CPTAC.PCA.LUAD <- function(){
            addCoef.col = "black", 
            tl.col      = "black")
 }
-plot.EIF.CPTAC.PCA.LUAD()
 
 
 ## Figure 4 ## 
@@ -4138,17 +4114,6 @@ plot.km.EIF.all.tumors <- function(EIF) {
   }
   plot.KM(EIF)
 }
-plot.km.EIF.all.tumors("EIF4G1")
-lapply(c("EIF4E","EIF4E2","EIF4E3",
-         "EIF4G1","EIF4G2","EIF4G3",
-         "EIF4A1","EIF4A2",
-         "EIF4EBP1","PABPC1","MKNK1","MKNK2",
-         "DDX3X","EIF4B","EIF4H","EIF2S1",
-         "EIF3A","EIF3B","EIF3C","EIF3D",
-         "EIF3E","EIF3F","EIF3G","EIF3H",
-         "EIF3I","EIF3J","EIF3K","EIF3L","EIF3M",
-         "EIF4B","EIF4H", 
-         "MTOR","RPTOR","RICTOR","RPS6KB1","MYC"), plot.km.EIF.all.tumors)
 
 ##
 plot.km.EIF.each.tumor <- function(EIF, tumor) {
@@ -4290,13 +4255,6 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
   }
   plot.KM(EIF, tumor)
 }
-plot.km.EIF.each.tumor(EIF = "EIF4G1", 
-                       tumor = c("lung adenocarcinoma"))
-lapply(c("EIF4E","EIF4G1","EIF4G2","EIF4A1",
-         "EIF4EBP1","PABPC1","MKNK1","MKNK2", 
-         "MTOR","RPTOR","RPS6KB1","MYC"), 
-       plot.km.EIF.each.tumor, 
-       tumor = "lung adenocarcinoma")
 
 ## Cox regression model
 plot.coxph.EIF.all.tumors <- function(){
@@ -4535,7 +4493,6 @@ plot.coxph.EIF.all.tumors <- function(){
     }
   plot.multivariate()
   }
-plot.coxph.EIF.all.tumors()
 
 plot.coxph.EIF.each.tumor <- function(tumor){
   pan.TCGA.gene <- function(EIF, tumor){
@@ -4782,7 +4739,6 @@ plot.coxph.EIF.each.tumor <- function(tumor){
   }
   plot.multivariate()
 }
-plot.coxph.EIF.each.tumor(c("lung adenocarcinoma"))
 
 
 ## Figure 5 ## 
@@ -5097,7 +5053,6 @@ plot.Venn.all <- function() {
   }
   plot.bargraph.CORs()
 }
-plot.Venn.all()
 
 ### find posCOR and negCOR in the overlapping CORs from lung cancer cases
 plot.Venn.lung <- function(x) {
@@ -5406,7 +5361,6 @@ plot.Venn.lung <- function(x) {
   }
   plot.bargraph.CORs(x)
 }
-plot.Venn.lung(x = "Lung")
 
 ### use TCGA-TARGET-GTEX dataset ###
 ### plot heatmapand pathway analysis on clusters from all cancer cases ###
@@ -5683,7 +5637,6 @@ plot.heatmap.total <- function() {
   }
   plot.cluster.pathway()
 }
-plot.heatmap.total()
 
 ### use TCGA-TARGET-GTEX dataset
 ### plot heatmapand pathway analysis on clusters from lung cancer cases ###
@@ -6050,7 +6003,6 @@ plot.heatmap.lung <- function(x){
   }
   
 }
-plot.heatmap.lung(x = "Lung")
 
 ## Figure 6 ## 
 ######################################
@@ -6781,6 +6733,72 @@ plot.EIF4.CPTAC.pro.LUAD <- function(){
   }
   nor.phos.plot()
   }
+
+# Figure 1
+lapply(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1","MYC","PTEN"), 
+       plot.bargraph.EIF.CNV.TCGA)
+plot.bargraph.EIF.CNV.sum(c("PTEN", "EIF4A1", "EIF4E", "MYC", "EIF4EBP1", "EIF4G1"))
+plot.matrix.EIF.CNV.corr(c("PTEN", "EIF4A1", "EIF4E", "MYC", "EIF4EBP1", "EIF4G1"))
+plot.violin.EIF.CNV.RNAseq("EIF4A1")
+lapply(c("PTEN", "EIF4A1", "EIF4E", "MYC", "EIF4EBP1", "EIF4G1"), 
+       plot.violin.EIF.CNV.RNAseq)
+lapply(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1","MYC","PTEN"), 
+       plot.boxgraph.EIF.CNVratio.TCGA)
+
+# Figure 2
+plot.boxgraph.EIF.RNAseq.TCGA.GTEX(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1"))
+plot.boxgraph.EIF.ratio.TCGA.GTEX(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1"))
+plot.violingraph.EIF.RNAseq.TCGA (c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1"))
+plot.violingraph.EIF.ratio.TCGA (c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1"))
+
+
+# Figure 3
+plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1", 
+                                          "PABPC1","MKNK1","MKNK2"))
+plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1", 
+                                          "PABPC1","MKNK1","MKNK2",
+                                          "MYC","JUN","YY1"))
+plot.EIF.TCGA.GTEX.PCA.each.tumor(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1", 
+                                    "PABPC1","MKNK1","MKNK2","MYC"), 
+                                  "Lung")
+plot.EIF.TCGA.PCA.all.tumor(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1",
+                              "PABPC1","MKNK1","MKNK2"))
+plot.EIF.GTEX.PCA.all.tissue(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1",
+                               "PABPC1","MKNK1","MKNK2"))
+plot.EIF.CPTAC.PCA.LUAD()
+
+
+# Figure 4
+plot.km.EIF.all.tumors("EIF4G1")
+lapply(c("EIF4E","EIF4E2","EIF4E3",
+         "EIF4G1","EIF4G2","EIF4G3",
+         "EIF4A1","EIF4A2",
+         "EIF4EBP1","PABPC1","MKNK1","MKNK2",
+         "DDX3X","EIF4B","EIF4H","EIF2S1",
+         "EIF3A","EIF3B","EIF3C","EIF3D",
+         "EIF3E","EIF3F","EIF3G","EIF3H",
+         "EIF3I","EIF3J","EIF3K","EIF3L","EIF3M",
+         "EIF4B","EIF4H", 
+         "MTOR","RPTOR","RICTOR","RPS6KB1","MYC"), plot.km.EIF.all.tumors)
+plot.km.EIF.each.tumor(EIF = "EIF4G1", 
+                       tumor = c("lung adenocarcinoma"))
+lapply(c("EIF4E","EIF4G1","EIF4G2","EIF4A1",
+         "EIF4EBP1","PABPC1","MKNK1","MKNK2", 
+         "MTOR","RPTOR","RPS6KB1","MYC"), 
+       plot.km.EIF.each.tumor, 
+       tumor = "lung adenocarcinoma")
+plot.coxph.EIF.all.tumors()
+plot.coxph.EIF.each.tumor(c("lung adenocarcinoma"))
+
+
+# Figure 5
+plot.Venn.all()
+plot.Venn.lung(x = "Lung")
+plot.heatmap.total()
+plot.heatmap.lung(x = "Lung")
+
+
+# Figure 6
 plot.EIF4.CPTAC.pro.LUAD()
 
 
