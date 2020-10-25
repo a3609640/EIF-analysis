@@ -10,10 +10,7 @@ Imports:
     AnnotationDbi,
     Biobase,
     BiocGenerics,
-    BiocStyle,
-    ChIPseeker,
     ComplexHeatmap,
-    DESeq2,
     EnvStats,
     FactoMineR,
     GenomeInfoDb,
@@ -21,22 +18,15 @@ Imports:
     Hmisc,
     IRanges,
     KEGG.db,
-    KEGGREST,
     Matrix,
     R.utils,
     RColorBrewer,
-    RODBC,
     Rcpp,
     RcppArmadillo,
     ReactomePA,
     S4Vectors,
     SummarizedExperiment,
-    TxDb.Hsapiens.UCSC.hg19.knownGene,
-    TxDb.Hsapiens.UCSC.hg38.knownGene,
-    apeglm,
-    ashr,
     biomaRt,
-    calibrate,
     circlize,
     colorspace,
     cluster,
@@ -51,10 +41,6 @@ Imports:
     factoextra,
     forcats,
     forestmodel,
-    gage,
-    gageData,
-    genefilter,
-    geneplotter,
     ggfortify,
     ggplot2,
     ggpubr,
@@ -71,9 +57,7 @@ Imports:
     missMDA,
     org.Hs.eg.db,
     parallel,
-    pathview,
     pheatmap,
-    plotly,
     plotmo,
     plyr,
     readr,
@@ -96,14 +80,18 @@ LazyData: true
 License: Apache License 2.0 + file LICENSE
 Maintainer: Su Wu <su_wu@hms.harvard.edu>
 Package: EIFAnalysis
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 Suggests:
+    BiocStyle,
+    KEGGREST,
     MASS,
     knitr,
+    plotly,
     rmarkdown,
     roxygen2,
+    styler,
     testthat
 Title: EIF Analysis
 Type: Package
 Version: 0.6
-Year: 2019
+Year: 2020
