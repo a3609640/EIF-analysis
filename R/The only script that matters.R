@@ -5491,6 +5491,120 @@ plot.coxph.EIF.each.tumor <- function(tumor) {
 #####################################
 ## Heatmap of correlation analysis ##
 #####################################
+
+plot.bargraph.CORs <- function(
+  EIF.cor.tumor,
+  EIF.cor.normal,
+  tumor.label,
+  normal.label,
+  gene,
+  posCORs,
+  negCORs,
+  output.poscor.filename,
+  output.negcor.filename,
+  coord_flip.ylim) {
+  EIF.cor.tumor$label <- tumor.label
+  EIF.cor.tumor$gene <- row.names(EIF.cor.tumor)
+  EIF.cor.normal$label <- normal.label
+  EIF.cor.normal$gene <- row.names(EIF.cor.normal)
+  EIF.cor <- rbind(EIF.cor.tumor, EIF.cor.normal, make.row.names = F)
+  
+  EIF.cor$label <- factor(EIF.cor$label, levels = c(tumor.label, normal.label))
+  EIF.cor$gene <- factor(EIF.cor$gene, levels = c("EIF4EBP1", "EIF4A1", "EIF4G1", "EIF4E"))
+  levels(EIF.cor$gene)
+  
+  p1 <- ggplot(
+    data = EIF.cor,
+    aes(
+      x = gene,
+      y = posCORs,
+      fill = label
+    ),
+    color = label
+  ) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    geom_text(aes(label = posCORs),
+              position = position_dodge(width = 0.9),
+              size = 3.5
+    ) +
+    scale_fill_manual(values = c("#CC79A7", "#0072B2", "#E69F00", "#009E73", "#D55E00")) + # for color-blind palettes
+    labs(y = paste("number of positively correlating genes")) +
+    coord_flip(ylim = c(0, coord_flip.ylim)) +
+    guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
+    theme_bw() +
+    theme(
+      plot.title = black_bold_18,
+      axis.title.x = black_bold_18,
+      axis.title.y = element_blank(),
+      axis.text.x = black_bold_18,
+      axis.text.y = black_bold_18,
+      axis.line.x = element_line(color = "black"),
+      axis.line.y = element_line(color = "black"),
+      panel.grid = element_blank(),
+      legend.title = element_blank(),
+      legend.text = black_bold_18,
+      legend.position = "top",
+      legend.justification = "left",
+      legend.box = "horizontal",
+      strip.text = black_bold_18
+    )
+  print(p1)
+  ggplot2::ggsave(
+    path = paste0(output.directory, "/Heatmap"),
+    filename = paste(output.poscor.filename),
+    plot = p1,
+    width = 8,
+    height = 8,
+    useDingbats = FALSE
+  )
+  
+  p2 <- ggplot(
+    data = EIF.cor,
+    aes(
+      x = gene,
+      y = negCORs,
+      fill = label
+    ),
+    color = label
+  ) +
+    geom_bar(stat = "identity", position = position_dodge()) +
+    geom_text(aes(label = negCORs),
+              position = position_dodge(width = 0.9),
+              size = 3.5
+    ) +
+    scale_fill_manual(values = c("#CC79A7", "#0072B2", "#E69F00", "#009E73", "#D55E00")) + # for color-blind palettes
+    labs(y = paste("number of negatively correlating genes")) +
+    coord_flip(ylim = c(0, coord_flip.ylim)) +
+    guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
+    theme_bw() +
+    theme(
+      plot.title = black_bold_18,
+      axis.title.x = black_bold_18,
+      axis.title.y = element_blank(),
+      axis.text.x = black_bold_18,
+      axis.text.y = black_bold_18,
+      axis.line.x = element_line(color = "black"),
+      axis.line.y = element_line(color = "black"),
+      panel.grid = element_blank(),
+      legend.title = element_blank(),
+      legend.text = black_bold_18,
+      legend.position = "top",
+      legend.justification = "left",
+      legend.box = "horizontal",
+      strip.text = black_bold_18
+    )
+  print(p2)
+  ggplot2::ggsave(
+    path = paste0(output.directory, "/Heatmap"),
+    filename = output.negcor.filename,
+    plot = p2,
+    width = 8,
+    height = 8,
+    useDingbats = FALSE
+  )
+}
+
+
 ### find posCOR and negCOR in the overlapping CORs from all cancer cases
 plot.Venn.all <- function() {
   Data <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
@@ -5744,112 +5858,17 @@ plot.Venn.all <- function() {
   EIF.cor.tumor <- EIF.correlation(y = all.tumor.type, z = "tumor")
   EIF.cor.normal <- EIF.correlation(y = c("Normal Tissue"), z = "normal")
 
-  # TODO: The function plot.bargraph.CORs() is defined inline in multiple
-  #       places.  Investigate moving it to an outer scope, and perhaps using
-  #       function arguments e.g. to specify the output filename.
-  plot.bargraph.CORs <- function() {
-    EIF.cor.tumor$label <- "tumor"
-    EIF.cor.tumor$gene <- row.names(EIF.cor.tumor)
-    EIF.cor.normal$label <- "normal"
-    EIF.cor.normal$gene <- row.names(EIF.cor.normal)
-    EIF.cor <- rbind(EIF.cor.tumor, EIF.cor.normal, make.row.names = F)
-
-    EIF.cor$label <- factor(EIF.cor$label, levels = c("tumor", "normal"))
-    EIF.cor$gene <- factor(EIF.cor$gene, levels = c("EIF4EBP1", "EIF4A1", "EIF4G1", "EIF4E"))
-    levels(EIF.cor$gene)
-
-    # TODO: The variables 'gene' and posCORs are not defined.
-    p1 <- ggplot(
-      data = EIF.cor,
-      aes(
-        x = gene,
-        y = posCORs,
-        fill = label
-      ),
-      color = label
-    ) +
-      geom_bar(stat = "identity", position = position_dodge()) +
-      geom_text(aes(label = posCORs),
-        position = position_dodge(width = 0.9),
-        size = 3.5
-      ) +
-      scale_fill_manual(values = c("#CC79A7", "#0072B2", "#E69F00", "#009E73", "#D55E00")) + # for color-blind palettes
-      labs(y = paste("number of positively correlating genes")) +
-      coord_flip(ylim = c(0, 14000)) +
-      guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
-      theme_bw() +
-      theme(
-        plot.title = black_bold_18,
-        axis.title.x = black_bold_18,
-        axis.title.y = element_blank(),
-        axis.text.x = black_bold_18,
-        axis.text.y = black_bold_18,
-        axis.line.x = element_line(color = "black"),
-        axis.line.y = element_line(color = "black"),
-        panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.text = black_bold_18,
-        legend.position = "top",
-        legend.justification = "left",
-        legend.box = "horizontal",
-        strip.text = black_bold_18
-      )
-    print(p1)
-    ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
-      filename = paste("all posCORs.pdf"),
-      plot = p1,
-      width = 8,
-      height = 8,
-      useDingbats = FALSE
-    )
-
-    p2 <- ggplot(
-      data = EIF.cor,
-      aes(
-        x = gene,
-        y = negCORs,
-        fill = label
-      ),
-      color = label
-    ) +
-      geom_bar(stat = "identity", position = position_dodge()) +
-      geom_text(aes(label = negCORs),
-        position = position_dodge(width = 0.9),
-        size = 3.5
-      ) +
-      scale_fill_manual(values = c("#CC79A7", "#0072B2", "#E69F00", "#009E73", "#D55E00")) + # for color-blind palettes
-      labs(y = paste("number of negatively correlating genes")) +
-      coord_flip(ylim = c(0, 14000)) +
-      guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
-      theme_bw() +
-      theme(
-        plot.title = black_bold_18,
-        axis.title.x = black_bold_18,
-        axis.title.y = element_blank(),
-        axis.text.x = black_bold_18,
-        axis.text.y = black_bold_18,
-        axis.line.x = element_line(color = "black"),
-        axis.line.y = element_line(color = "black"),
-        panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.text = black_bold_18,
-        legend.position = "top",
-        legend.justification = "left",
-        legend.box = "horizontal",
-        strip.text = black_bold_18
-      )
-    print(p2)
-    ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
-      filename = paste("all negCORs.pdf"),
-      plot = p2,
-      width = 8,
-      height = 8,
-      useDingbats = FALSE
-    )
-  }
-  plot.bargraph.CORs()
+  plot.bargraph.CORs(
+    EIF.cor.tumor = EIF.cor.tumor,
+    EIF.cor.normal = EIF.cor.normal,
+    tumor.label = "tumor",
+    normal.label = "normal",
+    gene = gene,
+    posCORs = posCORs,
+    negCORs = negCORs,
+    output.poscor.filename = paste("all posCORs.pdf"),
+    output.negcor.filename = paste("all negCORs.pdf"),
+    coord_flip.ylim = 14000)
 }
 
 ### find posCOR and negCOR in the overlapping CORs from lung cancer cases
@@ -6114,108 +6133,17 @@ plot.Venn.lung <- function(x) {
     y = c("Normal Tissue"),
     z = "normal"
   )
-  plot.bargraph.CORs <- function(x) {
-    EIF.cor.tumor$label <- paste(x, "Tumor")
-    EIF.cor.tumor$gene <- row.names(EIF.cor.tumor)
-    EIF.cor.normal$label <- paste("Normal", x)
-    EIF.cor.normal$gene <- row.names(EIF.cor.normal)
-    EIF.cor <- rbind(EIF.cor.tumor, EIF.cor.normal, make.row.names = F)
-
-    EIF.cor$label <- factor(EIF.cor$label, levels = c(paste(x, "Tumor"), paste("Normal", x)))
-    EIF.cor$gene <- factor(EIF.cor$gene, levels = c("EIF4EBP1", "EIF4A1", "EIF4G1", "EIF4E"))
-    levels(EIF.cor$gene)
-
-    p1 <- ggplot(
-      data = EIF.cor,
-      aes(
-        x = gene,
-        y = posCORs,
-        fill = label
-      ),
-      color = label
-    ) +
-      geom_bar(stat = "identity", position = position_dodge()) +
-      geom_text(aes(label = posCORs),
-        position = position_dodge(width = 0.9),
-        size = 3.5
-      ) +
-      scale_fill_manual(values = c("#CC79A7", "#0072B2", "#E69F00", "#009E73", "#D55E00")) + # for color-blind palettes
-      labs(y = paste("number of positively correlating genes")) +
-      coord_flip(ylim = c(0, 15000)) +
-      guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
-      theme_bw() +
-      theme(
-        plot.title = black_bold_18,
-        axis.title.x = black_bold_18,
-        axis.title.y = element_blank(),
-        axis.text.x = black_bold_18,
-        axis.text.y = black_bold_18,
-        axis.line.x = element_line(color = "black"),
-        axis.line.y = element_line(color = "black"),
-        panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.text = black_bold_18,
-        legend.position = "top",
-        legend.justification = "left",
-        legend.box = "horizontal",
-        strip.text = black_bold_18
-      )
-    print(p1)
-    ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
-      filename = paste(x, "posCORs.pdf"),
-      plot = p1,
-      width = 8,
-      height = 8,
-      useDingbats = FALSE
-    )
-
-    p2 <- ggplot(
-      data = EIF.cor,
-      aes(
-        x = gene,
-        y = negCORs,
-        fill = label
-      ),
-      color = label
-    ) +
-      geom_bar(stat = "identity", position = position_dodge()) +
-      geom_text(aes(label = negCORs),
-        position = position_dodge(width = 0.9),
-        size = 3.5
-      ) +
-      scale_fill_manual(values = c("#CC79A7", "#0072B2", "#E69F00", "#009E73", "#D55E00")) + # for color-blind palettes
-      labs(y = paste("number of negatively correlating genes")) +
-      coord_flip(ylim = c(0, 15000)) +
-      guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
-      theme_bw() +
-      theme(
-        plot.title = black_bold_18,
-        axis.title.x = black_bold_18,
-        axis.title.y = element_blank(),
-        axis.text.x = black_bold_18,
-        axis.text.y = black_bold_18,
-        axis.line.x = element_line(color = "black"),
-        axis.line.y = element_line(color = "black"),
-        panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.text = black_bold_18,
-        legend.position = "top",
-        legend.justification = "left",
-        legend.box = "horizontal",
-        strip.text = black_bold_18
-      )
-    print(p2)
-    ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
-      filename = paste(x, "negCORs.pdf"),
-      plot = p2,
-      width = 8,
-      height = 8,
-      useDingbats = FALSE
-    )
-  }
-  plot.bargraph.CORs(x)
+  plot.bargraph.CORs(
+    EIF.cor.tumor = EIF.cor.tumor,
+    EIF.cor.normal = EIF.cor.normal,
+    tumor.label = paste(x, "tumor"),
+    normal.label = paste("Normal", x),
+    gene = gene,
+    posCORs = posCORs,
+    negCORs = negCORs,
+    output.poscor.filename = paste(x, "posCORs.pdf"),
+    output.negcor.filename = paste(x, "negCORs.pdf"),
+    coord_flip.ylim = 15000)
 }
 
 ### use TCGA-TARGET-GTEX dataset ###
