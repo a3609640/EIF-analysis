@@ -6662,6 +6662,9 @@ plot.EIF4.CPTAC.pro.LUAD <- function(){
   nor.phos.plot()
   }
 
+# TODO: For non-Windows multicore systems, lapply() calls below could perhaps
+#       be made to execute simultaneously with mclapply().
+
 # Figure 1
 lapply(c("EIF4E","EIF4G1","EIF4A1","EIF4EBP1","MYC","PTEN"), 
        plot.bargraph.EIF.CNV.TCGA)
@@ -6728,9 +6731,4 @@ plot.heatmap.lung(x = "Lung")
 
 # Figure 6
 plot.EIF4.CPTAC.pro.LUAD()
-
-
-
-
-
 

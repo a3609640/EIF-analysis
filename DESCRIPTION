@@ -97,8 +97,13 @@ License: Apache License 2.0 + file LICENSE
 Maintainer: Su Wu <su_wu@hms.harvard.edu>
 Package: EIFAnalysis
 RoxygenNote: 6.1.1
-Suggests: knitr, rmarkdown, roxygen2, testthat
-Title: EIF analysis
+Suggests:
+    MASS,
+    knitr,
+    rmarkdown,
+    roxygen2,
+    testthat
+Title: EIF Analysis
 Type: Package
 Version: 0.6
 Year: 2019
