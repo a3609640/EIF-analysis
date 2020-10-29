@@ -30,7 +30,7 @@ in this project:
     * R 4.0.3
 
 
-## DATASETS
+## Datasets
 Please download all datasets from the following weblinks and store them at the following directory. The script will read all datasets from there.
 ```
 ~/Download/
@@ -65,7 +65,7 @@ https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/C
 #### CPTAC Clinical Data
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_metadata/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx
 
-## LIBRARIES
+## Libraries
 The work here depends upon many R libraries.
 
 The following command may be a useful way to install them all:
@@ -130,14 +130,14 @@ This is also necessary:
 devtools::install_github("zeehio/facetscales")
 ```
 
-## OUTPUT
+## Output directory
 The script will save all the generated plots into the following output folder.
 Please generate the output directory.
 ```
 mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PCA/Lung,KM,Cox,Heatmap,CPTAC}
 ```
 
-## INSTRUCTIONS
+## Instructions
 1. Install R (a version verified in one of the systems listed above) and RStudio at the recommended Systems.
 2. Download all datasets from the listed web links above and store them under the following directory.
 ```
