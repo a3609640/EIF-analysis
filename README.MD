@@ -134,7 +134,7 @@ devtools::install_github("zeehio/facetscales")
 The script will save all the generated plots into the following output folder.
 Please generate the output directory.
 ```
-mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,KM,Cox,Heatmap,CPTAC}
+mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PCA/Lung,KM,Cox,Heatmap,CPTAC}
 ```
 
 ## INSTRUCTIONS
@@ -150,3 +150,8 @@ mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,KM
 ```
 5. Open the EIFanalysis.R file in RStudio, and run it with the "source" button.
 6. The EIFanalysis.R will produce all the figures from the EIF manuscript and store them in the output folders.
+
+## Session information
+```
+
+```

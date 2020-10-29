@@ -3562,7 +3562,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA"),
+        path = paste0(output.directory, "/PCA/All"),
         filename = paste0("EIFPCAall", sample, "color.pdf"),
         plot = biplot,
         width = 8,
@@ -3860,7 +3860,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = paste0(output.directory, "/PCA/Lung"),
         filename = paste0(x, "EIFPCA.pdf"),
         plot = biplot,
         width = 8,
@@ -3891,7 +3891,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
         )
       print(eig)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = paste0(output.directory, "/PCA/Lung"),
         filename = paste0(x, "EIFeig.pdf"),
         plot = eig,
         width = 8,
@@ -3923,7 +3923,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
           )
         print(p)
         ggplot2::ggsave(
-          path = paste0(output.directory, "/PCA/TCGA"),
+          path = paste0(output.directory, "/PCA/Lung"),
           filename = paste0("EIFcontri", x, ".pdf"),
           plot = p,
           width = 8,
@@ -3937,7 +3937,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
       # corrplot(var$contrib, is.corr=FALSE)
       # fviz_pca_var(res.pca, col.var="contrib")
       pdf(file.path(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = paste0(output.directory, "/PCA/Lung"),
         filename = paste0(x, "EIFPCAcor.pdf")
       ),
       width = 9,
@@ -4677,7 +4677,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
     )
   print(biplot)
   ggplot2::ggsave(
-    path = paste0(output.directory, "/PCA"),
+    path = paste0(output.directory, "/PCA/Lung"),
     filename = "EIFLUADPCA.pdf",
     plot = biplot,
     width = 8,
@@ -4707,7 +4707,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
     )
   print(eig)
   ggplot2::ggsave(
-    path = paste0(output.directory, "/PCA"),
+    path = paste0(output.directory, "/PCA/Lung"),
     filename = "EIFLUADEig.pdf",
     plot = eig,
     width = 8,
@@ -4717,7 +4717,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
   var <- get_pca_var(res.pca)
   # fviz_pca_var(res.pca, col.var="contrib")
   pdf(file.path(
-    path = paste0(output.directory, "/PCA"),
+    path = paste0(output.directory, "/PCA/Lung"),
     filename = "EIFLUADcor.pdf"
   ),
   width = 9,
@@ -5884,7 +5884,7 @@ plot.Venn.lung <- function(x) {
     Lung <- Sampletype[Sampletype$`_primary_site` == x, ]
     Lung.ID <- as.vector(Lung$sample)
     Lung.ID <- na.omit(Lung.ID) # NA in the vector
-    TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)
+    TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", all_of(Lung.ID))
     TCGA.GTEX.Lung <- TCGA.GTEX.Lung[
       !duplicated(TCGA.GTEX.Lung$sample),
       !duplicated(colnames(TCGA.GTEX.Lung))
@@ -6141,8 +6141,8 @@ plot.Venn.lung <- function(x) {
     gene = gene,
     posCORs = posCORs,
     negCORs = negCORs,
-    output.poscor.filename = paste(x, "posCORs.pdf"),
-    output.negcor.filename = paste(x, "negCORs.pdf"),
+    output.poscor.filename = paste(x, "posCORs barplot.pdf"),
+    output.negcor.filename = paste(x, "negCORs barplot.pdf"),
     coord_flip.ylim = 15000)
 }
 
@@ -6353,7 +6353,7 @@ plot.heatmap.total <- function() {
 
   pdf(file.path(
     path = paste0(output.directory, "/Heatmap"),
-    filename = "All tumors heatmap.pdf"
+    filename = "all tumors heatmap.pdf"
   ),
   width = 8,
   height = 8,
@@ -6637,7 +6637,7 @@ plot.heatmap.lung <- function(x) {
         useDingbats = FALSE
       )
     }
-    plot.pos.Venn(y)
+    #plot.pos.Venn(y)
     cor.data <- cbind(
       setNames(data.frame(EIF4E.cor[, c(3, 4)]), c("EIF4E", "EIF4E.p")),
       setNames(data.frame(EIF4G1.cor[, c(3, 4)]), c("EIF4G1", "EIF4G1.p")),
