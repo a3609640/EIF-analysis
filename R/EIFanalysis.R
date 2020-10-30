@@ -6498,7 +6498,7 @@ plot.heatmap.lung <- function(x) {
     Lung <- Sampletype[Sampletype$`_primary_site` == x, ]
     Lung.ID <- as.vector(Lung$sample)
     Lung.ID <- na.omit(Lung.ID) # NA in the vector
-    TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)
+    TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", all_of(Lung.ID))
     TCGA.GTEX.Lung <- TCGA.GTEX.Lung[
       !duplicated(TCGA.GTEX.Lung$sample),
       !duplicated(colnames(TCGA.GTEX.Lung))
