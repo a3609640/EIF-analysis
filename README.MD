@@ -146,7 +146,7 @@ mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PC
 3. Install all the R packages listed above.
 4. Create output directories
 ```
-~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,KM,Cox,Heatmap,CPTAC}
+~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PCA/Lung,KM,Cox,Heatmap,CPTAC}
 ```
 5. Open the EIFanalysis.R file in RStudio, and run it with the "source" button.
 6. The EIFanalysis.R will produce all the figures from the EIF manuscript and store them in the output folders.
