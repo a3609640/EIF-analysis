@@ -166,6 +166,16 @@ mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PC
 5. Open the EIFanalysis.R file in RStudio, and run it with the "source" button.
 6. The EIFanalysis.R will produce all the figures from the EIF manuscript and store them in the output folders.
 
+If the root directory paths ```~/Download``` and ```~/Documents/EIF_output``` do not suit, they may be adjusted trivially in these lines near the top of the script:
+
+```
+data.file.directory <- "~/Downloads"
+output.directory <- "~/Documents/EIF_output"
+```
+
+Note that you must still pre-create all output subdirectories, under whatever parent output directory you choose.
+
+
 ## Session Information
 ### System 1
 ```
