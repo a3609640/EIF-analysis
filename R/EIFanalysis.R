@@ -126,7 +126,7 @@ plot.bargraph.EIF.CNV.TCGA <- function(EIF) {
   pan.TCGA.CNV <- function() {
     # download https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes.gz
     TCGA.pancancer <- fread(
-      paste0(data.file.directory, "/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
+      file.path(data.file.directory, "Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
       data.table = FALSE
     )
     TCGA.pancancer <- as.data.frame(TCGA.pancancer)
@@ -142,7 +142,7 @@ plot.bargraph.EIF.CNV.TCGA <- function(EIF) {
 
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- readr::read_tsv(
-      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      file.path(data.file.directory, "TCGA_phenotype_denseDataOnlyDownload.tsv")
     )
     TCGA.sampletype <- as.data.frame(TCGA.sampletype)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
@@ -249,7 +249,7 @@ plot.bargraph.EIF.CNV.TCGA <- function(EIF) {
       )
     print(p1)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/CNV"),
+      path = file.path(output.directory, "CNV"),
       filename = paste0(EIF, "pancancerCNV.pdf"),
       plot = p1,
       width = 9,
@@ -264,12 +264,12 @@ plot.bargraph.EIF.CNV.sum <- function(EIF) {
   pan.TCGA.CNV <- function(EIF) {
     # download https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes.gz
     TCGA.CNV <- fread(
-      paste0(data.file.directory, "/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
+      file.path(data.file.directory, "Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
       data.table = FALSE
     )
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- readr::read_tsv(
-      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      file.path(data.file.directory, "TCGA_phenotype_denseDataOnlyDownload.tsv")
     )
     TCGA.CNV <- as.data.frame(TCGA.CNV)
     TCGA.CNV1 <- TCGA.CNV[
@@ -378,7 +378,7 @@ plot.bargraph.EIF.CNV.sum <- function(EIF) {
       )
     print(p1)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/CNV"),
+      path = file.path(output.directory, "CNV"),
       filename = "EIFCNVsum.pdf",
       plot = p1,
       width = 7,
@@ -393,12 +393,12 @@ plot.matrix.EIF.CNV.corr <- function(EIF) {
   pan.TCGA.CNV <- function(EIF) {
     # https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_data_by_genes.gz
     TCGA.CNV <- fread(
-      paste0(data.file.directory, "/Gistic2_CopyNumber_Gistic2_all_data_by_genes"),
+      file.path(data.file.directory, "Gistic2_CopyNumber_Gistic2_all_data_by_genes"),
       data.table = FALSE
     )
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- readr::read_tsv(
-      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      file.path(data.file.directory, "TCGA_phenotype_denseDataOnlyDownload.tsv")
     )
     TCGA.CNV <- as.data.frame(TCGA.CNV)
     TCGA.sampletype <- as.data.frame(TCGA.sampletype)
@@ -454,10 +454,7 @@ plot.matrix.EIF.CNV.corr <- function(EIF) {
     cor_5 <- rcorr(as.matrix(df1), type = "pearson")
     M <- cor_5$r
     p_mat <- cor_5$P
-    pdf(file.path(
-      path = paste0(output.directory, "/CNV"),
-      filename = "EIFCNVcormatrix.pdf"
-    ),
+    pdf(file.path(output.directory, "CNV", "EIFCNVcormatrix.pdf"),
     width = 8,
     height = 8,
     useDingbats = FALSE
@@ -484,11 +481,11 @@ plot.violin.EIF.CNV.RNAseq <- function(EIF) {
   pan.TCGA.gene <- function(EIF) {
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
+      file.path(data.file.directory, "EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE
     )
     TCGA.CNV <- fread(
-      paste0(data.file.directory, "/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
+      file.path(data.file.directory, "Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes"),
       data.table = FALSE
     )
     # TCGA.pancancer <- as.data.frame(TCGA.pancancer)
@@ -607,7 +604,7 @@ plot.violin.EIF.CNV.RNAseq <- function(EIF) {
 
     print(p1)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/CNV"),
+      path = file.path(output.directory, "CNV"),
       filename = paste0(EIF, "CNV&RNAseq.pdf"),
       plot = p1,
       width = 6.5,
@@ -622,7 +619,7 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function(EIF) {
   pan.TCGA.CNV <- function() {
     # download https://pancanatlas.xenahubs.net/download/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena.gz
     TCGA.pancancer <- fread(
-      paste0(data.file.directory, "/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena"),
+      file.path(data.file.directory, "broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena"),
       data.table = FALSE
     )
     TCGA.pancancer <- as.data.frame(TCGA.pancancer)
@@ -638,7 +635,7 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function(EIF) {
 
     # download https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
     TCGA.sampletype <- readr::read_tsv(
-      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      file.path(data.file.directory, "TCGA_phenotype_denseDataOnlyDownload.tsv")
     )
     TCGA.sampletype <- as.data.frame(TCGA.sampletype)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
@@ -742,7 +739,7 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function(EIF) {
       )
     print(p1)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/CNV"),
+      path = file.path(output.directory, "CNV"),
       filename = paste0(EIF, "pancancerCNVratio.pdf"),
       plot = p1,
       width = 8,
@@ -762,7 +759,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
   pan.TCGA.gene <- function() {
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.pancancer <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     )
     # use sample column for the rowname
@@ -778,7 +775,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
 
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.sampletype <- read_tsv(
-      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt")
+      file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt")
     )
     TCGA.sampletype <- as.data.frame(TCGA.sampletype)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
@@ -1047,7 +1044,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Expression"),
+        path = file.path(output.directory, "Expression"),
         filename = "EIFexpressionTCGAGTEX.pdf",
         plot = p,
         width = 8,
@@ -1203,7 +1200,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Expression"),
+        path = file.path(output.directory, "Expression"),
         filename = "EIFsumexpressionTCGAGTEX.pdf",
         plot = p,
         width = 7,
@@ -1379,7 +1376,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Expression"),
+        path = file.path(output.directory, "Expression"),
         filename = "EIFexprTCGA.pdf",
         plot = p,
         width = 8,
@@ -1544,7 +1541,7 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
       p <- arrangeGrob(g1grob, g2grob) # generates g
       print(p)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Expression"),
+        path = file.path(output.directory, "Expression"),
         filename = "EIFexprGTEX.pdf",
         plot = p,
         width = 7,
@@ -1564,7 +1561,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
   pan.TCGA.gene <- function() {
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.pancancer <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     )
     TCGA.pancancer1 <- TCGA.pancancer[
@@ -1580,7 +1577,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
 
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.sampletype <- read_tsv(
-      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt")
+      file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt")
     )
     TCGA.sampletype <- as.data.frame(TCGA.sampletype)
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
@@ -1908,7 +1905,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
       print(p)
 
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Expression"),
+        path = file.path(output.directory, "Expression"),
         filename = "EIFratiozoom.pdf",
         plot = p,
         width = 15,
@@ -2107,7 +2104,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
       print(p)
 
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Expression"),
+        path = file.path(output.directory, "Expression"),
         filename = "EIFsumratio2.pdf",
         plot = p,
         width = 12.5,
@@ -2313,7 +2310,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
       print(p)
 
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Expression"),
+        path = file.path(output.directory, "Expression"),
         filename = "EIFratiosumTCGA.pdf",
         plot = p,
         width = 11,
@@ -2512,7 +2509,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
       print(p)
 
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Expression"),
+        path = file.path(output.directory, "Expression"),
         filename = "EIFratiosumGTEX.pdf",
         plot = p,
         width = 10,
@@ -2531,7 +2528,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
 plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
   tissue.GTEX.TCGA.gene <- function() {
     TCGA.GTEX.anno <- read_tsv(
-      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt")
+      file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt")
     )
     TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno) # otherwise lose rownames in the next step, use drop = FALSE to keep the row names
 
@@ -2547,7 +2544,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     ) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
@@ -2692,7 +2689,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
       )
     print(p1)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Expression"),
+      path = file.path(output.directory, "Expression"),
       filename = "EIFexpressionviolin.pdf",
       plot = p1,
       width = 7.5,
@@ -2767,7 +2764,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
       )
     print(p2)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Expression"),
+      path = file.path(output.directory, "Expression"),
       filename = "sumviolin.pdf",
       plot = p2,
       width = 1.8,
@@ -2836,7 +2833,7 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
 #############################################################
 plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
   tissue.GTEX.TCGA.gene <- function() {
-    TCGA.GTEX.anno <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
+    TCGA.GTEX.anno <- read_tsv(file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno) # otherwise lose rownames in the next step, use drop = FALSE to keep the row names
 
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
@@ -2850,7 +2847,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     ) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
@@ -3023,7 +3020,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
       )
     print(p1)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Expression"),
+      path = file.path(output.directory, "Expression"),
       filename = "EIFratioviolin.pdf",
       plot = p1,
       width = 9,
@@ -3121,7 +3118,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
       )
     print(p2)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Expression"),
+      path = file.path(output.directory, "Expression"),
       filename = "EIFsumratioviolin.pdf",
       plot = p2,
       width = 4.8,
@@ -3219,7 +3216,7 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
       )
     print(p3)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Expression"),
+      path = file.path(output.directory, "Expression"),
       filename = "EIFsumratioviolin2.pdf",
       plot = p3,
       width = 4.8,
@@ -3239,7 +3236,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
   tissue.GTEX.TCGA.gene <- function() {
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX.anno <- read_tsv(
-      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt")
+      file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt")
     )
     TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno)
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
@@ -3253,7 +3250,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
     colnames(subset) <- c("sample.type", "primary.disease", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     ) # data.table = FALSE gives data.frame
     TCGA.GTEX <- as.data.frame(TCGA.GTEX)
@@ -3453,7 +3450,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
       )
     print(biplot)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/PCA/All"),
+      path = file.path(output.directory, "PCA", "All"),
       filename = "EIFPCAall.pdf",
       plot = biplot,
       width = 8,
@@ -3505,7 +3502,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/All"),
+        path = file.path(output.directory, "PCA", "All"),
         filename = paste0("EIFPCAall", sample, ".pdf"),
         plot = biplot,
         width = 8,
@@ -3561,7 +3558,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/All"),
+        path = file.path(output.directory, "PCA", "All"),
         filename = paste0("EIFPCAall", sample, "color.pdf"),
         plot = biplot,
         width = 8,
@@ -3616,7 +3613,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/All"),
+        path = file.path(output.directory, "PCA", "All"),
         filename = paste0("EIFPCAall", sample, "color.pdf"),
         plot = biplot,
         width = 8,
@@ -3650,7 +3647,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
       )
     print(eig)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/PCA/All"),
+      path = file.path(output.directory, "PCA", "All"),
       filename = "EIFPCAeig.pdf",
       plot = eig,
       width = 8,
@@ -3662,7 +3659,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
     corrplot(var$contrib, is.corr = FALSE)
 
     pdf(file.path(
-      path = paste0(output.directory, "/PCA/All"),
+      path = file.path(output.directory, "PCA", "All"),
       filename = "EIFPCAcor.pdf"
     ),
     width = 9,
@@ -3721,7 +3718,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
   tissue.GTEX.TCGA.gene <- function() {
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX.anno <- read_tsv(
-      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt")
+      file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt")
     )
     TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno)
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
@@ -3735,7 +3732,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
     colnames(subset) <- c("sample.type", "primary.site", "primary.disease")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     ) # data.table = FALSE gives data.frame
     TCGA.GTEX <- as.data.frame(TCGA.GTEX)
@@ -3859,7 +3856,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/Lung"),
+        path = file.path(output.directory, "PCA", "Lung"),
         filename = paste0(x, "EIFPCA.pdf"),
         plot = biplot,
         width = 8,
@@ -3890,7 +3887,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
         )
       print(eig)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/Lung"),
+        path = file.path(output.directory, "PCA", "Lung"),
         filename = paste0(x, "EIFeig.pdf"),
         plot = eig,
         width = 8,
@@ -3922,7 +3919,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
           )
         print(p)
         ggplot2::ggsave(
-          path = paste0(output.directory, "/PCA/Lung"),
+          path = file.path(output.directory, "PCA", "Lung"),
           filename = paste0("EIFcontri", x, ".pdf"),
           plot = p,
           width = 8,
@@ -3936,7 +3933,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
       # corrplot(var$contrib, is.corr=FALSE)
       # fviz_pca_var(res.pca, col.var="contrib")
       pdf(file.path(
-        path = paste0(output.directory, "/PCA/Lung"),
+        path = file.path(output.directory, "PCA", "Lung"),
         filename = paste0(x, "EIFPCAcor.pdf")
       ),
       width = 9,
@@ -3964,7 +3961,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
   tissue.GTEX.TCGA.gene <- function() {
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
     TCGA.GTEX.anno <- read_tsv(
-      paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt")
+      file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt")
     )
     TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno)
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
@@ -3980,7 +3977,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     ) # data.table = FALSE gives data.frame
     TCGA.GTEX <- as.data.frame(TCGA.GTEX, drop = FALSE)
@@ -4097,7 +4094,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = file.path(output.directory, "PCA", "TCGA"),
         filename = "EIFPCAprimary.pdf",
         plot = biplot,
         width = 8,
@@ -4128,7 +4125,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
         )
       print(eig)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = file.path(output.directory, "PCA", "TCGA"),
         filename = "EIFeigprimary.pdf",
         plot = eig,
         width = 8,
@@ -4138,7 +4135,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
 
       var <- get_pca_var(res.pca)
       pdf(file.path(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = file.path(output.directory, "PCA", "TCGA"),
         filename = "EIFcorprimary.pdf"
       ),
       width = 9,
@@ -4248,7 +4245,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = file.path(output.directory, "PCA", "TCGA"),
         filename = "EIFPCAmetastatic.pdf",
         plot = biplot,
         width = 8,
@@ -4279,7 +4276,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
         )
       print(eig)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = file.path(output.directory, "PCA", "TCGA"),
         filename = "EIFeigmetastatic.pdf",
         plot = eig,
         width = 8,
@@ -4289,7 +4286,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
 
       var <- get_pca_var(res.pca)
       pdf(file.path(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = file.path(output.directory, "PCA", "TCGA"),
         filename = "EIFcormetastatic.pdf"
       ),
       width = 9,
@@ -4351,7 +4348,7 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
 plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
   tissue.GTEX.TCGA.gene <- function() {
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-    TCGA.GTEX.anno <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
+    TCGA.GTEX.anno <- read_tsv(file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt"))
     TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno)
     TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
     TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
@@ -4364,7 +4361,7 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
     colnames(subset) <- c("sample.type", "primary.site")
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     ) # data.table = FALSE gives data.frame
     TCGA.GTEX <- as.data.frame(TCGA.GTEX)
@@ -4482,7 +4479,7 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/GTEX"),
+        path = file.path(output.directory, "PCA", "GTEX"),
         filename = "EIFPCAGTEX.pdf",
         plot = biplot,
         width = 8,
@@ -4514,7 +4511,7 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
       print(eig)
 
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/GTEX"),
+        path = file.path(output.directory, "PCA", "GTEX"),
         filename = "EIFeigGTEX.pdf",
         plot = eig,
         width = 8,
@@ -4525,7 +4522,7 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
       # fviz_pca_var(res.pca, col.var="contrib")
 
       pdf(file.path(
-        path = paste0(output.directory, "/PCA/GTEX"),
+        path = file.path(output.directory, "PCA", "GTEX"),
         filename = "EIFcorGTEX.pdf"
       ),
       width = 9,
@@ -4586,7 +4583,7 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
 
 plot.EIF.CPTAC.PCA.LUAD <- function() {
   CPTAC.LUAD.Sample <- read_excel(
-    paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
+    file.path(data.file.directory, "S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
   )
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[, c("Aliquot (Specimen Label)", "Type")]
   CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
@@ -4597,7 +4594,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
   CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
 
   CPTAC.LUAD.Proteomics <- fread(
-    paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),
+    file.path(data.file.directory, "CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),
     data.table = FALSE
   )
   EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[CPTAC.LUAD.Proteomics$Gene %in% c("EIF4E", "EIF4G1", "EIF4A1", "PABPC1", "MKNK1", "MKNK2", "MYC", "EIF4EBP1"), ]
@@ -4675,7 +4672,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
     )
   print(biplot)
   ggplot2::ggsave(
-    path = paste0(output.directory, "/PCA/Lung"),
+    path = file.path(output.directory, "PCA", "Lung"),
     filename = "EIFLUADPCA.pdf",
     plot = biplot,
     width = 8,
@@ -4705,7 +4702,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
     )
   print(eig)
   ggplot2::ggsave(
-    path = paste0(output.directory, "/PCA/Lung"),
+    path = file.path(output.directory, "PCA", "Lung"),
     filename = "EIFLUADEig.pdf",
     plot = eig,
     width = 8,
@@ -4715,7 +4712,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
   var <- get_pca_var(res.pca)
   # fviz_pca_var(res.pca, col.var="contrib")
   pdf(file.path(
-    path = paste0(output.directory, "/PCA/Lung"),
+    path = file.path(output.directory, "PCA", "Lung"),
     filename = "EIFLUADcor.pdf"
   ),
   width = 9,
@@ -4753,7 +4750,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
     ## get TCGA pancancer RNAseq data ##
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
+      file.path(data.file.directory, "EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE
     )
     TCGA.RNAseq1 <- TCGA.RNAseq[
@@ -4772,7 +4769,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
     ## get OS data ##
     # download https://xenabrowser.net/datapages/?dataset=Survival_SupplementalTable_S1_20171025_xena_sp&host=https%3A%2F%2Fpancanatlas.xenahubs.net
     TCGA.OS <- fread(
-      paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
+      file.path(data.file.directory, "Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE
     )
     TCGA.OS1 <- TCGA.OS[
@@ -4786,7 +4783,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
 
     ## get sample type data ##
     TCGA.sampletype <- readr::read_tsv(
-      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      file.path(data.file.directory, "TCGA_phenotype_denseDataOnlyDownload.tsv")
     )
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype <- as.data.frame(TCGA.sampletype)
@@ -4901,7 +4898,7 @@ plot.km.EIF.all.tumors <- function(EIF) {
 
     print(KM)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/KM"),
+      path = file.path(output.directory, "KM"),
       filename = paste(EIF, " all tumors KM.pdf"),
       plot = KM,
       width = 6,
@@ -4917,7 +4914,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
     ## get TCGA pancancer RNAseq data ##
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
+      file.path(data.file.directory, "EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE
     )
     TCGA.RNAseq1 <- TCGA.RNAseq[
@@ -4936,7 +4933,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
     ## get OS data ##
     # download https://xenabrowser.net/datapages/?dataset=Survival_SupplementalTable_S1_20171025_xena_sp&host=https%3A%2F%2Fpancanatlas.xenahubs.net
     TCGA.OS <- fread(
-      paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
+      file.path(data.file.directory, "Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE
     )
     TCGA.OS1 <- TCGA.OS[
@@ -4950,7 +4947,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
 
     ## get sample type data ##
     TCGA.sampletype <- readr::read_tsv(
-      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      file.path(data.file.directory, "TCGA_phenotype_denseDataOnlyDownload.tsv")
     )
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype <- as.data.frame(TCGA.sampletype)
@@ -5058,7 +5055,7 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
       )
     print(KM)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/KM"),
+      path = file.path(output.directory, "KM"),
       filename = paste(EIF, tumor, "KM.pdf"),
       plot = KM,
       width = 6,
@@ -5252,7 +5249,7 @@ plot.coxph.EIF.all.tumors <- function() {
     ## get TCGA pancancer RNAseq data ##
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
+      file.path(data.file.directory, "EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE
     )
     TCGA.RNAseq1 <- TCGA.RNAseq[
@@ -5270,7 +5267,7 @@ plot.coxph.EIF.all.tumors <- function() {
 
     ## get OS data ##
     TCGA.OS <- fread(
-      paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
+      file.path(data.file.directory, "Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE
     )
     TCGA.OS1 <- TCGA.OS[
@@ -5284,7 +5281,7 @@ plot.coxph.EIF.all.tumors <- function() {
 
     ## get sample type data ##
     TCGA.sampletype <- readr::read_tsv(
-      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      file.path(data.file.directory, "TCGA_phenotype_denseDataOnlyDownload.tsv")
     )
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype <- as.data.frame(TCGA.sampletype)
@@ -5345,7 +5342,7 @@ plot.coxph.EIF.all.tumors <- function() {
     df = df,
     covariate_names = covariate_names,
     data.np = 10235,
-    output.file = paste0(output.directory, "/Cox/EIFUniCox.pdf"),
+    output.file = file.path(output.directory, "Cox", "EIFUniCox.pdf"),
     plot.title = "Univariate Cox proportional-hazards regression analysis (all tumor types)",
     x.tics = c(0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8),
     x.range = c(0.6, 1.8))
@@ -5354,7 +5351,7 @@ plot.coxph.EIF.all.tumors <- function() {
     df = df,
     covariate_names = covariate_names,
     data.np = 10235,
-    output.file = paste0(output.directory, "/Cox/EIFmultiCox.pdf"),
+    output.file = file.path(output.directory, "Cox", "EIFmultiCox.pdf"),
     plot.title = "Multivariate Cox proportional-hazards regression analysis (all tumor types)",
     x.tics = c(0.6, 0.8, 1, 1.2, 1.4, 1.6, 1.8),
     x.range = c(0.6, 1.8))
@@ -5365,7 +5362,7 @@ plot.coxph.EIF.each.tumor <- function(tumor) {
     ## get TCGA pancancer RNAseq data ##
     # download https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
     TCGA.RNAseq <- fread(
-      paste0(data.file.directory, "/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
+      file.path(data.file.directory, "EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
       data.table = FALSE
     )
     TCGA.RNAseq1 <- TCGA.RNAseq[
@@ -5383,7 +5380,7 @@ plot.coxph.EIF.each.tumor <- function(tumor) {
 
     ## get OS data ##
     TCGA.OS <- fread(
-      paste0(data.file.directory, "/Survival_SupplementalTable_S1_20171025_xena_sp"),
+      file.path(data.file.directory, "Survival_SupplementalTable_S1_20171025_xena_sp"),
       data.table = FALSE
     )
     TCGA.OS1 <- TCGA.OS[
@@ -5397,7 +5394,7 @@ plot.coxph.EIF.each.tumor <- function(tumor) {
 
     ## get sample type data ##
     TCGA.sampletype <- readr::read_tsv(
-      paste0(data.file.directory, "/TCGA_phenotype_denseDataOnlyDownload.tsv")
+      file.path(data.file.directory, "TCGA_phenotype_denseDataOnlyDownload.tsv")
     )
     row.names(TCGA.sampletype) <- TCGA.sampletype$sample
     TCGA.sampletype <- as.data.frame(TCGA.sampletype)
@@ -5463,6 +5460,8 @@ plot.coxph.EIF.each.tumor <- function(tumor) {
     RPS6KB1 = "RPS6KB1", MYC = "MYC"
   )
 
+  # TODO: Use file.path below (noting that paste0() has been convenient
+  #       for filename construction in the current implementation.)
   plot.univariate(
     df = df,
     covariate_names = covariate_names,
@@ -5546,7 +5545,7 @@ plot.bargraph.CORs <- function(
     )
   print(p1)
   ggplot2::ggsave(
-    path = paste0(output.directory, "/Heatmap"),
+    path = file.path(output.directory, "Heatmap"),
     filename = paste(output.poscor.filename),
     plot = p1,
     width = 8,
@@ -5591,7 +5590,7 @@ plot.bargraph.CORs <- function(
     )
   print(p2)
   ggplot2::ggsave(
-    path = paste0(output.directory, "/Heatmap"),
+    path = file.path(output.directory, "Heatmap"),
     filename = output.negcor.filename,
     plot = p2,
     width = 8,
@@ -5603,7 +5602,7 @@ plot.bargraph.CORs <- function(
 
 ### find posCOR and negCOR in the overlapping CORs from all cancer cases
 plot.Venn.all <- function() {
-  Data <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
+  Data <- read_tsv(file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt"))
   Data <- Data[!duplicated(Data$sample), ]
   Data <- na.omit(Data)
   row.names(Data) <- Data$sample
@@ -5616,7 +5615,7 @@ plot.Venn.all <- function() {
   tissue.GTEX.TCGA.gene <- function() {
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     ) # data.table = FALSE gives data.frame
     TCGA.GTEX <- as.data.frame(TCGA.GTEX)
@@ -5737,7 +5736,7 @@ plot.Venn.all <- function() {
       )
       print(p2)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Heatmap"),
+        path = file.path(output.directory, "Heatmap"),
         filename = paste("all", z, "pos4Venn.pdf"),
         plot = p2,
         width = 8,
@@ -5798,7 +5797,7 @@ plot.Venn.all <- function() {
       )
       print(p2)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Heatmap"),
+        path = file.path(output.directory, "Heatmap"),
         filename = paste("all", z, "neg4Venn.pdf"),
         plot = p2,
         width = 8,
@@ -5870,11 +5869,11 @@ plot.Venn.all <- function() {
 ### find posCOR and negCOR in the overlapping CORs from lung cancer cases
 plot.Venn.lung <- function(x) {
   # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-  Sampletype <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
+  Sampletype <- read_tsv(file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt"))
   tissue.GTEX.TCGA.gene <- function(x) {
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     )
     Lung <- Sampletype[Sampletype$`_primary_site` == x, ]
@@ -6010,7 +6009,7 @@ plot.Venn.lung <- function(x) {
       )
       print(p2)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Heatmap"),
+        path = file.path(output.directory, "Heatmap"),
         filename = paste(x, z, "pos4Venn.pdf"),
         plot = p2,
         width = 8,
@@ -6071,7 +6070,7 @@ plot.Venn.lung <- function(x) {
       )
       print(p2)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Heatmap"),
+        path = file.path(output.directory, "Heatmap"),
         filename = paste(x, z, "neg4Venn.pdf"),
         plot = p2,
         width = 8,
@@ -6144,7 +6143,7 @@ plot.Venn.lung <- function(x) {
 
 ### plot heatmapand pathway analysis on clusters from all cancer cases ###
 plot.heatmap.total <- function() {
-  Data <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
+  Data <- read_tsv(file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt"))
   Data <- Data[!duplicated(Data$sample), ]
   Data <- na.omit(Data)
   row.names(Data) <- Data$sample
@@ -6157,7 +6156,7 @@ plot.heatmap.total <- function() {
   tissue.GTEX.TCGA.gene <- function() {
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     ) # data.table = FALSE gives data.frame
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
@@ -6347,7 +6346,7 @@ plot.heatmap.total <- function() {
   )
 
   pdf(file.path(
-    path = paste0(output.directory, "/Heatmap"),
+    path = file.path(output.directory, "Heatmap"),
     filename = "all tumors heatmap.pdf"
   ),
   width = 8,
@@ -6416,7 +6415,7 @@ plot.heatmap.total <- function() {
       )
     print(p1)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
+      path = file.path(output.directory, "Heatmap"),
       filename = paste("all tumors GO.pdf"),
       plot = p1,
       width = 10,
@@ -6445,7 +6444,7 @@ plot.heatmap.total <- function() {
       )
     print(p2)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
+      path = file.path(output.directory, "Heatmap"),
       filename = paste("all tumors KEGG.pdf"),
       plot = p2,
       width = 12,
@@ -6474,7 +6473,7 @@ plot.heatmap.total <- function() {
       )
     print(p3)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
+      path = file.path(output.directory, "Heatmap"),
       filename = paste("all tumors REACTOME.pdf"),
       plot = p3,
       width = 12,
@@ -6488,11 +6487,11 @@ plot.heatmap.total <- function() {
 ### plot heatmapand pathway analysis on clusters from lung cancer cases ###
 plot.heatmap.lung <- function(x) {
   # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-  Sampletype <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
+  Sampletype <- read_tsv(file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt"))
   tissue.GTEX.TCGA.gene <- function(x) {
     # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
     TCGA.GTEX <- fread(
-      paste0(data.file.directory, "/TcgaTargetGtex_RSEM_Hugo_norm_count"),
+      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
       data.table = FALSE
     )
     Lung <- Sampletype[Sampletype$`_primary_site` == x, ]
@@ -6623,7 +6622,7 @@ plot.heatmap.lung <- function(x) {
       )
       print(p1)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/Heatmap"),
+        path = file.path(output.directory, "Heatmap"),
         filename = paste(x, "Venn.pdf"),
         plot = p1,
         width = 8,
@@ -6747,7 +6746,7 @@ plot.heatmap.lung <- function(x) {
   )
 
   pdf(file.path(
-    path = paste0(output.directory, "/Heatmap"),
+    path = file.path(output.directory, "Heatmap"),
     filename = paste(x, "tumors heatmap.pdf")
   ),
   width = 8,
@@ -6813,7 +6812,7 @@ plot.heatmap.lung <- function(x) {
       )
     print(p1)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
+      path = file.path(output.directory, "Heatmap"),
       filename = paste(x, "Go.pdf"),
       plot = p1,
       width = 10,
@@ -6841,7 +6840,7 @@ plot.heatmap.lung <- function(x) {
       )
     print(p2)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
+      path = file.path(output.directory, "Heatmap"),
       filename = paste(x, "KEGG.pdf"),
       plot = p2,
       width = 12,
@@ -6869,7 +6868,7 @@ plot.heatmap.lung <- function(x) {
       )
     print(p3)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
+      path = file.path(output.directory, "Heatmap"),
       filename = paste(x, "REACTOME.pdf"),
       plot = p3,
       width = 14,
@@ -6928,7 +6927,7 @@ plot.heatmap.lung <- function(x) {
     )
     print(p4)
     ggplot2::ggsave(
-      path = paste0(output.directory, "/Heatmap"),
+      path = file.path(output.directory, "Heatmap"),
       filename = paste(x, "cluster3 heatmap.pdf"),
       plot = p4,
       width = 8,
@@ -6946,7 +6945,7 @@ plot.heatmap.lung <- function(x) {
 plot.EIF4.CPTAC.pro.LUAD <- function() {
   get.clinic.data <- function() {
     CPTAC.LUAD.Sample <- read_excel(
-      paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
+      file.path(data.file.directory, "S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
     )
     CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample[, c("Aliquot (Specimen Label)", "Type")]
     CPTAC.LUAD.Sample.ID <- CPTAC.LUAD.Sample.ID[
@@ -6955,7 +6954,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
     row.names(CPTAC.LUAD.Sample.ID) <- CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)`
     CPTAC.LUAD.Sample.ID$`Aliquot (Specimen Label)` <- NULL
     CPTAC.LUAD.clinic <- read_excel(
-      paste0(data.file.directory, "/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx"),
+      file.path(data.file.directory, "S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx"),
       sheet = 2
     )
     CPTAC.LUAD.clinic.Sampletype <- merge(CPTAC.LUAD.clinic,
@@ -6978,7 +6977,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
 
   get.proteomics.data <- function(x) {
     CPTAC.LUAD.Proteomics <- fread(
-      paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),
+      file.path(data.file.directory, "CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),
       data.table = FALSE
     )
     EIF.CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics[
@@ -7302,7 +7301,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
 
   get.proteomics.phosproteomics.data <- function() {
     CPTAC.LUAD.Phosproteomics <- fread(
-      paste0(data.file.directory, "/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv"),
+      file.path(data.file.directory, "CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv"),
       data.table = FALSE
     )
 
@@ -7727,7 +7726,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         )
       print(p2)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/CPTAC"),
+        path = file.path(output.directory, "CPTAC"),
         filename = paste0(str_remove(x, ":"), "pro.pdf"),
         plot = p2,
         width = 2.5,
@@ -7812,7 +7811,7 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         )
       print(p2)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/CPTAC"),
+        path = file.path(output.directory, "CPTAC"),
         filename = paste0(str_remove(x, ":"), "phospro.pdf"),
         plot = p2,
         width = 2.5,
