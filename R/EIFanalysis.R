@@ -333,8 +333,6 @@ plot.bargraph.EIF.CNV.sum <- function(EIF) {
     CNV.sum$variable <- factor(CNV.sum$variable,
       levels = c("PTEN", "EIF4E", "EIF4A1", "MYC", "EIF4EBP1", "EIF4G1")
     )
-    # TODO: The variables 'CNV', 'Freq', and 'variable' in the argument list
-    #       below are not defined.
     # reorder bars by explicitly ordering factor levels
     p1 <- ggplot(CNV.sum, aes(
       fill = CNV,
@@ -532,7 +530,6 @@ plot.violin.EIF.CNV.RNAseq <- function(EIF) {
   make.plot <- function(EIF) {
     p1 <- ggplot(
       data = TCGA.RNAseq.CNV,
-      # TODO: The variables 'CNV' and 'RNAseq' are not defined.
       aes(
         x = CNV,
         y = 2**RNAseq - 1,
@@ -880,7 +877,6 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
 
       f1 <- factor(pancancer.TCGA.EIF.long1$primary.disease)
       f.ordered1 <- fct_rev(f1)
-      # TODO: The variables 'value' and 'variable' below are not defined.
       p1 <- ggplot(
         data = pancancer.TCGA.EIF.long1,
         aes(
@@ -1070,7 +1066,6 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
 
       f1 <- factor(pancancer.TCGA.EIF.long2$primary.disease)
       f.ordered1 <- fct_rev(f1)
-      # TODO: The variables 'value' and 'variable' below are not defined.
       p1 <- ggplot(
         data = pancancer.TCGA.EIF.long2,
         aes(
