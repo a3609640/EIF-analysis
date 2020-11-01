@@ -18,7 +18,9 @@ in this project:
     * Intel i7-8700k CPU
     * 64GB RAM (DDR4-3000, non-ECC)
     * Samsung NVMe Pro SSD
-    * Pop!_OS 17.10
+    * Pop!_OS 18.04 LTS
+    * RStudio
+    * R 3.6.3
 
 2. (verification in progress) PowerSpec G460 desktop computer
     * Intel i7-8700k CPU
@@ -29,6 +31,7 @@ in this project:
     * RStudio for Windows
     * R 4.0.3
 
+Additional details of these environments are provided in the "Session Information" section below.
 
 ## Datasets
 Please download all datasets from the following weblinks and store them at the following directory. The script will read all datasets from there.
@@ -38,30 +41,42 @@ Please download all datasets from the following weblinks and store them at the f
 This project makes use of data files that must be fetched from remote sources.  The necessary links are provided below.  Note that the .gz files must be unzipped after they are downloaded.
 
 ### TCGA and GTEX DATA
+
 #### TCGA CNV dataset (thresholded)
 https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes.gz
+
 #### TCGA CNV dataset
 https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_data_by_genes.gz
+
 #### TCGA CNV ratio dataset
 https://pancanatlas.xenahubs.net/download/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena.gz
+
 #### TCGA RNA-Seq dataset
 https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
+
 #### TCGA sample type annotation
 https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
+
 #### TCGA OS data ##
 https://xenabrowser.net/datapages/?dataset=Survival_SupplementalTable_S1_20171025_xena_sp&host=https%3A%2F%2Fpancanatlas.xenahubs.net
+
 #### TCGA and GTEX RNA-Seq dataset
 https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
+
 #### TCGA and GTEX sample type annotation
 download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
 
 ### CPTAC DATA
+
 #### CPTAC LUAD Proteomics
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_Proteome_CDAP_Protein_Report.r1/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv
+
 #### CPTAC LUAD Phosproteomics
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_Phosphoproteome_CDAP_Protein_Report.r1/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv
+
 #### CPTAC LUAD Sample Annotation
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_metadata/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx
+
 #### CPTAC Clinical Data
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_metadata/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx
 
@@ -151,7 +166,18 @@ mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PC
 5. Open the EIFanalysis.R file in RStudio, and run it with the "source" button.
 6. The EIFanalysis.R will produce all the figures from the EIF manuscript and store them in the output folders.
 
-## Session information
+If the root directory paths ```~/Download``` and ```~/Documents/EIF_output``` do not suit, they may be adjusted trivially in these lines near the top of the script:
+
+```
+data.file.directory <- "~/Downloads"
+output.directory <- "~/Documents/EIF_output"
+```
+
+Note that you must still pre-create all output subdirectories, under whatever parent output directory you choose.
+
+
+## Session Information
+### System 1
 ```
 Session info
 ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -385,4 +411,8 @@ Packages
  xtable             1.8-4      2019-04-21 [1] CRAN (R 3.6.0)
  zip                2.1.1      2020-08-27 [1] CRAN (R 3.6.3)
  zoo                1.8-8      2020-05-02 [1] CRAN (R 3.6.3)
+```
+
+### System 2
+```
 ```
