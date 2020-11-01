@@ -260,7 +260,6 @@ plot.bargraph.EIF.CNV.TCGA <- function(EIF) {
   make.plot(EIF)
 }
 
-
 plot.bargraph.EIF.CNV.sum <- function(EIF) {
   pan.TCGA.CNV <- function(EIF) {
     # download https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gistic2_all_thresholded.by_genes.gz
@@ -3562,7 +3561,7 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA"),
+        path = paste0(output.directory, "/PCA/All"),
         filename = paste0("EIFPCAall", sample, "color.pdf"),
         plot = biplot,
         width = 8,
@@ -3860,7 +3859,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
         )
       print(biplot)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = paste0(output.directory, "/PCA/Lung"),
         filename = paste0(x, "EIFPCA.pdf"),
         plot = biplot,
         width = 8,
@@ -3891,7 +3890,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
         )
       print(eig)
       ggplot2::ggsave(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = paste0(output.directory, "/PCA/Lung"),
         filename = paste0(x, "EIFeig.pdf"),
         plot = eig,
         width = 8,
@@ -3923,7 +3922,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
           )
         print(p)
         ggplot2::ggsave(
-          path = paste0(output.directory, "/PCA/TCGA"),
+          path = paste0(output.directory, "/PCA/Lung"),
           filename = paste0("EIFcontri", x, ".pdf"),
           plot = p,
           width = 8,
@@ -3937,7 +3936,7 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
       # corrplot(var$contrib, is.corr=FALSE)
       # fviz_pca_var(res.pca, col.var="contrib")
       pdf(file.path(
-        path = paste0(output.directory, "/PCA/TCGA"),
+        path = paste0(output.directory, "/PCA/Lung"),
         filename = paste0(x, "EIFPCAcor.pdf")
       ),
       width = 9,
@@ -3961,7 +3960,6 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
   EIF.PCA.tissue(tissue)
 }
 
-# stop here
 plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
   tissue.GTEX.TCGA.gene <- function() {
     # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
@@ -4677,7 +4675,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
     )
   print(biplot)
   ggplot2::ggsave(
-    path = paste0(output.directory, "/PCA"),
+    path = paste0(output.directory, "/PCA/Lung"),
     filename = "EIFLUADPCA.pdf",
     plot = biplot,
     width = 8,
@@ -4707,7 +4705,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
     )
   print(eig)
   ggplot2::ggsave(
-    path = paste0(output.directory, "/PCA"),
+    path = paste0(output.directory, "/PCA/Lung"),
     filename = "EIFLUADEig.pdf",
     plot = eig,
     width = 8,
@@ -4717,7 +4715,7 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
   var <- get_pca_var(res.pca)
   # fviz_pca_var(res.pca, col.var="contrib")
   pdf(file.path(
-    path = paste0(output.directory, "/PCA"),
+    path = paste0(output.directory, "/PCA/Lung"),
     filename = "EIFLUADcor.pdf"
   ),
   width = 9,
@@ -4914,7 +4912,6 @@ plot.km.EIF.all.tumors <- function(EIF) {
   plot.KM(EIF)
 }
 
-##
 plot.km.EIF.each.tumor <- function(EIF, tumor) {
   pan.TCGA.gene <- function(EIF, tumor) {
     ## get TCGA pancancer RNAseq data ##
@@ -5174,7 +5171,6 @@ plot.univariate <- function(df, covariate_names, data.np, output.file, plot.titl
   dev.off()
 }
 
-
 plot.multivariate <- function(df, covariate_names, data.np, output.file, plot.title, x.tics, x.range) {
   df %>%
     analyse_multivariate(vars(OS.time, OS), covariates = vars(EIF4E, EIF4A1, EIF4G1, EIF4G2, PABPC1, EIF4EBP1, MKNK1, MKNK2, MTOR, RPTOR, RPS6KB1, MYC), covariate_name_dict = covariate_names) -> result1
@@ -5250,7 +5246,7 @@ plot.multivariate <- function(df, covariate_names, data.np, output.file, plot.ti
   print(p)
 }
 
-## Cox regression model
+## Cox regression model ##
 plot.coxph.EIF.all.tumors <- function() {
   pan.TCGA.gene <- function(EIF) {
     ## get TCGA pancancer RNAseq data ##
@@ -5884,7 +5880,7 @@ plot.Venn.lung <- function(x) {
     Lung <- Sampletype[Sampletype$`_primary_site` == x, ]
     Lung.ID <- as.vector(Lung$sample)
     Lung.ID <- na.omit(Lung.ID) # NA in the vector
-    TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)
+    TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", all_of(Lung.ID))
     TCGA.GTEX.Lung <- TCGA.GTEX.Lung[
       !duplicated(TCGA.GTEX.Lung$sample),
       !duplicated(colnames(TCGA.GTEX.Lung))
@@ -6141,12 +6137,11 @@ plot.Venn.lung <- function(x) {
     gene = gene,
     posCORs = posCORs,
     negCORs = negCORs,
-    output.poscor.filename = paste(x, "posCORs.pdf"),
-    output.negcor.filename = paste(x, "negCORs.pdf"),
+    output.poscor.filename = paste(x, "posCORs barplot.pdf"),
+    output.negcor.filename = paste(x, "negCORs barplot.pdf"),
     coord_flip.ylim = 15000)
 }
 
-### use TCGA-TARGET-GTEX dataset ###
 ### plot heatmapand pathway analysis on clusters from all cancer cases ###
 plot.heatmap.total <- function() {
   Data <- read_tsv(paste0(data.file.directory, "/TcgaTargetGTEX_phenotype.txt"))
@@ -6353,7 +6348,7 @@ plot.heatmap.total <- function() {
 
   pdf(file.path(
     path = paste0(output.directory, "/Heatmap"),
-    filename = "All tumors heatmap.pdf"
+    filename = "all tumors heatmap.pdf"
   ),
   width = 8,
   height = 8,
@@ -6490,7 +6485,6 @@ plot.heatmap.total <- function() {
   plot.cluster.pathway()
 }
 
-### use TCGA-TARGET-GTEX dataset
 ### plot heatmapand pathway analysis on clusters from lung cancer cases ###
 plot.heatmap.lung <- function(x) {
   # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
@@ -6504,7 +6498,7 @@ plot.heatmap.lung <- function(x) {
     Lung <- Sampletype[Sampletype$`_primary_site` == x, ]
     Lung.ID <- as.vector(Lung$sample)
     Lung.ID <- na.omit(Lung.ID) # NA in the vector
-    TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", Lung.ID)
+    TCGA.GTEX.Lung <- TCGA.GTEX %>% select("sample", all_of(Lung.ID))
     TCGA.GTEX.Lung <- TCGA.GTEX.Lung[
       !duplicated(TCGA.GTEX.Lung$sample),
       !duplicated(colnames(TCGA.GTEX.Lung))
@@ -6637,7 +6631,7 @@ plot.heatmap.lung <- function(x) {
         useDingbats = FALSE
       )
     }
-    plot.pos.Venn(y)
+    #plot.pos.Venn(y)
     cor.data <- cbind(
       setNames(data.frame(EIF4E.cor[, c(3, 4)]), c("EIF4E", "EIF4E.p")),
       setNames(data.frame(EIF4G1.cor[, c(3, 4)]), c("EIF4G1", "EIF4G1.p")),
