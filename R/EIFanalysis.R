@@ -56,54 +56,89 @@ output.directory <- "~/Documents/EIF_output"
 
 
 #### Format Preparation ####
-black_bold_tahoma_7 <- element_text(
-  color = "black",
-  face = "bold",
-  size = 7
-)
-black_bold_12 <- element_text(
-  color = "black",
-  face = "bold",
-  size = 12
-)
-black_bold_12_45 <- element_text(
-  color = "black",
-  face = "bold",
-  size = 12,
-  angle = 45,
-  hjust = 1
-)
-black_bold_16 <- element_text(
-  color = "black",
-  face = "bold",
-  size = 16
-)
-black_bold_16_right <- element_text(
-  color = "black",
-  face = "bold",
-  size = 16,
-  angle = 90
-)
-black_bold_16_45 <- element_text(
-  color = "black",
-  face = "bold",
-  size = 16,
-  angle = 45,
-  hjust = 1
-)
-black_bold_16_90 <- element_text(
-  color = "black",
-  face = "bold",
-  size = 16,
-  angle = 90,
-  hjust = 1,
-  vjust = 0.5
-)
-black_bold_18 <- element_text(
-  color = "black",
-  face = "bold",
-  size = 18
-)
+black_bold_tahoma_7 <- function() {
+  return <- (
+    element_text(
+      color = "black",
+      face = "bold",
+      size = 7
+  ))
+}
+
+black_bold_12 <- function() {
+  return(
+    element_text(
+      color = "black",
+      face = "bold",
+      size = 12
+    )
+  )
+}
+
+black_bold_12_45 <- function() {
+  return(
+    element_text(
+      color = "black",
+      face = "bold",
+      size = 12,
+      angle = 45,
+      hjust = 1
+    )
+  )
+}
+
+black_bold_16 <- function() {
+  return(
+    element_text(
+      color = "black",
+      face = "bold",
+      size = 16
+    )
+  )
+}
+
+black_bold_16_right <- function() {
+  return(element_text(
+    color = "black",
+    face = "bold",
+    size = 16,
+    angle = 90
+  ))
+}
+
+black_bold_16_45 <- function() {
+  return(
+    element_text(
+      color = "black",
+      face = "bold",
+      size = 16,
+      angle = 45,
+      hjust = 1
+    )
+  )
+}
+
+black_bold_16_90 <- function() {
+  return(element_text(
+    color = "black",
+    face = "bold",
+    size = 16,
+    angle = 90,
+    hjust = 1,
+    vjust = 0.5
+  ))
+}
+
+black_bold_18 <- function() {
+  return(
+    element_text(
+      color = "black",
+      face = "bold",
+      size = 18
+    )
+  )
+}
+
 color <- function() {
   n <- 32  # TODO: this variable is not used
   qual_col_pals <- brewer.pal.info[brewer.pal.info$category == "qual", ]
@@ -217,20 +252,20 @@ plot.bargraph.EIF.CNV.TCGA <- function(EIF) {
       coord_flip() +
       theme_bw() +
       theme(
-        plot.title = black_bold_12,
-        axis.title.x = black_bold_12,
+        plot.title = black_bold_12(),
+        axis.title.x = black_bold_12(),
         axis.title.y = element_blank(),
-        axis.text.x = black_bold_12,
-        axis.text.y = black_bold_12,
+        axis.text.x = black_bold_12(),
+        axis.text.y = black_bold_12(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.title = element_blank(),
-        legend.text = black_bold_12,
+        legend.text = black_bold_12(),
         legend.position = "top",
         legend.justification = "left",
         legend.box = "horizontal",
-        strip.text = black_bold_12
+        strip.text = black_bold_12()
       ) +
       scale_y_continuous(labels = scales::percent_format()) +
       guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
@@ -352,20 +387,20 @@ plot.bargraph.EIF.CNV.sum <- function(EIF) {
       coord_flip() +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title.x = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title.x = black_bold_16(),
         axis.title.y = element_blank(),
-        axis.text.x = black_bold_16,
-        axis.text.y = black_bold_16,
+        axis.text.x = black_bold_16(),
+        axis.text.y = black_bold_16(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.title = element_blank(),
-        legend.text = black_bold_16,
+        legend.text = black_bold_16(),
         legend.position = "top",
         legend.justification = "left",
         legend.box = "horizontal",
-        strip.text = black_bold_16
+        strip.text = black_bold_16()
       ) +
       guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
       scale_fill_manual(
@@ -577,13 +612,13 @@ plot.violin.EIF.CNV.RNAseq <- function(EIF) {
       ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title.x = black_bold_16,
-        axis.title.y = black_bold_16,
-        axis.text.x = black_bold_16_45,
-        axis.text.y = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title.x = black_bold_16(),
+        axis.title.y = black_bold_16(),
+        axis.text.x = black_bold_16_45(),
+        axis.text.y = black_bold_16(),
         panel.grid = element_blank(),
-        strip.text = black_bold_16,
+        strip.text = black_bold_16(),
         strip.background = element_rect(fill = "white"),
         legend.position = "none"
       ) +
@@ -719,20 +754,20 @@ plot.boxgraph.EIF.CNVratio.TCGA <- function(EIF) {
       coord_flip() +
       theme_bw() +
       theme(
-        plot.title = black_bold_12,
-        axis.title.x = black_bold_12,
+        plot.title = black_bold_12(),
+        axis.title.x = black_bold_12(),
         axis.title.y = element_blank(),
-        axis.text.x = black_bold_12,
-        axis.text.y = black_bold_12,
+        axis.text.x = black_bold_12(),
+        axis.text.y = black_bold_12(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.title = element_blank(),
-        legend.text = black_bold_12,
+        legend.text = black_bold_12(),
         legend.position = "none",
         legend.justification = "left",
         legend.box = "horizontal",
-        strip.text = black_bold_12
+        strip.text = black_bold_12()
       )
     print(p1)
     ggplot2::ggsave(
@@ -933,20 +968,20 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
         coord_flip() +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          strip.text = black_bold_12
+          strip.text = black_bold_12()
         )
       print(p1)
 
@@ -1016,20 +1051,20 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
         coord_flip() +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          strip.text = black_bold_12
+          strip.text = black_bold_12()
         )
       print(p2)
 
@@ -1106,20 +1141,20 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
         coord_flip() +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          strip.text = black_bold_12
+          strip.text = black_bold_12()
         )
       print(p1)
 
@@ -1172,20 +1207,20 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
         coord_flip() +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          strip.text = black_bold_12
+          strip.text = black_bold_12()
         )
       print(p2)
       g1grob <- ggplotGrob(p1)
@@ -1275,20 +1310,20 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
         coord_flip() +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          strip.text = black_bold_12
+          strip.text = black_bold_12()
         )
       print(p1)
 
@@ -1347,20 +1382,20 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
         coord_flip() +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          strip.text = black_bold_12
+          strip.text = black_bold_12()
         )
       print(p2)
 
@@ -1446,20 +1481,20 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
         coord_flip() +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          strip.text = black_bold_12
+          strip.text = black_bold_12()
         )
       print(p1)
 
@@ -1512,20 +1547,20 @@ plot.boxgraph.EIF.RNAseq.TCGA.GTEX <- function(EIF.gene) {
         coord_flip() +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          strip.text = black_bold_12
+          strip.text = black_bold_12()
         )
       print(p2)
 
@@ -1778,11 +1813,11 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         coord_flip(ylim = c(0, 25)) +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           axis.line.x = element_line(color = "black"),
           axis.line.y = element_line(color = "black"),
           panel.grid = element_blank(),
@@ -1790,7 +1825,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           strip.background = element_blank(),
           strip.text.x = element_blank()
         )
@@ -1873,11 +1908,11 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         coord_flip(ylim = c(0, 25)) +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           axis.line.x = element_line(color = "black"),
           axis.line.y = element_line(color = "black"),
           panel.grid = element_blank(),
@@ -1885,7 +1920,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           strip.background = element_blank(),
           strip.text.x = element_blank()
         )
@@ -1984,20 +2019,20 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         coord_flip(ylim = c(0, 25)) +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           axis.line.x = element_line(color = "black"),
           axis.line.y = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           strip.background = element_blank(),
           strip.text.x = element_blank()
-          # strip.text           = black_bold_12
+          # strip.text           = black_bold_12()
         ) +
         guides(col = guide_legend(nrow = 1))
       print(p1)
@@ -2074,20 +2109,20 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         coord_flip(ylim = c(0, 25)) +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           axis.line.x = element_line(color = "black"),
           axis.line.y = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           strip.background = element_blank(),
           strip.text.x = element_blank()
-          # strip.text           = black_bold_12
+          # strip.text           = black_bold_12()
         ) +
         guides(col = guide_legend(nrow = 1))
       print(p2)
@@ -2179,11 +2214,11 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         scale_y_continuous(breaks = seq(0, 10, by = 2)) +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
@@ -2191,7 +2226,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           strip.background = element_blank(),
           strip.text.x = element_blank()
         )
@@ -2279,20 +2314,20 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         scale_y_continuous(breaks = seq(0, 20, by = 5)) +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x      = element_line(color = "black"),
           # axis.line.y      = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           strip.background = element_blank(),
           strip.text.x = element_blank()
-          # strip.text           = black_bold_12
+          # strip.text           = black_bold_12()
         ) +
         guides(col = guide_legend(nrow = 1))
       print(p2)
@@ -2379,11 +2414,11 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         scale_y_continuous(breaks = seq(0, 10, by = 2)) +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x          = element_line(color = "black"),
           # axis.line.y          = element_line(color = "black"),
           panel.grid = element_blank(),
@@ -2391,7 +2426,7 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           strip.background = element_blank(),
           strip.text.x = element_blank()
         )
@@ -2479,20 +2514,20 @@ plot.boxgraph.EIF.ratio.TCGA.GTEX <- function(EIF.gene) {
         coord_flip(ylim = c(0, 20)) +
         theme_bw() +
         theme(
-          plot.title = black_bold_12,
-          axis.title.x = black_bold_12,
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
           axis.title.y = element_blank(),
-          axis.text.x = black_bold_12,
-          axis.text.y = black_bold_12,
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
           # axis.line.x      = element_line(color = "black"),
           # axis.line.y      = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
-          legend.text = black_bold_12,
+          legend.text = black_bold_12(),
           legend.position = "top",
           strip.background = element_blank(),
           strip.text.x = element_blank()
-          # strip.text           = black_bold_12
+          # strip.text           = black_bold_12()
         ) +
         guides(col = guide_legend(nrow = 1))
       print(p2)
@@ -2661,16 +2696,16 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
       scale_fill_manual(values = c("#56B4E9", "#009E73", "#D55E00")) + # for color-blind palettes
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
+        plot.title = black_bold_16(),
         axis.title.x = element_blank(),
-        axis.title.y.right = black_bold_16_right,
-        axis.text.x = black_bold_16_90,
-        axis.text.y = black_bold_16_90,
+        axis.title.y.right = black_bold_16_right(),
+        axis.text.x = black_bold_16_90(),
+        axis.text.y = black_bold_16_90(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_16
+        strip.text = black_bold_16()
       ) +
       stat_compare_means(
         comparisons = list(
@@ -2738,16 +2773,16 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
       scale_fill_manual(values = c("#56B4E9", "#009E73", "#D55E00")) + # for color-blind palettes
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
+        plot.title = black_bold_16(),
         axis.title.x = element_blank(),
-        axis.title.y.right = black_bold_16_right,
-        axis.text.x = black_bold_16_90,
-        axis.text.y = black_bold_16_90,
+        axis.title.y.right = black_bold_16_right(),
+        axis.text.x = black_bold_16_90(),
+        axis.text.y = black_bold_16_90(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_16
+        strip.text = black_bold_16()
       ) +
       stat_compare_means(
         comparisons = list(
@@ -2796,16 +2831,16 @@ plot.violingraph.EIF.RNAseq.TCGA <- function(EIF.gene) {
       # scale_fill_manual(values = c("#E69F00","#56B4E9","#009E73","#CC79A7")) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title = black_bold_16,
-        axis.title.y.right = black_bold_16_right,
-        axis.text.x = black_bold_16_90,
-        axis.text.y = black_bold_16_90,
+        plot.title = black_bold_16(),
+        axis.title = black_bold_16(),
+        axis.title.y.right = black_bold_16_right(),
+        axis.text.x = black_bold_16_90(),
+        axis.text.y = black_bold_16_90(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_16
+        strip.text = black_bold_16()
       ) +
       stat_compare_means(
         comparisons = list(
@@ -2991,16 +3026,16 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
       geom_hline(yintercept = c(1, 4), linetype = "dashed") +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
+        plot.title = black_bold_16(),
         axis.title.x = element_blank(),
-        axis.title.y.right = black_bold_16_right,
-        axis.text.x = black_bold_16_90,
-        axis.text.y = black_bold_16_90,
+        axis.title.y.right = black_bold_16_right(),
+        axis.text.x = black_bold_16_90(),
+        axis.text.y = black_bold_16_90(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_16
+        strip.text = black_bold_16()
       ) +
       stat_compare_means(
         comparisons = list(
@@ -3089,16 +3124,16 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
       geom_hline(yintercept = 1, linetype = "dashed") +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
+        plot.title = black_bold_16(),
         axis.title.x = element_blank(),
-        axis.title.y.right = black_bold_16_right,
-        axis.text.x = black_bold_16_90,
-        axis.text.y = black_bold_16_90,
+        axis.title.y.right = black_bold_16_right(),
+        axis.text.x = black_bold_16_90(),
+        axis.text.y = black_bold_16_90(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_16
+        strip.text = black_bold_16()
       ) +
       stat_compare_means(
         comparisons = list(
@@ -3187,16 +3222,16 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
       geom_hline(yintercept = 1, linetype = "dashed") +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
+        plot.title = black_bold_16(),
         axis.title.x = element_blank(),
-        axis.title.y.right = black_bold_16_right,
-        axis.text.x = black_bold_16_90,
-        axis.text.y = black_bold_16_90,
+        axis.title.y.right = black_bold_16_right(),
+        axis.text.x = black_bold_16_90(),
+        axis.text.y = black_bold_16_90(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_16
+        strip.text = black_bold_16()
       ) +
       stat_compare_means(
         comparisons = list(
@@ -3383,18 +3418,18 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
       ggtitle("Principal Component Analysis") +
       theme(
         plot.background = element_blank(),
-        plot.title = black_bold_16,
+        plot.title = black_bold_16(),
         panel.background = element_rect(
           fill = "transparent",
           color = "black",
           size = 1
         ),
-        axis.title = black_bold_16,
-        axis.text = black_bold_16,
+        axis.title = black_bold_16(),
+        axis.text = black_bold_16(),
         legend.title = element_blank(),
         legend.position = c(0.3, 0.93),
         legend.background = element_blank(),
-        legend.text = black_bold_16,
+        legend.text = black_bold_16(),
         legend.key = element_blank()
       )
     print(p)
@@ -3427,21 +3462,21 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
       theme_classic() +
       theme(
         plot.background = element_blank(),
-        plot.title = black_bold_16,
+        plot.title = black_bold_16(),
         panel.background = element_rect(
           fill = "transparent",
           color = "black",
           size = 1
         ),
-        axis.title.x = black_bold_16,
-        axis.title.y = black_bold_16,
-        axis.text.x = black_bold_16,
-        axis.text.y = black_bold_16,
+        axis.title.x = black_bold_16(),
+        axis.title.y = black_bold_16(),
+        axis.text.x = black_bold_16(),
+        axis.text.y = black_bold_16(),
         legend.title = element_blank(),
         legend.position = c(0, 0),
         legend.justification = c(0, 0),
         legend.background = element_blank(),
-        legend.text = black_bold_16
+        legend.text = black_bold_16()
       )
     print(biplot)
     ggplot2::ggsave(
@@ -3479,21 +3514,21 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         # scale_y_continuous(breaks = seq(-4, 6, 2), limits=c(-4, 7)) +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16,
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16(),
           legend.title = element_blank(),
           legend.position = c(0, 0),
           legend.justification = c(0, 0),
           legend.background = element_blank(),
-          legend.text = black_bold_16
+          legend.text = black_bold_16()
         )
       print(biplot)
       ggplot2::ggsave(
@@ -3535,21 +3570,21 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         # scale_y_continuous(breaks = seq(-4, 6, 2), limits=c(-4, 7)) +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16,
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16(),
           legend.title = element_blank(),
           legend.position = c(0, .625),
           legend.justification = c(0, 0),
           legend.background = element_blank(),
-          legend.text = black_bold_12
+          legend.text = black_bold_12()
         )
       print(biplot)
       ggplot2::ggsave(
@@ -3590,21 +3625,21 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         # scale_y_continuous(breaks = seq(-4, 6, 2), limits=c(-4, 7)) +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16,
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16(),
           legend.title = element_blank(),
           legend.position = c(0, .625),
           legend.justification = c(0, 0),
           legend.background = element_blank(),
-          legend.text = black_bold_12
+          legend.text = black_bold_12()
         )
       print(biplot)
       ggplot2::ggsave(
@@ -3629,16 +3664,16 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
       theme_classic() +
       theme(
         plot.background = element_blank(),
-        plot.title = black_bold_16,
+        plot.title = black_bold_16(),
         panel.background = element_rect(
           fill = "transparent",
           color = "black",
           size = 1
         ),
-        axis.title.x = black_bold_16,
-        axis.title.y = black_bold_16,
-        axis.text.x = black_bold_16,
-        axis.text.y = black_bold_16
+        axis.title.x = black_bold_16(),
+        axis.title.y = black_bold_16(),
+        axis.text.x = black_bold_16(),
+        axis.text.y = black_bold_16()
       )
     print(eig)
     ggplot2::ggsave(
@@ -3692,16 +3727,16 @@ plot.EIF.TCGA.GTEX.PCA.all.tumor.tissue <- function(EIF.list) {
         theme_minimal() +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
           axis.title.x = element_blank(),
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16_45,
-          axis.text.y = black_bold_16
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16_45(),
+          axis.text.y = black_bold_16()
         )
     }
     lapply(c(1, 2), contribplot)
@@ -3833,21 +3868,21 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
         theme_classic() +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16,
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16(),
           legend.title = element_blank(),
           legend.position = c(0, 0),
           legend.justification = c(0, 0),
           legend.background = element_blank(),
-          legend.text = black_bold_16
+          legend.text = black_bold_16()
         )
       print(biplot)
       ggplot2::ggsave(
@@ -3869,16 +3904,16 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
         theme_classic() +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16()
         )
       print(eig)
       ggplot2::ggsave(
@@ -3901,16 +3936,16 @@ plot.EIF.TCGA.GTEX.PCA.each.tumor <- function(EIF.list, tissue) {
           theme_classic() +
           theme(
             plot.background = element_blank(),
-            plot.title = black_bold_16,
+            plot.title = black_bold_16(),
             panel.background = element_rect(
               fill = "transparent",
               color = "black",
               size = 1
             ),
             axis.title.x = element_blank(),
-            axis.title.y = black_bold_16,
-            axis.text.x = black_bold_16_45,
-            axis.text.y = black_bold_16
+            axis.title.y = black_bold_16(),
+            axis.text.x = black_bold_16_45(),
+            axis.text.y = black_bold_16()
           )
         print(p)
         ggplot2::ggsave(
@@ -4072,20 +4107,20 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
         theme_classic() +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16,
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16(),
           legend.title = element_blank(),
           legend.position = c(0, .625),
           legend.background = element_blank(),
-          legend.text = black_bold_16
+          legend.text = black_bold_16()
         )
       print(biplot)
       ggplot2::ggsave(
@@ -4107,16 +4142,16 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
         theme_classic() +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16()
         )
       print(eig)
       ggplot2::ggsave(
@@ -4170,16 +4205,16 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
           theme_minimal() +
           theme(
             plot.background = element_blank(),
-            plot.title = black_bold_16,
+            plot.title = black_bold_16(),
             panel.background = element_rect(
               fill = "transparent",
               color = "black",
               size = 1
             ),
             axis.title.x = element_blank(),
-            axis.title.y = black_bold_16,
-            axis.text.x = black_bold_16_45,
-            axis.text.y = black_bold_16
+            axis.title.y = black_bold_16(),
+            axis.text.x = black_bold_16_45(),
+            axis.text.y = black_bold_16()
           )
       }
       lapply(c(1, 2), contribplot)
@@ -4223,20 +4258,20 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
         theme_classic() +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16,
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16(),
           legend.title = element_blank(),
           legend.position = c(0, .625),
           legend.background = element_blank(),
-          legend.text = black_bold_16
+          legend.text = black_bold_16()
         )
       print(biplot)
       ggplot2::ggsave(
@@ -4258,16 +4293,16 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
         theme_classic() +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16()
         )
       print(eig)
       ggplot2::ggsave(
@@ -4321,16 +4356,16 @@ plot.EIF.TCGA.PCA.all.tumor <- function(EIF.list) {
           theme_minimal() +
           theme(
             plot.background = element_blank(),
-            plot.title = black_bold_16,
+            plot.title = black_bold_16(),
             panel.background = element_rect(
               fill = "transparent",
               color = "black",
               size = 1
             ),
             axis.title.x = element_blank(),
-            axis.title.y = black_bold_16,
-            axis.text.x = black_bold_16_45,
-            axis.text.y = black_bold_16
+            axis.title.y = black_bold_16(),
+            axis.text.x = black_bold_16_45(),
+            axis.text.y = black_bold_16()
           )
       }
       lapply(c(1, 2), contribplot)
@@ -4457,20 +4492,20 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
         theme_classic() +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16,
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16(),
           legend.title = element_blank(),
           legend.position = c(0, .625),
           legend.background = element_blank(),
-          legend.text = black_bold_16
+          legend.text = black_bold_16()
         )
       print(biplot)
       ggplot2::ggsave(
@@ -4492,16 +4527,16 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
         theme_classic() +
         theme(
           plot.background = element_blank(),
-          plot.title = black_bold_16,
+          plot.title = black_bold_16(),
           panel.background = element_rect(
             fill = "transparent",
             color = "black",
             size = 1
           ),
-          axis.title.x = black_bold_16,
-          axis.title.y = black_bold_16,
-          axis.text.x = black_bold_16,
-          axis.text.y = black_bold_16
+          axis.title.x = black_bold_16(),
+          axis.title.y = black_bold_16(),
+          axis.text.x = black_bold_16(),
+          axis.text.y = black_bold_16()
         )
       print(eig)
 
@@ -4557,16 +4592,16 @@ plot.EIF.GTEX.PCA.all.tissue <- function(EIF.list) {
           theme_minimal() +
           theme(
             plot.background = element_blank(),
-            plot.title = black_bold_16,
+            plot.title = black_bold_16(),
             panel.background = element_rect(
               fill = "transparent",
               color = "black",
               size = 1
             ),
             axis.title.x = element_blank(),
-            axis.title.y = black_bold_16,
-            axis.text.x = black_bold_16_45,
-            axis.text.y = black_bold_16
+            axis.title.y = black_bold_16(),
+            axis.text.x = black_bold_16_45(),
+            axis.text.y = black_bold_16()
           )
       }
       lapply(c(1, 2), contribplot)
@@ -4649,21 +4684,21 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
     theme_classic() +
     theme(
       plot.background = element_blank(),
-      plot.title = black_bold_16,
+      plot.title = black_bold_16(),
       panel.background = element_rect(
         fill = "transparent",
         color = "black",
         size = 1
       ),
-      axis.title.x = black_bold_16,
-      axis.title.y = black_bold_16,
-      axis.text.x = black_bold_16,
-      axis.text.y = black_bold_16,
+      axis.title.x = black_bold_16(),
+      axis.title.y = black_bold_16(),
+      axis.text.x = black_bold_16(),
+      axis.text.y = black_bold_16(),
       legend.title = element_blank(),
       legend.position = c(0, 0),
       legend.justification = c(0, 0),
       legend.background = element_blank(),
-      legend.text = black_bold_16
+      legend.text = black_bold_16()
     )
   print(biplot)
   ggplot2::ggsave(
@@ -4684,16 +4719,16 @@ plot.EIF.CPTAC.PCA.LUAD <- function() {
     theme_classic() +
     theme(
       plot.background = element_blank(),
-      plot.title = black_bold_16,
+      plot.title = black_bold_16(),
       panel.background = element_rect(
         fill = "transparent",
         color = "black",
         size = 1
       ),
-      axis.title.x = black_bold_16,
-      axis.title.y = black_bold_16,
-      axis.text.x = black_bold_16,
-      axis.text.y = black_bold_16
+      axis.title.x = black_bold_16(),
+      axis.title.y = black_bold_16(),
+      axis.text.x = black_bold_16(),
+      axis.text.y = black_bold_16()
     )
   print(eig)
   ggplot2::ggsave(
@@ -4854,15 +4889,15 @@ plot.km.EIF.all.tumors <- function(EIF) {
     ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title = black_bold_16,
-        axis.text = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title = black_bold_16(),
+        axis.text = black_bold_16(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
-        strip.text = black_bold_16,
-        legend.text = black_bold_16,
-        legend.title = black_bold_16,
+        strip.text = black_bold_16(),
+        legend.text = black_bold_16(),
+        legend.title = black_bold_16(),
         legend.position = c(0.98, 0.98),
         legend.justification = c(1, 1)
       ) +
@@ -5012,15 +5047,15 @@ plot.km.EIF.each.tumor <- function(EIF, tumor) {
     ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title = black_bold_16,
-        axis.text = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title = black_bold_16(),
+        axis.text = black_bold_16(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
-        strip.text = black_bold_16,
-        legend.text = black_bold_16,
-        legend.title = black_bold_16,
+        strip.text = black_bold_16(),
+        legend.text = black_bold_16(),
+        legend.title = black_bold_16(),
         legend.position = c(0.98, 0.98),
         legend.justification = c(1, 1)
       ) +
@@ -5523,20 +5558,20 @@ plot.bargraph.CORs <- function(
     guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
     theme_bw() +
     theme(
-      plot.title = black_bold_18,
-      axis.title.x = black_bold_18,
+      plot.title = black_bold_18(),
+      axis.title.x = black_bold_18(),
       axis.title.y = element_blank(),
-      axis.text.x = black_bold_18,
-      axis.text.y = black_bold_18,
+      axis.text.x = black_bold_18(),
+      axis.text.y = black_bold_18(),
       axis.line.x = element_line(color = "black"),
       axis.line.y = element_line(color = "black"),
       panel.grid = element_blank(),
       legend.title = element_blank(),
-      legend.text = black_bold_18,
+      legend.text = black_bold_18(),
       legend.position = "top",
       legend.justification = "left",
       legend.box = "horizontal",
-      strip.text = black_bold_18
+      strip.text = black_bold_18()
     )
   print(p1)
   ggplot2::ggsave(
@@ -5568,20 +5603,20 @@ plot.bargraph.CORs <- function(
     guides(fill = guide_legend(reverse = TRUE)) + # Flip ordering of legend without altering ordering in plot
     theme_bw() +
     theme(
-      plot.title = black_bold_18,
-      axis.title.x = black_bold_18,
+      plot.title = black_bold_18(),
+      axis.title.x = black_bold_18(),
       axis.title.y = element_blank(),
-      axis.text.x = black_bold_18,
-      axis.text.y = black_bold_18,
+      axis.text.x = black_bold_18(),
+      axis.text.y = black_bold_18(),
       axis.line.x = element_line(color = "black"),
       axis.line.y = element_line(color = "black"),
       panel.grid = element_blank(),
       legend.title = element_blank(),
-      legend.text = black_bold_18,
+      legend.text = black_bold_18(),
       legend.position = "top",
       legend.justification = "left",
       legend.box = "horizontal",
-      strip.text = black_bold_18
+      strip.text = black_bold_18()
     )
   print(p2)
   ggplot2::ggsave(
@@ -6397,16 +6432,16 @@ plot.heatmap.total <- function() {
     ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title = black_bold_16,
-        axis.text.x = black_bold_16,
-        axis.text.y = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title = black_bold_16(),
+        axis.text.x = black_bold_16(),
+        axis.text.y = black_bold_16(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
-        legend.title = black_bold_16,
-        legend.text = black_bold_16,
-        strip.text = black_bold_16
+        legend.title = black_bold_16(),
+        legend.text = black_bold_16(),
+        strip.text = black_bold_16()
       )
     print(p1)
     ggplot2::ggsave(
@@ -6426,16 +6461,16 @@ plot.heatmap.total <- function() {
     ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title = black_bold_16,
-        axis.text.x = black_bold_16,
-        axis.text.y = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title = black_bold_16(),
+        axis.text.x = black_bold_16(),
+        axis.text.y = black_bold_16(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
-        legend.title = black_bold_16,
-        legend.text = black_bold_16,
-        strip.text = black_bold_16
+        legend.title = black_bold_16(),
+        legend.text = black_bold_16(),
+        strip.text = black_bold_16()
       )
     print(p2)
     ggplot2::ggsave(
@@ -6455,16 +6490,16 @@ plot.heatmap.total <- function() {
     ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title = black_bold_16,
-        axis.text.x = black_bold_16,
-        axis.text.y = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title = black_bold_16(),
+        axis.text.x = black_bold_16(),
+        axis.text.y = black_bold_16(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
-        legend.title = black_bold_16,
-        legend.text = black_bold_16,
-        strip.text = black_bold_16
+        legend.title = black_bold_16(),
+        legend.text = black_bold_16(),
+        strip.text = black_bold_16()
       )
     print(p3)
     ggplot2::ggsave(
@@ -6794,16 +6829,16 @@ plot.heatmap.lung <- function(x) {
     ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title = black_bold_16,
-        axis.text.x = black_bold_16,
-        axis.text.y = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title = black_bold_16(),
+        axis.text.x = black_bold_16(),
+        axis.text.y = black_bold_16(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
-        legend.title = black_bold_16,
-        legend.text = black_bold_16,
-        strip.text = black_bold_16
+        legend.title = black_bold_16(),
+        legend.text = black_bold_16(),
+        strip.text = black_bold_16()
       )
     print(p1)
     ggplot2::ggsave(
@@ -6822,16 +6857,16 @@ plot.heatmap.lung <- function(x) {
     ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title = black_bold_16,
-        axis.text.x = black_bold_16,
-        axis.text.y = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title = black_bold_16(),
+        axis.text.x = black_bold_16(),
+        axis.text.y = black_bold_16(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
-        legend.title = black_bold_16,
-        legend.text = black_bold_16,
-        strip.text = black_bold_16
+        legend.title = black_bold_16(),
+        legend.text = black_bold_16(),
+        strip.text = black_bold_16()
       )
     print(p2)
     ggplot2::ggsave(
@@ -6850,16 +6885,16 @@ plot.heatmap.lung <- function(x) {
     ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_16,
-        axis.title = black_bold_16,
-        axis.text.x = black_bold_16,
-        axis.text.y = black_bold_16,
+        plot.title = black_bold_16(),
+        axis.title = black_bold_16(),
+        axis.text.x = black_bold_16(),
+        axis.text.y = black_bold_16(),
         axis.line.x = element_line(color = "black"),
         axis.line.y = element_line(color = "black"),
         panel.grid = element_blank(),
-        legend.title = black_bold_16,
-        legend.text = black_bold_16,
-        strip.text = black_bold_16
+        legend.title = black_bold_16(),
+        legend.text = black_bold_16(),
+        strip.text = black_bold_16()
       )
     print(p3)
     ggplot2::ggsave(
@@ -7052,16 +7087,16 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
       #              scales = list(y = scales_y))+
       theme_bw() +
       theme(
-        plot.title = black_bold_12,
-        axis.title.x = black_bold_12,
-        axis.title.y = black_bold_12,
-        axis.text.x = black_bold_12_45,
-        axis.text.y = black_bold_12,
+        plot.title = black_bold_12(),
+        axis.title.x = black_bold_12(),
+        axis.title.y = black_bold_12(),
+        axis.text.x = black_bold_12_45(),
+        axis.text.y = black_bold_12(),
         # axis.line.x      = element_line(color = "black"),
         # axis.line.y      = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_12,
+        strip.text = black_bold_12(),
         strip.background = element_rect(fill = "white")
       ) +
       stat_compare_means(
@@ -7117,16 +7152,16 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
       #              scales = list(y = scales_y))+
       theme_bw() +
       theme(
-        plot.title = black_bold_12,
-        axis.title.x = black_bold_12,
-        axis.title.y = black_bold_12,
-        axis.text.x = black_bold_12_45,
-        axis.text.y = black_bold_12,
+        plot.title = black_bold_12(),
+        axis.title.x = black_bold_12(),
+        axis.title.y = black_bold_12(),
+        axis.text.x = black_bold_12_45(),
+        axis.text.y = black_bold_12(),
         # axis.line.x      = element_line(color = "black"),
         # axis.line.y      = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_12,
+        strip.text = black_bold_12(),
         strip.background = element_rect(fill = "white")
       ) +
       stat_compare_means(
@@ -7199,16 +7234,16 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
       #              scales = list(y = scales_y))+
       theme_bw() +
       theme(
-        plot.title = black_bold_12,
-        axis.title.x = black_bold_12,
-        axis.title.y = black_bold_12,
-        axis.text.x = black_bold_12_45,
-        axis.text.y = black_bold_12,
+        plot.title = black_bold_12(),
+        axis.title.x = black_bold_12(),
+        axis.title.y = black_bold_12(),
+        axis.text.x = black_bold_12_45(),
+        axis.text.y = black_bold_12(),
         # axis.line.x      = element_line(color = "black"),
         # axis.line.y      = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_12,
+        strip.text = black_bold_12(),
         strip.background = element_rect(fill = "white")
       ) +
       stat_compare_means(
@@ -7272,16 +7307,16 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
       #              scales = list(y = scales_y))+
       theme_bw() +
       theme(
-        plot.title = black_bold_12,
-        axis.title.x = black_bold_12,
-        axis.title.y = black_bold_12,
-        axis.text.x = black_bold_12_45,
-        axis.text.y = black_bold_12,
+        plot.title = black_bold_12(),
+        axis.title.x = black_bold_12(),
+        axis.title.y = black_bold_12(),
+        axis.text.x = black_bold_12_45(),
+        axis.text.y = black_bold_12(),
         # axis.line.x      = element_line(color = "black"),
         # axis.line.y      = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_12,
+        strip.text = black_bold_12(),
         strip.background = element_rect(fill = "white")
       ) +
       stat_compare_means(
@@ -7435,16 +7470,16 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
       ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_12,
-        axis.title.x = black_bold_12,
-        axis.title.y = black_bold_12,
-        axis.text.x = black_bold_12_45,
-        axis.text.y = black_bold_12,
+        plot.title = black_bold_12(),
+        axis.title.x = black_bold_12(),
+        axis.title.y = black_bold_12(),
+        axis.text.x = black_bold_12_45(),
+        axis.text.y = black_bold_12(),
         # axis.line.x      = element_line(color = "black"),
         # axis.line.y      = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_12,
+        strip.text = black_bold_12(),
         strip.background = element_rect(fill = "white")
       ) +
       stat_compare_means(
@@ -7501,15 +7536,15 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         theme_bw() +
         theme(
           plot.title = element_text(hjust = 0.5),
-          axis.title.x = black_bold_12,
-          axis.title.y = black_bold_12,
-          axis.text.x = black_bold_12_45,
-          axis.text.y = black_bold_12,
+          axis.title.x = black_bold_12(),
+          axis.title.y = black_bold_12(),
+          axis.text.x = black_bold_12_45(),
+          axis.text.y = black_bold_12(),
           # axis.line.x      = element_line(color = "black"),
           # axis.line.y      = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.position = "none",
-          strip.text = black_bold_12,
+          strip.text = black_bold_12(),
           strip.background = element_rect(fill = "white")
         ) +
         stat_compare_means(
@@ -7622,16 +7657,16 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
       ) +
       theme_bw() +
       theme(
-        plot.title = black_bold_12,
-        axis.title.x = black_bold_12,
-        axis.title.y = black_bold_12,
-        axis.text.x = black_bold_12_45,
-        axis.text.y = black_bold_12,
+        plot.title = black_bold_12(),
+        axis.title.x = black_bold_12(),
+        axis.title.y = black_bold_12(),
+        axis.text.x = black_bold_12_45(),
+        axis.text.y = black_bold_12(),
         # axis.line.x      = element_line(color = "black"),
         # axis.line.y      = element_line(color = "black"),
         panel.grid = element_blank(),
         legend.position = "none",
-        strip.text = black_bold_12,
+        strip.text = black_bold_12(),
         strip.background = element_rect(fill = "white")
       ) +
       stat_compare_means(
@@ -7698,15 +7733,15 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         theme_bw() +
         theme(
           plot.title = element_text(hjust = 0.5),
-          axis.title.x = black_bold_12,
-          axis.title.y = black_bold_12,
-          axis.text.x = black_bold_12_45,
-          axis.text.y = black_bold_12,
+          axis.title.x = black_bold_12(),
+          axis.title.y = black_bold_12(),
+          axis.text.x = black_bold_12_45(),
+          axis.text.y = black_bold_12(),
           # axis.line.x      = element_line(color = "black"),
           # axis.line.y      = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.position = "none",
-          strip.text = black_bold_12,
+          strip.text = black_bold_12(),
           strip.background = element_rect(fill = "white")
         ) +
         stat_compare_means(
@@ -7783,15 +7818,15 @@ plot.EIF4.CPTAC.pro.LUAD <- function() {
         theme_bw() +
         theme(
           plot.title = element_text(hjust = 0.5),
-          axis.title.x = black_bold_12,
-          axis.title.y = black_bold_12,
-          axis.text.x = black_bold_12_45,
-          axis.text.y = black_bold_12,
+          axis.title.x = black_bold_12(),
+          axis.title.y = black_bold_12(),
+          axis.text.x = black_bold_12_45(),
+          axis.text.y = black_bold_12(),
           # axis.line.x      = element_line(color = "black"),
           # axis.line.y      = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.position = "none",
-          strip.text = black_bold_12,
+          strip.text = black_bold_12(),
           strip.background = element_rect(fill = "white")
         ) +
         stat_compare_means(

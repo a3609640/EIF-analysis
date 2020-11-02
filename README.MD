@@ -415,4 +415,93 @@ Packages
 
 ### System 2
 ```
+> sessionInfo()
+R version 4.0.3 (2020-10-10)
+Platform: x86_64-w64-mingw32/x64 (64-bit)
+Running under: Windows >= 8 x64 (build 9200)
+
+Matrix products: default
+
+locale:
+[1] LC_COLLATE=English_United States.1252  LC_CTYPE=English_United States.1252   
+[3] LC_MONETARY=English_United States.1252 LC_NUMERIC=C                          
+[5] LC_TIME=English_United States.1252    
+
+attached base packages:
+ [1] grid      parallel  stats4    stats     graphics  grDevices utils     datasets 
+ [9] methods   base     
+
+other attached packages:
+ [1] vip_0.2.2              vcd_1.4-8              stringr_1.4.0         
+ [4] purrr_0.3.4            tidyr_1.1.2            tibble_3.0.4          
+ [7] tidyverse_1.3.0        survminer_0.4.8        survMisc_0.5.5        
+[10] survivalAnalysis_0.1.3 scales_1.1.1           rgl_0.100.54          
+[13] reshape2_1.4.4         readxl_1.3.1           readr_1.4.0           
+[16] ReactomePA_1.32.0      RColorBrewer_1.1-2     plotmo_3.6.0          
+[19] TeachingDemos_2.12     plotrix_3.7-8          pheatmap_1.0.12       
+[22] pca3d_0.10.2           org.Hs.eg.db_3.11.4    nortest_1.0-4         
+[25] missMDA_1.17           limma_3.44.3           lemon_0.4.5           
+[28] KEGG.db_3.2.4          igraph_1.2.6           gridExtra_2.3         
+[31] gplots_3.1.0           glmnet_4.0-2           Matrix_1.2-18         
+[34] ggthemes_4.2.0         ggsignif_0.6.0         ggpubr_0.4.0          
+[37] ggfortify_0.4.11       Hmisc_4.4-1            Formula_1.2-4         
+[40] survival_3.2-7         lattice_0.20-41        forestplot_1.10       
+[43] checkmate_2.0.0        magrittr_1.5           forestmodel_0.6.2     
+[46] forcats_0.5.0          FactoMineR_2.3         factoextra_1.0.7      
+[49] ggplot2_3.3.2          facetscales_0.1.0.9000 eulerr_6.1.0          
+[52] EnvStats_2.4.0         dplyr_1.0.2            descr_1.1.4           
+[55] dendextend_1.14.0      data.table_1.13.2      corrplot_0.84         
+[58] ComplexHeatmap_2.4.3   circlize_0.4.10        clusterProfiler_3.16.1
+[61] car_3.0-10             carData_3.0-4          AnnotationDbi_1.50.3  
+[64] IRanges_2.22.2         S4Vectors_0.26.1       Biobase_2.48.0        
+[67] BiocGenerics_0.34.0   
+
+loaded via a namespace (and not attached):
+  [1] rappdirs_0.3.1          bit64_4.0.5             knitr_1.30             
+  [4] rpart_4.1-15            doParallel_1.0.16       generics_0.0.2         
+  [7] cowplot_1.1.0           RSQLite_2.2.1           mice_3.11.0            
+ [10] europepmc_0.4           bit_4.0.4               enrichplot_1.8.1       
+ [13] lubridate_1.7.9         webshot_0.5.2           xml2_1.3.2             
+ [16] httpuv_1.5.4            assertthat_0.2.1        viridis_0.5.1          
+ [19] xfun_0.18               hms_0.5.3               promises_1.1.1         
+ [22] fansi_0.4.1             progress_1.2.2          caTools_1.18.0         
+ [25] dbplyr_1.4.4            km.ci_0.5-2             DBI_1.1.0              
+ [28] htmlwidgets_1.5.2       ellipsis_0.3.1          crosstalk_1.1.0.1      
+ [31] backports_1.1.10        vctrs_0.3.4             abind_1.4-5            
+ [34] withr_2.3.0             ggforce_0.3.2           triebeard_0.3.0        
+ [37] prettyunits_1.1.1       cluster_2.1.0           DOSE_3.14.0            
+ [40] crayon_1.3.4            ellipse_0.4.2           labeling_0.4.2         
+ [43] pkgconfig_2.0.3         tweenr_1.0.1            nnet_7.3-14            
+ [46] rlang_0.4.8             lifecycle_0.2.0         miniUI_0.1.1.1         
+ [49] downloader_0.4          modelr_0.1.8            cellranger_1.1.0       
+ [52] polyclip_1.10-0         lmtest_0.9-38           graph_1.66.0           
+ [55] urltools_1.7.3          KMsurv_0.1-5            zoo_1.8-8              
+ [58] reprex_0.3.0            base64enc_0.1-3         ggridges_0.5.2         
+ [61] GlobalOptions_0.1.2     png_0.1-7               viridisLite_0.3.0      
+ [64] rjson_0.2.20            bitops_1.0-6            KernSmooth_2.23-17     
+ [67] blob_1.2.1              shape_1.4.5             qvalue_2.20.0          
+ [70] manipulateWidget_0.10.1 jpeg_0.1-8.1            rstatix_0.6.0          
+ [73] gridGraphics_0.5-0      reactome.db_1.70.0      leaps_3.1              
+ [76] memoise_1.1.0           graphite_1.34.0         plyr_1.8.6             
+ [79] compiler_4.0.3          scatterpie_0.1.5        clue_0.3-57            
+ [82] cli_2.1.0               htmlTable_2.1.0         MASS_7.3-53            
+ [85] tidyselect_1.1.0        stringi_1.5.3           yaml_2.2.1             
+ [88] GOSemSim_2.14.2         latticeExtra_0.6-29     ggrepel_0.8.2          
+ [91] fastmatch_1.1-0         tools_4.0.3             rio_0.5.16             
+ [94] rstudioapi_0.11         foreach_1.5.1           foreign_0.8-80         
+ [97] scatterplot3d_0.3-41    farver_2.0.3            ggraph_2.0.3           
+[100] digest_0.6.26           rvcheck_0.1.8           BiocManager_1.30.10    
+[103] shiny_1.5.0             Rcpp_1.0.5              broom_0.7.2            
+[106] later_1.1.0.1           httr_1.4.2              colorspace_1.4-1       
+[109] polylabelr_0.2.0        rvest_0.3.6             fs_1.5.0               
+[112] splines_4.0.3           graphlayouts_0.7.0      ggplotify_0.0.5        
+[115] xtable_1.8-4            jsonlite_1.7.1          tidygraph_1.2.0        
+[118] flashClust_1.01-2       R6_2.4.1                pillar_1.4.6           
+[121] htmltools_0.5.0         mime_0.9                glue_1.4.2             
+[124] fastmap_1.0.1           BiocParallel_1.22.0     codetools_0.2-16       
+[127] fgsea_1.14.0            mvtnorm_1.1-1           curl_4.3               
+[130] gtools_3.8.2            zip_2.1.1               GO.db_3.11.4           
+[133] openxlsx_4.2.2          munsell_0.5.0           DO.db_2.9              
+[136] GetoptLong_1.0.4        iterators_1.0.13        haven_2.3.1            
+[139] gtable_0.3.0            tidytidbits_0.2.2  
 ```
