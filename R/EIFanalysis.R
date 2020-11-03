@@ -58,7 +58,7 @@ output.directory <- "~/Documents/EIF_output"
 # TODO: Make all uses of 'stringsAsFactors' explicit.
 #
 # This code was originally developed with R 3.6.3, then later
-# evaluated against R 4.0.x  From the R 4.0.0 release notes:
+# evaluated against R 4.0.x.  From the R 4.0.0 release notes:
 #
 # https://cran.r-project.org/doc/manuals/r-devel/NEWS.html
 # -----
