@@ -22,7 +22,7 @@ in this project:
     * RStudio
     * R 3.6.3
 
-2. (verification in progress) PowerSpec G460 desktop computer
+2. (verified) PowerSpec G460 desktop computer
     * Intel i7-8700k CPU
     * 64GB RAM (DDR4-3200, non-ECC)
     * Intel M.2 SATA SSD
