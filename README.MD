@@ -1,4 +1,4 @@
-# Using this Package
+# Using this script
 
 ## System Requirements
 In general genome analysis carries relatively high demands for
@@ -71,14 +71,29 @@ download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
 #### CPTAC LUAD Proteomics
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_Proteome_CDAP_Protein_Report.r1/CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv
 
-#### CPTAC LUAD Phosproteomics
-https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_Phosphoproteome_CDAP_Protein_Report.r1/CPTAC3_Lung_Adeno_Carcinoma_Phosphoproteome.phosphosite.tmt10.tsv
+#### CPTAC LUAD RNA-Seq data (Gillette et al., 2020)
+https://github.com/a3609640/EIF-analysis/raw/master/LUAD%20Data/RNA.xlsx
+
+#### CPTAC LUAD Proteomics (Gillette et al., 2020)
+https://github.com/a3609640/EIF-analysis/raw/master/LUAD%20Data/Protein.xlsx
+
+#### CPTAC LUAD Phosproteomics (Gillette et al., 2020)
+https://github.com/a3609640/EIF-analysis/raw/master/LUAD%20Data/Phos.xlsx
 
 #### CPTAC LUAD Sample Annotation
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_metadata/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx
 
 #### CPTAC Clinical Data
 https://cptc-xfer.uis.georgetown.edu/publicData/Phase_III_Data/CPTAC_LUAD_S046/CPTAC_LUAD_metadata/S046_BI_CPTAC3_LUAD_Discovery_Cohort_Clinical_Data_r1_May2019.xlsx
+
+
+### CCLE DATA
+
+#### CCLE RNA-Seq data
+https://ndownloader.figshare.com/files/27902091
+
+#### CCLE proteomics data
+https://gygi.hms.harvard.edu/data/ccle/protein_quant_current_normalized.csv.gz
 
 ## Libraries
 The work here depends upon many R libraries.
@@ -270,7 +285,7 @@ loaded via a namespace (and not attached):
 [127] curl_4.3                gtools_3.8.2            zip_2.1.1
 [130] GO.db_3.8.2             openxlsx_4.2.2          munsell_0.5.0
 [133] DO.db_2.9               GetoptLong_1.0.4        iterators_1.0.13
-[136] haven_2.3.1             gtable_0.3.0            tidytidbits_0.2.2     
+[136] haven_2.3.1             gtable_0.3.0            tidytidbits_0.2.2
 ```
 
 ### System 2
