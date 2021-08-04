@@ -52,7 +52,7 @@ https://tcga.xenahubs.net/download/TCGA.PANCAN.sampleMap/Gistic2_CopyNumber_Gist
 https://pancanatlas.xenahubs.net/download/broad.mit.edu_PANCAN_Genome_Wide_SNP_6_whitelisted.gene.xena.gz
 
 #### TCGA RNA-Seq dataset
-https://pancanatlas.xenahubs.net/download/EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
+https://tcga-pancan-atlas-hub.s3.us-east-1.amazonaws.com/download/EB%2B%2BAdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena.gz
 
 #### TCGA sample type annotation
 https://pancanatlas.xenahubs.net/download/TCGA_phenotype_denseDataOnlyDownload.tsv.gz
@@ -178,8 +178,8 @@ mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PC
 ```
 ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PCA/Lung,KM,Cox,Heatmap,CPTAC}
 ```
-5. Open the EIFanalysis.R file in RStudio, and run it with the "source" button.
-6. The EIFanalysis.R will produce all the figures from the EIF manuscript and store them in the output folders.
+5. Open the EIFanalysisv4.R file in RStudio, and run it with the "source" button.
+6. The EIFanalysisv4.R will produce all the figures from the EIF manuscript and store them in the output folders.
 
 If the root directory paths ```~/Download``` and ```~/Documents/EIF_output``` do not suit, they may be adjusted trivially in these lines near the top of the script:
 
