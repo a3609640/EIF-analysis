@@ -178,8 +178,8 @@ mkdir -p ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PC
 ```
 ~/Documents/EIF_output/{CNV,Expression,PCA,PCA/All,PCA/GTEX,PCA/TCGA,PCA/Lung,KM,Cox,Heatmap,CPTAC}
 ```
-5. Open the EIFanalysisv4.R file in RStudio, and run it with the "source" button.
-6. The EIFanalysisv4.R will produce all the figures from the EIF manuscript and store them in the output folders.
+5. Download and open the ```EIFanalysisv4.R``` file in RStudio, and run it with the "source" button.
+6. The ```EIFanalysisv4.R``` will produce all the figures from the EIF manuscript and store them in the output folders.
 
 If the root directory paths ```~/Download``` and ```~/Documents/EIF_output``` do not suit, they may be adjusted trivially in these lines near the top of the script:
 
