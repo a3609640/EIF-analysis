@@ -160,7 +160,7 @@ plot.bargraph.CNV.TCGA <- function(EIF) {
   #stacked bar plots for CNV status in each TCGA tumor type
   make.CNV.each.plot <- function(x) {
     TCGA.CNV.anno.subset.long <- TCGA.CNV.sampletype.subset %>% 
-      select(x, "sample.type", "primary.disease") %>% 
+      select(all_of(x), "sample.type", "primary.disease") %>% 
       melt(.,id = c("sample.type","primary.disease"), value.name = "CNV") %>% 
       mutate_if(is.character, as.factor)
     
@@ -304,56 +304,55 @@ plot.boxgraph.CNVratio.TCGA <- function(EIF) {
     select(all_of(EIF), "sample.type", "primary.disease")
   
   make.CNVratio.plot <- function(x) {
-    TCGA.CNV.anno.subset.long <- TCGA.CNV.sampletype.subset %>% 
+    p1 <- TCGA.CNV.sampletype.subset %>% 
       select(all_of(x), "sample.type", "primary.disease") %>% 
       melt(.,id = c("sample.type","primary.disease"), value.name = "CNV") %>% 
       mutate_if(is.character, as.factor) %>% 
-      mutate(primary.disease = forcats::fct_rev(primary.disease))
-    
-    p1 <- ggplot(
-      data = TCGA.CNV.anno.subset.long,
-      aes(
-        y = 2**CNV,
-        x = primary.disease,
-        #x = f.ordered1,
-        color = primary.disease
-      )
-    ) +
-      #ylim(0, 3) +
-      geom_hline(yintercept = 1, linetype = "dashed") +
-      stat_n_text(
-        size = 5,
-        fontface = "bold",
-        hjust = 0
-      ) + 
-      geom_boxplot(
-        alpha = .01, 
-        outlier.colour = NA,
-        # size     = .75,
-        # width    = 1,
-        position = position_dodge(width = .9)
-      ) +
-      labs(
-        x = "primary disease",
-        y = paste(x, "CNV ratio", "(tumor/normal)")
-      ) +
-      # scale_color_manual(values = col_vector) +
-      coord_flip() +
-      theme_bw() +
-      theme(
-        plot.title = black_bold_12(),
-        axis.title.x = black_bold_12(),
-        axis.title.y = element_blank(),
-        axis.text.x = black_bold_12(),
-        axis.text.y = black_bold_12(),
-        panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.text = black_bold_12(),
-        legend.position = "none",
-        legend.justification = "left",
-        legend.box = "horizontal",
-        strip.text = black_bold_12()
-      )
+      mutate(primary.disease = forcats::fct_rev(primary.disease)) %>% 
+      ggplot(
+        data = .,
+        aes(
+          y = 2**CNV,
+          x = primary.disease,
+          #x = f.ordered1,
+          color = primary.disease
+          )
+        ) +
+        #ylim(0, 3) +
+        geom_hline(yintercept = 1, linetype = "dashed") +
+        stat_n_text(
+          size = 5,
+          fontface = "bold",
+          hjust = 0
+        ) + 
+        geom_boxplot(
+          alpha = .01, 
+          outlier.colour = NA,
+          # size     = .75,
+          # width    = 1,
+          position = position_dodge(width = .9)
+        ) +
+        labs(
+          x = "primary disease",
+          y = paste(x, "CNV ratio", "(tumor/normal)")
+        ) +
+        # scale_color_manual(values = col_vector) +
+        coord_flip() +
+        theme_bw() +
+        theme(
+          plot.title = black_bold_12(),
+          axis.title.x = black_bold_12(),
+          axis.title.y = element_blank(),
+          axis.text.x = black_bold_12(),
+          axis.text.y = black_bold_12(),
+          panel.grid = element_blank(),
+          legend.title = element_blank(),
+          legend.text = black_bold_12(),
+          legend.position = "none",
+          legend.justification = "left",
+          legend.box = "horizontal",
+          strip.text = black_bold_12()
+        )
     print(p1)
     ggplot2::ggsave(
       path = file.path(output.directory, "CNV"),
@@ -362,10 +361,9 @@ plot.boxgraph.CNVratio.TCGA <- function(EIF) {
       width = 7,
       height = 9,
       useDingbats = FALSE
-    )
-  }
+      )
+    }
   lapply(EIF, make.CNVratio.plot)
-  
   }
 
 

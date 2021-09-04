@@ -28,27 +28,28 @@ TCGA.GTEX.sampletype <- readr::read_tsv(
   #na.omit(.) %>%
   remove_rownames() %>%
   column_to_rownames(var = 'sample') %>%
-  select(  "_sample_type",
-           "primary disease or tissue",
-           "_primary_site",
-           "_study") %>%
+  select("_sample_type",
+         "primary disease or tissue",
+         "_primary_site",
+         "_study") %>%
   rename("sample.type" = "_sample_type", 
          "primary.disease" = "primary disease or tissue",
          "primary.site" = "_primary_site",
          "study" = "_study")
 
+TCGA.GTEX.RNAseq.sampletype <- merge(TCGA.GTEX.RNAseq,
+                                     TCGA.GTEX.sampletype,
+                                     by    = "row.names",
+                                     all.x = TRUE) %>% 
+  remove_rownames() %>%
+  column_to_rownames(var = 'Row.names')
 
 ###########################################################
 ## boxplot for RNA-seq in TCGA tumors vs adjacent normal ##
 ###########################################################
 plot.boxgraph.RNAseq.TCGA <- function(EIF) {
   ## 
-  TCGA.GTEX.RNAseq.sampletype.subset <- merge(TCGA.GTEX.RNAseq,
-                                              TCGA.GTEX.sampletype,
-                                              by    = "row.names",
-                                              all.x = TRUE) %>% 
-    remove_rownames() %>%
-    column_to_rownames(var = 'Row.names') %>%
+  TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
     select(all_of(EIF),       
            "sample.type",
            "primary.disease",
@@ -236,12 +237,7 @@ plot.boxgraph.RNAseq.TCGA <- function(EIF) {
 ## violin plot for EIF expression in tumors vs adjacent normals ##
 ##################################################################
 plot.violingraph.RNAseq.TCGA <- function(EIF) {
-  TCGA.GTEX.RNAseq.sampletype.subset <- merge(TCGA.GTEX.RNAseq,
-                                              TCGA.GTEX.sampletype,
-                                              by    = "row.names",
-                                              all.x = TRUE) %>% 
-    remove_rownames() %>%
-    column_to_rownames(var = 'Row.names') %>%
+  TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
     select(all_of(EIF),       
            "sample.type",
            "primary.disease",
@@ -351,364 +347,109 @@ plot.violingraph.RNAseq.TCGA <- function(EIF) {
   make.plot()
 }
 
-##########################################
-## boxplot for RNA ratios across tumors ##
-##########################################
-plot.boxgraph.RNAratio.TCGA <- function(EIF) {
-  pan.TCGA.gene <- function(EIF) {
-    # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
-    TCGA.pancancer <- fread(
-      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
-      data.table = FALSE
-    )
-    TCGA.pancancer1 <- TCGA.pancancer[
-      !duplicated(TCGA.pancancer$sample),
-      !duplicated(colnames(TCGA.pancancer))
-    ]
+
+########################################################
+## boxplot and violin plots for RNA ratios across tumors ##
+########################################################
+plot.RNAratio.TCGA <- function(EIF) {
+  ## 
+  TCGA.RNAratio.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
+    select(all_of(EIF),       
+           "sample.type",
+           "primary.disease",
+           "primary.site",
+           "study") %>% 
+    as.data.frame(.) %>%      
+    filter(EIF4E != 0 & !is.na(primary.site)) %>% 
+    mutate(sum = log2(2**EIF4E + 2**EIF4EBP1 - 1),
+           #minus = log2(2**EIF4E - 2**EIF4EBP1 + 1),
+           `EIF4A1:\nEIF4E` = EIF4A1 - EIF4E,
+           `EIF4A1:\nEIF4E2` = EIF4A1 - EIF4E2,
+           `EIF4A2:\nEIF4E` = EIF4A2 - EIF4E,
+           `EIF4A2:\nEIF4E2` = EIF4A2 - EIF4E2,
+           `EIF4G1:\nEIF4E` = EIF4G1 - EIF4E,
+           `EIF4G1:\nEIF4E2` = EIF4G1 - EIF4E2,
+           `EIF4G3:\nEIF4E` = EIF4G3 - EIF4E,
+           `EIF4G3:\nEIF4E2` = EIF4G3 - EIF4E2,
+           `EIF4A1:\nEIF4G1` = EIF4A1 - EIF4G1,
+           `EIF4A2:\nEIF4G1` = EIF4A2 - EIF4G1,
+           `EIF4A1:\nEIF4G2` = EIF4A1 - EIF4G2,
+           `EIF4A2:\nEIF4G2` = EIF4A2 - EIF4G2,
+           `EIF4E:\nEIF4EBP1` = EIF4E - EIF4EBP1,
+           `EIF4E2:\nEIF4E` = EIF4E2 - EIF4E,
+           `EIF4G2:\nEIF4G1` = EIF4G2 - EIF4G1,
+           `EIF4G1:\nEIF4G3` = EIF4G1 - EIF4G3,
+           `EIF4A1:\nEIF4A2` = EIF4A1 - EIF4A2,
+           `EIF4G1:\nEIF4E+EIF4EBP1` = EIF4G1 - sum,
+           `EIF4A1:\nEIF4E+EIF4EBP1` = EIF4G1 - sum#,
+           #`EIF4G1:\nEIF4E-EIF4EBP1` = EIF4G1 - minus,
+           #`EIF4A1:\nEIF4E-EIF4EBP1` = EIF4A1 - minus
+    )  %>% 
+    select("EIF4A1:\nEIF4E", "EIF4A1:\nEIF4E2", 
+           "EIF4A2:\nEIF4E", "EIF4A2:\nEIF4E2",          
+           "EIF4G1:\nEIF4E", "EIF4G1:\nEIF4E2", 
+           "EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2", 
+           "EIF4A1:\nEIF4G1", "EIF4A2:\nEIF4G1", 
+           "EIF4A1:\nEIF4G2", "EIF4A2:\nEIF4G2",
+           "EIF4E:\nEIF4EBP1", "EIF4E2:\nEIF4E", 
+           "EIF4G2:\nEIF4G1", "EIF4G1:\nEIF4G3", 
+           "EIF4A1:\nEIF4A2",          
+           "EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1",
+           #"EIF4G1:\nEIF4E-EIF4EBP1", "EIF4A1:\nEIF4E-EIF4EBP1",
+           "sample.type",
+           "primary.disease",
+           "primary.site",
+           "study") %>%        
+    mutate_if(is.character, as.factor)%>% 
+    na.omit(.)
+  
+  make.boxplot <- function() {
+    TCGA.RNAratio.subset <- TCGA.RNAratio.sampletype.subset %>% 
+      filter(study == "TCGA") %>% 
+      droplevels() %>% 
+      mutate(sample.type = case_when(sample.type != "Solid Tissue Normal" ~ "Tumor", 
+                                     sample.type == "Solid Tissue Normal" ~ "NAT"))
     
-    row.names(TCGA.pancancer1) <- TCGA.pancancer1$sample
-    TCGA.pancancer1$sample <- NULL
-    TCGA.pancancer_transpose <- data.table::transpose(TCGA.pancancer1)
-    rownames(TCGA.pancancer_transpose) <- colnames(TCGA.pancancer1)
-    colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer1)
-    
-    # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-    TCGA.sampletype <- read_tsv(
-      file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt")
-    )
-    TCGA.sampletype <- as.data.frame(TCGA.sampletype)
-    row.names(TCGA.sampletype) <- TCGA.sampletype$sample
-    TCGA.sampletype$sample <- NULL
-    subset <- TCGA.sampletype[, c(
-      "_sample_type",
-      "primary disease or tissue",
-      "_primary_site", 
-      "_study"
-    ),
-    drop = FALSE
-    ]
-    row.names(subset) <- row.names(TCGA.sampletype)
-    colnames(subset) <- c("sample.type", 
-                          "primary.disease", 
-                          "primary.site", 
-                          "study")
-    
-    
-    TCGA.RNAseq.sampletype <- merge(TCGA.pancancer_transpose,
-                                    subset,
-                                    by    = "row.names",
-                                    all.x = TRUE
-    )
-    TCGA.RNAseq.anno <- as.data.frame(TCGA.RNAseq.sampletype)
-    # TCGA.RNAseq.anno <- na.omit(TCGA.RNAseq.anno)
-    
-    TCGA.RNAseq.anno$sample.type <- as.factor(TCGA.RNAseq.anno$sample.type)
-    levels(TCGA.RNAseq.anno$sample.type)
-    TCGA.RNAseq.anno$primary.disease <- as.factor(TCGA.RNAseq.anno$primary.disease)
-    levels(TCGA.RNAseq.anno$primary.disease)
-    TCGA.RNAseq.anno$primary.site <- as.factor(TCGA.RNAseq.anno$primary.site)
-    levels(TCGA.RNAseq.anno$primary.site)
-    row.names(TCGA.RNAseq.anno) <- TCGA.RNAseq.anno$Row.names
-    TCGA.RNAseq.anno$Row.names <- NULL
-    
-    EIF.TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno[
-      ,
-      colnames(TCGA.RNAseq.anno) %in% c(
-        EIF,
-        "sample.type",
-        "primary.disease",
-        "primary.site",
-        "study"
-      )
-    ]
-    
-    ## 
-    TCGA.GTEX.RNAseq.sampletype.subset <- merge(TCGA.GTEX.RNAseq,
-                                                TCGA.GTEX.sampletype,
-                                                by    = "row.names",
-                                                all.x = TRUE) %>% 
-      remove_rownames() %>%
-      column_to_rownames(var = 'Row.names') %>%
-      select(all_of(EIF),       
+    p1 <- TCGA.RNAratio.subset %>%
+      select("EIF4G1:\nEIF4E","EIF4A1:\nEIF4E","EIF4A2:\nEIF4E",
+             "EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2" ,"EIF4G1:\nEIF4G3",
              "sample.type",
              "primary.disease",
              "primary.site",
              "study") %>% 
-      as.data.frame(.) #%>%     
-    ##
-    
-    plot.cor <- function(x){
-      EIF.TCGA.RNAseq.subset <- TCGA.GTEX.RNAseq.sampletype.subset %>% 
-        filter(sample.type != "Solid Tissue Normal" & study == x) %>%
-        select(all_of(EIF))
-      
-      cor_5 <- rcorr(as.matrix(EIF.TCGA.RNAseq.subset), type = "pearson")
-      M <- cor_5$r
-      p_mat <- cor_5$P
-      #pdf(file.path(output.directory, "CNV", "EIFCNVcormatrix.pdf"),
-      #    width = 9,
-      #    height = 9,
-      #    useDingbats = FALSE
-      #)
-      corrplot(
-        M,
-        method      = "color",
-        tl.cex      = 1,
-        number.cex  = 1,
-        addgrid.col = "gray",
-        addCoef.col = "black",
-        tl.col      = "black",
-        #type        = "lower",
-        order       = "FPC", tl.srt = 90,
-        p.mat       = p_mat,
-        sig.level   = 0.05, # insig = "blank"
-      )
-    }
-    plot.cor("GTEX")
-    plot.cor("TCGA")
-    
-    TCGA.RNAratio.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype.subset %>% 
-      filter(EIF4E != 0 & !is.na(primary.site)) %>% 
-      mutate(sum = log2(2**EIF4E + 2**EIF4EBP1 - 1),
-             `EIF4A1:\nEIF4E` = EIF4A1 - EIF4E,
-             `EIF4A1:\nEIF4E2` = EIF4A1 - EIF4E2,
-             `EIF4A2:\nEIF4E` = EIF4A2 - EIF4E,
-             `EIF4A2:\nEIF4E2` = EIF4A2 - EIF4E2,
-             `EIF4G1:\nEIF4E` = EIF4G1 - EIF4E,
-             `EIF4G1:\nEIF4E2` = EIF4G1 - EIF4E2,
-             `EIF4G3:\nEIF4E` = EIF4G3 - EIF4E,
-             `EIF4G3:\nEIF4E2` = EIF4G3 - EIF4E2,
-             `EIF4A1:\nEIF4G1` = EIF4A1 - EIF4G1,
-             `EIF4A2:\nEIF4G1` = EIF4A2 - EIF4G1,
-             `EIF4A1:\nEIF4G2` = EIF4A1 - EIF4G2,
-             `EIF4A2:\nEIF4G2` = EIF4A2 - EIF4G2,
-             `EIF4E:\nEIF4EBP1` = EIF4E - EIF4EBP1,
-             `EIF4E2:\nEIF4E` = EIF4E2 - EIF4E,
-             `EIF4G2:\nEIF4G1` = EIF4G2 - EIF4G1,
-             `EIF4G1:\nEIF4G3` = EIF4G1 - EIF4G3,
-             `EIF4A1:\nEIF4A2` = EIF4A1 - EIF4A2,
-             `EIF4G1:\nEIF4E+EIF4EBP1` = EIF4G1 - sum,
-             `EIF4A1:\nEIF4E+EIF4EBP1` = EIF4G1 - sum
-             )  %>% 
-      select("EIF4A1:\nEIF4E", "EIF4A1:\nEIF4E2", 
-             "EIF4A2:\nEIF4E", "EIF4A2:\nEIF4E2",          
-             "EIF4G1:\nEIF4E", "EIF4G1:\nEIF4E2", 
-             "EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2", 
-             "EIF4A1:\nEIF4G1", "EIF4A2:\nEIF4G1", 
-             "EIF4A1:\nEIF4G2", "EIF4A2:\nEIF4G2",
-             "EIF4E:\nEIF4EBP1", "EIF4E2:\nEIF4E", 
-             "EIF4G2:\nEIF4G1", "EIF4G1:\nEIF4G3", 
-             "EIF4A1:\nEIF4A2",          
-             "EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1",
-             "sample.type",
-             "primary.disease",
-             "primary.site",
-             "study") %>%        
-      mutate_if(is.character, as.factor)
-
-    
-    EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[!EIF.TCGA.RNAseq.anno.subset$EIF4E == 0, ]
-    EIF.TCGA.RNAseq.anno.subset$sum <- log2(2**EIF.TCGA.RNAseq.anno.subset$EIF4E + 2**EIF.TCGA.RNAseq.anno.subset$EIF4EBP1 - 1)
-    EIF.TCGA.RNAseq.anno.subset$minus <- log2(2**(EIF.TCGA.RNAseq.anno.subset$EIF4E) - 2**(EIF.TCGA.RNAseq.anno.subset$EIF4EBP1) + 1)
-    EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[!is.na(EIF.TCGA.RNAseq.anno.subset$primary.site), ]
-    
-    EIF.TCGA.GTEX.score <- EIF.TCGA.RNAseq.anno.subset
-    # A:E
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4E2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4E2)
-    EIF.TCGA.GTEX.score$`EIF4A2:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A2 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    EIF.TCGA.GTEX.score$`EIF4A2:\nEIF4E2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A2 - EIF.TCGA.RNAseq.anno.subset$EIF4E2)
-    
-    # G:E
-    EIF.TCGA.GTEX.score$`EIF4G1:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    EIF.TCGA.GTEX.score$`EIF4G1:\nEIF4E2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4E2)
-    EIF.TCGA.GTEX.score$`EIF4G3:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G3 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    EIF.TCGA.GTEX.score$`EIF4G3:\nEIF4E2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G3 - EIF.TCGA.RNAseq.anno.subset$EIF4E2)
-    
-    # A:G
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4G1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4G1)
-    EIF.TCGA.GTEX.score$`EIF4A2:\nEIF4G1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A2 - EIF.TCGA.RNAseq.anno.subset$EIF4G1)
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4G2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4G2)
-    EIF.TCGA.GTEX.score$`EIF4A2:\nEIF4G2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A2 - EIF.TCGA.RNAseq.anno.subset$EIF4G2)
-    
-    # EBP:E
-    EIF.TCGA.GTEX.score$`EIF4E:\nEIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4E - EIF.TCGA.RNAseq.anno.subset$EIF4EBP1)
-    EIF.TCGA.GTEX.score$`EIF4EBP1:\nEIF4E2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4EBP1 - EIF.TCGA.RNAseq.anno.subset$EIF4E2)
-    
-    # E2:E1
-    EIF.TCGA.GTEX.score$`EIF4E2:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4E2 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    
-    # G2:G1
-    EIF.TCGA.GTEX.score$`EIF4G2:\nEIF4G1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G2 - EIF.TCGA.RNAseq.anno.subset$EIF4G1)
-    EIF.TCGA.GTEX.score$`EIF4G1:\nEIF4G3` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4G3)
-    EIF.TCGA.GTEX.score$`EIF4G2:\nEIF3D` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G2 - EIF.TCGA.RNAseq.anno.subset$EIF3D)
-    
-    # A2:A1
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4A2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4A2)
-    
-    # EIF.TCGA.GTEX.score$`PABPC1:\nEIF4E` <-
-    #  (EIF.TCGA.RNAseq.anno.subset$PABPC1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    EIF.TCGA.GTEX.score$`EIF4G1:\nEIF4E+EIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$sum)
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4E+EIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$sum)
-    
-    EIF.TCGA.GTEX.score$`EIF4G1:\nEIF4E-EIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$minus)
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4E-EIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$minus)
-    
-    EIF.TCGA.GTEX.score$`EIF4E:\nEIF4E+EIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4E - EIF.TCGA.RNAseq.anno.subset$sum)
-    EIF.TCGA.GTEX.score$`EIF4EBP1:\nEIF4E+EIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4EBP1 - EIF.TCGA.RNAseq.anno.subset$sum)
-    
-    
-    ratio <- c("EIF4A1:\nEIF4E", "EIF4A1:\nEIF4E2", 
-               "EIF4A2:\nEIF4E", "EIF4A2:\nEIF4E2",          
-               "EIF4G1:\nEIF4E", "EIF4G1:\nEIF4E2", 
-               "EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2", 
-               "EIF4A1:\nEIF4G1", "EIF4A2:\nEIF4G1", 
-               "EIF4A1:\nEIF4G2", "EIF4A2:\nEIF4G2",
-               "EIF4E:\nEIF4EBP1", "EIF4EBP1:\nEIF4E2",        
-               "EIF4E2:\nEIF4E", "EIF4G2:\nEIF4G1", "EIF4G1:\nEIF4G3", 
-               "EIF4G2:\nEIF3D", "EIF4A1:\nEIF4A2",          
-               "EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1",
-               "EIF4G1:\nEIF4E-EIF4EBP1", "EIF4A1:\nEIF4E-EIF4EBP1" )
-    EIF.TCGA.GTEX.score <- EIF.TCGA.GTEX.score[, c(
-      ratio, "sample.type", "primary.disease", "primary.site", "study"),
-      drop = FALSE
-    ]
-    EIF.TCGA.GTEX.score <- na.omit(EIF.TCGA.GTEX.score)
-    return(EIF.TCGA.GTEX.score)
-  }
-  TCGA.RNAseq.anno <- pan.TCGA.gene(EIF)
-  
-  pancancer.TCGA.EIF.ratio <- function() {
-    TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno[TCGA.RNAseq.anno$study == "TCGA", ]
-    TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno.subset [
-      !TCGA.RNAseq.anno.subset$sample.type %in% c("Cell Line"),
-    ]
-    TCGA.RNAseq.anno.subset$sample.type <- as.character(TCGA.RNAseq.anno.subset$sample.type)
-    TCGA.RNAseq.anno.subset$sample.type[TCGA.RNAseq.anno.subset$sample.type != "Solid Tissue Normal"] <- "Tumor"
-    TCGA.RNAseq.anno.subset$sample.type[TCGA.RNAseq.anno.subset$sample.type == "Solid Tissue Normal"] <- "NAT"
-    TCGA.RNAseq.anno.subset$sample.type <- as.factor(TCGA.RNAseq.anno.subset$sample.type)
-    
-    
-    #TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno[TCGA.RNAseq.anno$study == "TCGA", ]
-    # TCGA.RNAseq.anno.subset$study <- NULL
-    #TCGA.RNAseq.anno.subset <- TCGA.RNAseq.anno.subset[
-    #  !TCGA.RNAseq.anno.subset$sample.type %in% "Solid Tissue Normal",
-    #  ]
-    EIF.TCGA.GTEX.score.long <- melt(TCGA.RNAseq.anno.subset)
-    # reorder bars by explicitly ordering factor levels
-    EIF.TCGA.GTEX.score.long$primary.disease <- as.factor(
-      EIF.TCGA.GTEX.score.long$primary.disease
-    )
-    EIF.TCGA.GTEX.score.long <- droplevels(EIF.TCGA.GTEX.score.long)
-    levels(EIF.TCGA.GTEX.score.long$primary.disease)
-    return(EIF.TCGA.GTEX.score.long)
-  }
-  pancancer.TCGA.EIF.ratio.long <- pancancer.TCGA.EIF.ratio()
-  
-  #
-  TCGA.RNAratio.subset <- TCGA.RNAratio.sampletype.subset %>% 
-    filter(study == "TCGA") %>% 
-    droplevels() %>% 
-    mutate(sample.type = case_when(sample.type != "Solid Tissue Normal" ~ "Tumor", 
-                                   sample.type == "Solid Tissue Normal" ~ "Normal"))
-
-  make.plot <- function() {
-    make.plot1 <- function() {
-      pancancer.TCGA.EIF.ratio.long1 <- pancancer.TCGA.EIF.ratio.long[
-        pancancer.TCGA.EIF.ratio.long$variable %in% c(
-          "EIF4G1:\nEIF4E","EIF4A1:\nEIF4E","EIF4A2:\nEIF4E",
-          "EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2" ,"EIF4G1:\nEIF4G3"
-        ),
-      ]
-      pancancer.TCGA.EIF.ratio.long1$variable <- factor(
-        pancancer.TCGA.EIF.ratio.long1$variable,
-        levels = c(
-          "EIF4G1:\nEIF4E","EIF4A1:\nEIF4E","EIF4A2:\nEIF4E",
-          #"EIF4G1:\nEIF4E2","EIF4A1:\nEIF4E2","EIF4A2:\nEIF4E2",
-          "EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2" , "EIF4G1:\nEIF4G3"
-          #"EIF4A1:\nEIF4E2","EIF4A2:\nEIF4E2", "EIF4EBP1:\nEIF4E2",
-          #"EIF4E2:\nEIF4E", #"EIF4G2:\nEIF4G1", "EIF4A2:\nEIF4A1"
-          #"EIF4A1:\nEIF4G1", "EIF4A2:\nEIF4G1",
-          #"EIF4A1:\nEIF4G2", "EIF4A2:\nEIF4G2"
-          #"EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1",
-          #"EIF4G1:\nEIF4E-EIF4EBP1", "EIF4A1:\nEIF4E-EIF4EBP1"
-        )
-      )
-      
-      
-      f1 <- factor(pancancer.TCGA.EIF.ratio.long1$primary.disease)
-      f.ordered1 <- fct_rev(f1)
-      
-      df <- TCGA.RNAratio.subset %>%
-        select("EIF4G1:\nEIF4E","EIF4A1:\nEIF4E","EIF4A2:\nEIF4E",
-               "EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2" ,"EIF4G1:\nEIF4G3",
-               "sample.type", "primary.disease") %>% 
-        melt(.,id = c("sample.type","primary.disease")) %>%
-        mutate_if(is.character, as.factor)  %>%
-        mutate(primary.disease = forcats::fct_rev(primary.disease))
-      
-      
-      p1 <- ggplot(
-        data = pancancer.TCGA.EIF.ratio.long1,
+      melt(.,id = c("sample.type",
+                    "primary.disease",
+                    "primary.site",
+                    "study")) %>%
+      mutate_if(is.character, as.factor)  %>%
+      mutate(primary.disease = forcats::fct_rev(primary.disease)) %>%
+      # wrap the plotting code in {...}
+      {ggplot(
+        data = .,
         aes(
-          #x = df,
-          x = f.ordered1,
+          x = primary.disease,
+          #x = f.ordered1,
           y = 2**value,
           # fill  = variable,
           color = sample.type
-        )
-      ) +
-        geom_boxplot(
+          )
+        ) +
+          geom_boxplot(
           #alpha = .1,
           #fill = sample.type,
-          outlier.shape = NA,
+        outlier.shape = NA,
           #size = .75,
           #width = 1,
-          position = "dodge"
+        position = "dodge"
         ) +
-        #geom_hline(
-        #  data = pancancer.TCGA.EIF.ratio.long1,
-        #  aes(yintercept = hline),
-        #  linetype = "dashed"
-        #) +
-        # geom_text(data = pancancer.TCGA.EIF.ratio.long1, aes(f.ordered1, hline, label = hline), vjust = 2, hjust = -0.2) +
         scale_color_manual(values = c("Tumor" = "#CC79A7", "NAT" = "#0072B2"),
                            breaks = c("Tumor", "NAT")) +
         # for color-blind palettes
         facet_wrap(~variable, scales = "free_x") +
         ggplot2::facet_grid(~variable, scales = "free_x", space = "free") +
-        # ggplot2::facet_grid_sc(cols = vars(label), shrink = TRUE,
-        #              scales = list(y = scales_y),
-        #              space = "free") +
         guides(colour = guide_legend(nrow = 1)) +
         labs(x = "primary disease",
-             y = "Ratio of RNA counts"
-        ) +
+             y = "Ratio of RNA counts") +
         coord_flip(ylim = c(0,25)) +
         theme_bw() +
         theme(
@@ -717,103 +458,89 @@ plot.boxgraph.RNAratio.TCGA <- function(EIF) {
           axis.title.y = element_blank(),
           axis.text.x = black_bold_12(),
           axis.text.y = black_bold_12(),
-          #axis.line.x = element_line(color = "black"),
-          #axis.line.y = element_line(color = "black"),
           panel.grid = element_blank(),
           legend.title = element_blank(),
           legend.position = "top",
           legend.justification = "left",
           legend.box = "horizontal",
           legend.text = black_bold_12(),
-          #strip.background = element_blank(),
+            #strip.background = element_blank(),
           strip.text.x = black_bold_12()
-        )
-      print(p1)
-      
-      ggplot2::ggsave(
+          )}
+    print(p1)
+    ggplot2::ggsave(
         path = file.path(output.directory, "Expression"),
         filename = "tumorratio.pdf",
         plot = p1,
         width = 18,
         height = 8,
         useDingbats = FALSE)
-      
-      
-      pancancer.TCGA.EIF.ratio.long2 <- pancancer.TCGA.EIF.ratio.long[
-        pancancer.TCGA.EIF.ratio.long$variable %in% c(
-          "EIF4G2:\nEIF4G1", 
-          "EIF4E2:\nEIF4E", "EIF4A1:\nEIF4A2",
-          "EIF4E:\nEIF4EBP1","EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1"#,
-          #"EIF4G1:\nEIF4E-EIF4EBP1", "EIF4A1:\nEIF4E-EIF4EBP1"
-        ),
-      ]
-      pancancer.TCGA.EIF.ratio.long2$variable <- factor(
-        pancancer.TCGA.EIF.ratio.long2$variable,
-        levels = c(
-          "EIF4G2:\nEIF4G1", 
-          "EIF4E2:\nEIF4E", "EIF4A1:\nEIF4A2",
-          "EIF4E:\nEIF4EBP1","EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1"
-        )
-      )
-      
-      
-      f2 <- factor(pancancer.TCGA.EIF.ratio.long2$primary.disease)
-      f.ordered2 <- fct_rev(f2)
-      
-      p2 <- ggplot(
-        data = pancancer.TCGA.EIF.ratio.long2,
-        aes(
-          x = f.ordered2,
+    
+    p2 <- TCGA.RNAratio.subset %>%
+      select("EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
+             "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
+             "EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1",
+             "sample.type",
+             "primary.disease",
+             "primary.site",
+             "study") %>% 
+      melt(.,id = c("sample.type",
+                    "primary.disease",
+                    "primary.site",
+                    "study")) %>%
+      mutate_if(is.character, as.factor)  %>%
+      mutate(primary.disease = forcats::fct_rev(primary.disease)) %>%
+      {ggplot(
+      data = .,
+      aes(
+          x = primary.disease,
           y = 2**value,
           # fill  = variable,
           color = sample.type
         )
       ) +
-        geom_boxplot(
+      geom_boxplot(
           #alpha = .1,
           #fill = sample.type,
-          outlier.shape = NA,
+        outlier.shape = NA,
           #size = .75,
           #width = 1,
-          position = "dodge"
+        position = "dodge"
         ) +
-        geom_hline(
-          data = pancancer.TCGA.EIF.ratio.long2,
-          aes(yintercept = 4),
-          linetype = "dashed"
+      geom_hline(
+        data = .,
+        aes(yintercept = 4),
+        linetype = "dashed"
         ) +
         # geom_text(data = pancancer.TCGA.EIF.ratio.long1, aes(f.ordered1, hline, label = hline), vjust = 2, hjust = -0.2) +
-        scale_color_manual(values = c("Tumor" = "#CC79A7", "NAT" = "#0072B2"),
-                           breaks = c("Tumor", "NAT")) +
+      scale_color_manual(values = c("Tumor" = "#CC79A7", "NAT" = "#0072B2"),
+                         breaks = c("Tumor", "NAT")) +
         # for color-blind palettes
-        facet_wrap(~variable, scales = "free_x") +
-        ggplot2::facet_grid(~variable, scales = "free_x", space = "free") +
+      facet_wrap(~variable, scales = "free_x") +
+      ggplot2::facet_grid(~variable, scales = "free_x", space = "free") +
         # ggplot2::facet_grid_sc(cols = vars(label), shrink = TRUE,
         #              scales = list(y = scales_y),
         #              space = "free") +
-        guides(colour = guide_legend(nrow = 1)) +
-        labs(x = "primary disease",
-             y = "Ratio of RNA counts"
-        ) +
-        coord_flip(ylim = c(0,25)) +
-        theme_bw() +
-        theme(
-          plot.title = black_bold_12(),
-          axis.title.x = black_bold_12(),
-          axis.title.y = element_blank(),
-          axis.text.x = black_bold_12(),
-          axis.text.y = black_bold_12(),
-          #axis.line.x = element_line(color = "black"),
-          #axis.line.y = element_line(color = "black"),
-          panel.grid = element_blank(),
-          legend.title = element_blank(),
-          legend.position = "top",
-          legend.justification = "left",
-          legend.box = "horizontal",
-          legend.text = black_bold_12(),
-          #strip.background = element_blank(),
-          strip.text.x = black_bold_12()
-        )
+      guides(colour = guide_legend(nrow = 1)) +
+      labs(x = "primary disease",
+           y = "Ratio of RNA counts"
+           ) +
+      coord_flip(ylim = c(0,25)) +
+      theme_bw() +
+      theme(
+        plot.title = black_bold_12(),
+        axis.title.x = black_bold_12(),
+        axis.title.y = element_blank(),
+        axis.text.x = black_bold_12(),
+        axis.text.y = black_bold_12(),
+        panel.grid = element_blank(),
+        legend.title = element_blank(),
+        legend.position = "top",
+        legend.justification = "left",
+        legend.box = "horizontal",
+        legend.text = black_bold_12(),
+        strip.text.x = black_bold_12()
+        )}
       print(p2)
       
       ggplot2::ggsave(
@@ -824,25 +551,24 @@ plot.boxgraph.RNAratio.TCGA <- function(EIF) {
         height = 8,
         useDingbats = FALSE)
       
-      
-      pancancer.TCGA.EIF.ratio.long3 <- pancancer.TCGA.EIF.ratio.long[
-        pancancer.TCGA.EIF.ratio.long$variable %in% c(
-          "EIF4E:\nEIF4EBP1", "EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2", 
-          "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", "EIF4A1:\nEIF4A2"
-        ),
-      ]
-      pancancer.TCGA.EIF.ratio.long3$variable <- factor(
-        pancancer.TCGA.EIF.ratio.long3$variable,
-        levels = c("EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2",
-                   "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
-                   "EIF4A1:\nEIF4A2","EIF4E:\nEIF4EBP1")
-      )
-      f3 <- factor(pancancer.TCGA.EIF.ratio.long3$primary.disease)
-      f.ordered3 <- fct_rev(f3)
-      p3 <- ggplot(
-        data = pancancer.TCGA.EIF.ratio.long3,
+      p3 <- TCGA.RNAratio.subset %>%
+        select("EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2",
+               "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
+               "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
+               "sample.type",
+               "primary.disease",
+               "primary.site",
+               "study") %>% 
+        melt(.,id = c("sample.type",
+                      "primary.disease",
+                      "primary.site",
+                      "study")) %>%
+        mutate_if(is.character, as.factor) %>%
+        mutate(primary.disease = forcats::fct_rev(primary.disease)) %>%
+        {ggplot(
+        data = .,
         aes(
-          x = f.ordered3,
+          x = primary.disease,
           y = 2**value,
           # fill  = variable,
           color = sample.type
@@ -857,7 +583,7 @@ plot.boxgraph.RNAratio.TCGA <- function(EIF) {
           position = "dodge"
         ) +
         geom_hline(
-          data = pancancer.TCGA.EIF.ratio.long3,
+          data = .,
           aes(yintercept = 1),
           linetype = "dashed"
         ) +
@@ -893,7 +619,7 @@ plot.boxgraph.RNAratio.TCGA <- function(EIF) {
           legend.text = black_bold_12(),
           #strip.background = element_blank(),
           strip.text.x = black_bold_12()
-        )
+        )}
       print(p3)
       ggplot2::ggsave(
         path = file.path(output.directory, "Expression"),
@@ -903,179 +629,37 @@ plot.boxgraph.RNAratio.TCGA <- function(EIF) {
         height = 8,
         useDingbats = FALSE)
     }
-    make.plot1()
-  }
-  make.plot()
-}
-
-#############################################################
-## violin plot for RNA ratio in tumors vs adjacent normals ##
-#############################################################
-plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
-  tissue.GTEX.TCGA.gene <- function() {
-    TCGA.GTEX.anno <- read_tsv(file.path(data.file.directory, "TcgaTargetGTEX_phenotype.txt"))
-    TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno) # otherwise lose rownames in the next step, use drop = FALSE to keep the row names
-    
-    TCGA.GTEX.anno <- TCGA.GTEX.anno[!duplicated(TCGA.GTEX.anno$sample), ]
-    TCGA.GTEX.anno <- na.omit(TCGA.GTEX.anno)
-    row.names(TCGA.GTEX.anno) <- TCGA.GTEX.anno$sample
-    TCGA.GTEX.anno$sample <- NULL
-    Sample.ID <- row.names(TCGA.GTEX.anno)
-    TCGA.GTEX.anno <- as.data.frame(TCGA.GTEX.anno) # otherwise lose rownames in the next step, use drop = FALSE to keep the row names
-    subset <- TCGA.GTEX.anno[, c("_sample_type", "_primary_site"), drop = FALSE]
-    row.names(subset) <- row.names(TCGA.GTEX.anno)
-    colnames(subset) <- c("sample.type", "primary.site")
-    # download https://toil.xenahubs.net/download/TcgaTargetGtex_RSEM_Hugo_norm_count.gz
-    TCGA.GTEX <- fread(
-      file.path(data.file.directory, "TcgaTargetGtex_RSEM_Hugo_norm_count"),
-      data.table = FALSE
-    ) # data.table = FALSE gives data.frame
-    # download https://toil.xenahubs.net/download/TcgaTargetGTEX_phenotype.txt.gz
-    TCGA.GTEX <- TCGA.GTEX[
-      !duplicated(TCGA.GTEX$sample),
-      !duplicated(colnames(TCGA.GTEX))
-    ]
-    row.names(TCGA.GTEX) <- TCGA.GTEX$sample
-    TCGA.GTEX$sample <- NULL
-    TCGA.GTEX <- TCGA.GTEX[, colnames(TCGA.GTEX) %in% Sample.ID]
-    TCGA.GTEX.t <- data.table::transpose(TCGA.GTEX)
-    rownames(TCGA.GTEX.t) <- colnames(TCGA.GTEX)
-    colnames(TCGA.GTEX.t) <- rownames(TCGA.GTEX)
-    # NA in the vector
-    TCGA.GTEX.sampletype <- merge(TCGA.GTEX.t,
-                                  subset,
-                                  by    = "row.names",
-                                  all.x = TRUE
-    )
-    # check the name of the last column
-    TCGA.GTEX.sampletype <- na.omit(TCGA.GTEX.sampletype)
-    TCGA.GTEX.sampletype <- as.data.frame(TCGA.GTEX.sampletype)
-    row.names(TCGA.GTEX.sampletype) <- TCGA.GTEX.sampletype$Row.names
-    TCGA.GTEX.sampletype$Row.names <- NULL
-    return(TCGA.GTEX.sampletype)
-  }
-  TCGA.GTEX.sampletype <- tissue.GTEX.TCGA.gene()
+  make.boxplot()
   
-  get.EIFratio.anno.data <- function() {
-    EIF.TCGA.RNAseq.anno.subset <- TCGA.GTEX.sampletype[, c(
-      EIF.gene,
-      "sample.type",
-      "primary.site"
-    ),
-    drop = FALSE
-    ]
-    EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[!EIF.TCGA.RNAseq.anno.subset$EIF4E == 0, ]
-    EIF.TCGA.RNAseq.anno.subset <- EIF.TCGA.RNAseq.anno.subset[
-      EIF.TCGA.RNAseq.anno.subset$sample.type %in% c(
-        "Metastatic",
-        "Primary Tumor",
-        "Solid Tissue Normal"
-      ),
-    ]
-    EIF.TCGA.RNAseq.anno.subset$sample.type <- as.factor(as.character(
-      EIF.TCGA.RNAseq.anno.subset$sample.type
-    ))
-    EIF.TCGA.RNAseq.anno.subset$sum <- log2(2**EIF.TCGA.RNAseq.anno.subset$EIF4E + 2**EIF.TCGA.RNAseq.anno.subset$EIF4EBP1)
-    EIF.TCGA.GTEX.score <- EIF.TCGA.RNAseq.anno.subset
-    
-    # A:E
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    EIF.TCGA.GTEX.score$`EIF4A2:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A2 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    
-    # G:E
-    EIF.TCGA.GTEX.score$`EIF4G1:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    EIF.TCGA.GTEX.score$`EIF4G3:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G3 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    EIF.TCGA.GTEX.score$`EIF4G3:\nEIF4E2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G3 - EIF.TCGA.RNAseq.anno.subset$EIF4E2)
-    
-    # G2:G1
-    EIF.TCGA.GTEX.score$`EIF4G2:\nEIF4G1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G2 - EIF.TCGA.RNAseq.anno.subset$EIF4G1)
-    EIF.TCGA.GTEX.score$`EIF4G1:\nEIF4G3` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$EIF4G3)
-    EIF.TCGA.GTEX.score$`EIF4G2:\nEIF3D` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G2 - EIF.TCGA.RNAseq.anno.subset$EIF3D)
-    
-    # E2:E1
-    EIF.TCGA.GTEX.score$`EIF4E2:\nEIF4E` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4E2 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    
-    # A2:A1
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4A2` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$EIF4A2)
-    # EBP:E
-    EIF.TCGA.GTEX.score$`EIF4E:\nEIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4E - EIF.TCGA.RNAseq.anno.subset$EIF4EBP1)
-    # EIF.TCGA.GTEX.score$`PABPC1:\nEIF4E` <-
-    #  (EIF.TCGA.RNAseq.anno.subset$PABPC1 - EIF.TCGA.RNAseq.anno.subset$EIF4E)
-    EIF.TCGA.GTEX.score$`EIF4G1:\nEIF4E+EIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4G1 - EIF.TCGA.RNAseq.anno.subset$sum)
-    EIF.TCGA.GTEX.score$`EIF4A1:\nEIF4E+EIF4EBP1` <-
-      (EIF.TCGA.RNAseq.anno.subset$EIF4A1 - EIF.TCGA.RNAseq.anno.subset$sum)
-    
-    ratio <- c(
-      "EIF4A1:\nEIF4E", "EIF4A2:\nEIF4E", 
-      "EIF4G1:\nEIF4E", 
-      "EIF4G3:\nEIF4E","EIF4G3:\nEIF4E2",
-      "EIF4E:\nEIF4EBP1", 
-      "EIF4G2:\nEIF4G1", "EIF4G1:\nEIF4G3","EIF4G2:\nEIF3D",
-      "EIF4E2:\nEIF4E", "EIF4A1:\nEIF4A2",
-      "EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1"
-    )
-    EIF.TCGA.GTEX.score <- EIF.TCGA.GTEX.score[,c(ratio, "sample.type", "primary.site")]
-    EIF.TCGA.GTEX.score.long <- melt(EIF.TCGA.GTEX.score)
-    return(EIF.TCGA.GTEX.score.long)
-  }
-  EIF.TCGA.GTEX.score.long <- get.EIFratio.anno.data()
-  
-  make.plot <- function() {
-    new.label <- c(
-      `EIF4A1:EIF4E` = "EIF4A1:\nEIF4E",
-      `EIF4A2:EIF4E` = "EIF4A2:\nEIF4E", 
-      `EIF4G1:EIF4E` = "EIF4G1:\nEIF4E",
-      `EIF4G3:EIF4E` = "EIF4G3:\nEIF4E",
-      `EIF4G3:EIF4E2` = "EIF4G3:\nEIF4E2",
-      `EIF4E:EIF4EBP1` = "EIF4E:\nEIF4EBP1",
-      `EIF4G2:EIF4G1` = "EIF4G2:\nEIF4G1",
-      `EIF4G1:EIF4G3` = "EIF4G1:\nEIF4G3",
-      `EIF4E2:EIF4E` = "EIF4E2:\nEIF4E",
-      `EIF4A1:EIF4A2` = "EIF4A1:\nEIF4A2",
-      `EIF4G1:EIF4E+EIF4EBP1` = "EIF4G1:\nEIF4E+EIF4EBP1",
-      `EIF4A1:EIF4E+EIF4EBP1` = "EIF4A1:\nEIF4E+EIF4EBP1"
-    )
-    EIF.TCGA.GTEX.score.long1 <- EIF.TCGA.GTEX.score.long[
-      EIF.TCGA.GTEX.score.long$variable %in% c(
-        "EIF4A1:\nEIF4E", "EIF4A2:\nEIF4E", 
-        "EIF4G1:\nEIF4E", 
-        "EIF4G3:\nEIF4E","EIF4G3:\nEIF4E2",
-        "EIF4E:\nEIF4EBP1", 
-        "EIF4G2:\nEIF4G1", "EIF4G1:\nEIF4G3",
-        "EIF4E2:\nEIF4E", "EIF4A1:\nEIF4A2",
-        "EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1"
-      ),
-    ]
-    EIF.TCGA.GTEX.score.long1$variable <- factor(
-      EIF.TCGA.GTEX.score.long1$variable,
-      levels = c(
-        "EIF4G1:\nEIF4E","EIF4A1:\nEIF4E", "EIF4A2:\nEIF4E", 
-        "EIF4G3:\nEIF4E","EIF4G3:\nEIF4E2","EIF4G1:\nEIF4G3",
-        "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", "EIF4A1:\nEIF4A2",
-        "EIF4E:\nEIF4EBP1","EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1"
-      )
-    )
-    p1 <- ggplot(
-      data = EIF.TCGA.GTEX.score.long1,
+  make.violinplot <- function() {
+    p1 <- TCGA.RNAratio.sampletype.subset %>% 
+      filter(sample.type %in% c("Metastatic",
+                                "Primary Tumor",
+                                "Solid Tissue Normal")) %>% 
+      droplevels() %>% 
+      select("EIF4G1:\nEIF4E","EIF4A1:\nEIF4E", "EIF4A2:\nEIF4E", 
+             "EIF4G3:\nEIF4E","EIF4G3:\nEIF4E2","EIF4G1:\nEIF4G3",
+             "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", "EIF4A1:\nEIF4A2",
+             "EIF4E:\nEIF4EBP1","EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1",
+             "sample.type",
+             "primary.disease",
+             "primary.site",
+             "study") %>% 
+      melt(.,id = c("sample.type",
+                    "primary.disease",
+                    "primary.site",
+                    "study")) %>%
+      mutate_if(is.character, as.factor)  %>%
+      mutate(primary.disease = forcats::fct_rev(primary.disease)) %>%
+      ggplot(
+        data = .,
       aes(
         x = sample.type,
         y = 2**value,
         color = sample.type,
         fill = sample.type
-      )
-    ) +
+        )
+      ) +
       geom_violin(trim = FALSE) +
       geom_boxplot(
         alpha = 0.01,
@@ -1134,19 +718,61 @@ plot.violingraph.EIF.ratio.TCGA <- function(EIF.gene) {
         size = 6,
         hjust = 0
       )
-    print(p1)
-    ggplot2::ggsave(
-      path = file.path(output.directory, "Expression"),
-      filename = "EIFratioviolin.pdf",
-      plot = p1,
-      width = 18,
-      height = 8,
-      useDingbats = FALSE
-    )
-    
-    
+  print(p1)
+  ggplot2::ggsave(
+    path = file.path(output.directory, "Expression"),
+    filename = "EIFratioviolin.pdf",
+    plot = p1,
+    width = 18,
+    height = 8,
+    useDingbats = FALSE
+  )
   }
-  make.plot()
+  make.violinplot()
+}
+
+
+plot.cormatrix.RNAseq <- function (EIF) {
+  TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
+    select(all_of(EIF),       
+           "sample.type",
+           "primary.disease",
+           "primary.site",
+           "study") %>% 
+    as.data.frame(.)     
+  
+  plot.cor <- function(x){
+    EIF.TCGA.RNAseq.subset <- TCGA.GTEX.RNAseq.sampletype.subset %>% 
+      filter(sample.type != "Solid Tissue Normal" & study == x) %>%
+      select(all_of(EIF))
+    
+    cor_5 <- rcorr(as.matrix(EIF.TCGA.RNAseq.subset), type = "pearson")
+    M <- cor_5$r
+    p_mat <- cor_5$P
+    #pdf(file.path(output.directory, "CNV", "EIFCNVcormatrix.pdf"),
+    #    width = 9,
+    #    height = 9,
+    #    useDingbats = FALSE
+    #)
+    corrplot(
+      M,
+      method      = "color",
+      title = paste("correlation (", x, ")"),
+      tl.cex      = 1,
+      number.cex  = 1,
+      addgrid.col = "gray",
+      addCoef.col = "black",
+      tl.col      = "black",
+      #type        = "lower",
+      order       = "FPC", 
+      #order = 'hclust', 
+      tl.srt = 45,
+      p.mat       = p_mat,
+      sig.level   = 0.05, # insig = "blank"
+    )
+  }
+  plot.cor("GTEX")
+  plot.cor("TCGA")
 }
 
 
@@ -1164,11 +790,15 @@ plot.violingraph.RNAseq.TCGA(c("EIF4G1", "EIF4G2","EIF4G3",
                                "EIF4EBP1", "EIF3D",
                                "PABPC1", "MKNK1", "MKNK2"))
 
-plot.boxgraph.RNAratio.TCGA(c("EIF4E","EIF4E2","EIF4E3","EIF4EBP1",
-                              "EIF4G1","EIF4G2","EIF4G3","EIF3D","PABPC1",
-                              "EIF4A1","EIF4A2"))
+plot.RNAratio.TCGA(c("EIF4E","EIF4E2","EIF4E3","EIF4EBP1",
+                     "EIF4G1","EIF4G2","EIF4G3","EIF3D",#"PABPC1",
+                     "EIF4A1","EIF4A2"))
 
-plot.violingraph.EIF.ratio.TCGA(c("EIF4E","EIF4E2","EIF4E3","EIF4EBP1",
-                                  "EIF4G1","EIF4G2","EIF4G3", "EIF3D",
-                                  "EIF4A1","EIF4A2"))
+plot.cormatrix.RNAseq(c("EIF4G1", "EIF4G2","EIF4G3",
+                        "EIF4A1","EIF4A2", 
+                        "EIF4E", "EIF4E2", "EIF4E3", 
+                        "EIF4EBP1", "EIF4EBP2","MTOR",
+                        "EIF3C","EIF3D","EIF3E","PABPC1", 
+                        "MKNK1", "MKNK2",
+                        "TP53","MYC"))
 
