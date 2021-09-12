@@ -44,317 +44,282 @@ TCGA.GTEX.RNAseq.sampletype <- merge(TCGA.GTEX.RNAseq,
   remove_rownames() %>%
   column_to_rownames(var = 'Row.names')
 
-###########################################################
-## boxplot for RNA-seq in TCGA tumors vs adjacent normal ##
-###########################################################
-plot.boxgraph.RNAseq.TCGA <- function(EIF) {
-  ## 
-  TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
-    select(all_of(EIF),       
-           "sample.type",
-           "primary.disease",
-           "primary.site",
-           "study") %>% 
-    as.data.frame(.) %>% 
-    melt(.,id = c("sample.type",
-                  "primary.disease", 
-                  "primary.site", 
-                  "study"), 
-         value.name = "RNAseq") %>% 
-    na.omit(.$primary.site) %>%
-    filter(RNAseq != 0) %>% 
-    mutate_if(is.character, as.factor)
 
-  # boxplot to compare RNA-seq of one gene in tumor vs adjacent normal
-  make.box.plot.1 <- function(x) {
-    df <- TCGA.GTEX.RNAseq.sampletype.subset %>% 
-      filter(study == "TCGA") %>% 
-      droplevels()  %>% 
-      mutate(sample.type = case_when(sample.type != "Solid Tissue Normal" ~ "Tumor", 
-                                     sample.type == "Solid Tissue Normal" ~ "Normal")) %>%
-      filter(variable == x) %>% 
-      mutate(primary.disease = forcats::fct_rev(primary.disease))
-    
-    p1 <- ggplot(
-      data = df,
-      aes(
-        x = primary.disease,
-        y = 2**RNAseq, 
-        color = sample.type)
-    ) +
-      scale_y_continuous(
-        trans = log2_trans(),
-        #limits = c(2**11, 2**17),# for 4g
-        #limits = c(2**7, 2**14),# for eif4E
-        labels = label_comma()
-      ) +
-      stat_n_text(
-        size = 5,
-        fontface = "bold",
-        hjust = 0
-      ) +
-      geom_boxplot(
-        #alpha = .1,
-        #fill = sample.type,
-        outlier.shape = NA,
-        #size = .75,
-        #width = 1,
-        position = "dodge"
-      ) +
-      scale_color_manual(values = c("Tumor" = "#CC79A7", 
-                                    "Normal" = "#0072B2"),
-                         breaks = c("Tumor", "Normal"),
-                         labels = c("Tumor\n", "Normal\n")
-                         ) +
-      labs(
-        x = "primary disease",
-        y = paste(x, "expression (RNA-Seq counts)")
-        ) +
-      coord_flip() +
-      theme_bw() +
-      theme(
-        plot.title = black_bold_12(),
-        axis.title.x = black_bold_12(),
-        axis.title.y = element_blank(),
-        axis.text.x = black_bold_12(),
-        axis.text.y = black_bold_12(),
-        panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.text = black_bold_12(),
-        legend.position = "top",
-        legend.justification = "left",
-        legend.box = "horizontal",
-        strip.text = black_bold_12()
-      )
-    #geom_signif(comparisons=list(c("Tumor", "Normal")))
-    print(p1)
-    ggplot2::ggsave(
-      path = file.path(output.directory, "Expression"),
-      filename = paste0(x, "tumorvsnormal.pdf"),
-      plot = p1,
-      width = 7.5,
-      height = 9,
-      useDingbats = FALSE
-    )
-  }
-  lapply(EIF, make.box.plot.1)
+
+RNAseq.all.gene <- function (df){
+  df <- df %>% 
+    filter(study == "TCGA" & sample.type != "Solid Tissue Normal") #%>% 
   
-  # boxplot to compare relative abundance of genes across tumors
-  make.box.plot.2 <- function() {
-    df <- TCGA.GTEX.RNAseq.sampletype.subset %>% 
-      filter(study == "TCGA" & sample.type != "Solid Tissue Normal") #%>% 
-
-    #order the EIF genes according to the order of the expression means
-    order <- df %>%
-      #filter out category equal to 'Lung Adenocarcinoma'
-      filter(primary.disease == 'Lung Adenocarcinoma') %>%
-      #use the same groups as in the ggplot
-      group_by(variable) %>%
-      #calculate the means
-      summarise(mean_RNAseq = mean(RNAseq)) %>%
-      mutate(variable = fct_reorder(variable, mean_RNAseq)) %>%
-      .$variable  %>%
-      levels()
-
-    df <- df %>%
+  #order the EIF genes according to the order of the expression means
+  order <- df %>%
+    #filter out category equal to 'Lung Adenocarcinoma'
+    filter(primary.disease == 'Lung Adenocarcinoma') %>%
+    #use the same groups as in the ggplot
+    group_by(variable) %>%
+    #calculate the means
+    summarise(mean_RNAseq = mean(RNAseq)) %>%
+    mutate(variable = fct_reorder(variable, mean_RNAseq)) %>%
+    .$variable  %>%
+    levels()
+  
+  df <- df %>%
     mutate(variable = factor(variable, levels = rev(order)))
-    
-    p1 <- ggplot(data = df,
-                 aes(
-                   x = primary.disease,
-                   y = 2**RNAseq)
+}
+RNAseq.grouped.boxplot <- function(df) {
+  p1 <- ggplot(data = df,
+               aes(
+                 x = primary.disease,
+                 y = 2**RNAseq)
+  ) +
+    scale_y_continuous(
+      trans = log2_trans(),
+      #limits = c(2**4, 2**17),
+      labels = label_comma()
     ) +
-      scale_y_continuous(
-        trans = log2_trans(),
-        #limits = c(2**4, 2**17),
-        labels = label_comma()
-      ) +
-      stat_n_text(
-        size = 5,
-        fontface = "bold",
-        angle = 90,
-        hjust = 0
-      ) +
-      geom_boxplot(aes(
-        colour = factor(variable),
-        #fill = factor(variable)
-      ),
+    stat_n_text(
+      size = 5,
+      fontface = "bold",
+      angle = 90,
+      hjust = 0
+    ) +
+    geom_boxplot(aes(
+      colour = factor(variable),
+      #fill = factor(variable)
+    ),
+    outlier.shape = NA,
+    position = position_dodge(width = 1)
+    ) +
+
+  labs(
+    x = "primary disease",
+    y = paste("Normalized expression (RNA-Seq counts)")
+  ) +
+    theme_bw() +
+    theme(
+      plot.title = black_bold_12(),
+      axis.title.x = element_blank(),
+      axis.title.y = black_bold_12(),
+      axis.text.x = black_bold_12_45(),
+      axis.text.y = black_bold_12(),
+      panel.grid = element_blank(),
+      legend.title = element_blank(),
+      legend.text = black_bold_12(),
+      legend.position = c(0, 0.95),
+      legend.direction = "horizontal",
+      legend.justification = c(0, 1),
+      legend.box = "horizontal",
+      strip.text = black_bold_12()
+    )
+  print(p1)
+  
+  ggplot2::ggsave(
+    path = file.path(output.directory, "Expression"),
+    filename = "tumorexpression.pdf",
+    plot = p1,
+    width = 16.5,
+    height = 8,
+    useDingbats = FALSE)
+}
+
+
+RNAseq.ind.gene <- function (df, x) {
+  df <- df %>% 
+    filter(study == "TCGA") %>% 
+    droplevels()  %>% 
+    mutate(sample.type = case_when(sample.type != "Solid Tissue Normal" ~ "Tumor", 
+                                   sample.type == "Solid Tissue Normal" ~ "Normal")) %>%
+    filter(variable == x) %>% 
+    mutate(primary.disease = forcats::fct_rev(primary.disease))
+  output <- list(df, x) 
+  return(output)
+}
+RNAseq.boxplot <- function(df) {
+  p1 <- ggplot(
+    data = df[[1]],
+    aes(
+      x = primary.disease,
+      y = 2**RNAseq, 
+      color = sample.type)
+  ) +
+    scale_y_continuous(
+      trans = log2_trans(),
+      #limits = c(2**11, 2**17),# for 4g
+      #limits = c(2**7, 2**14),# for eif4E
+      labels = label_comma()
+    ) +
+    stat_n_text(
+      size = 5,
+      fontface = "bold",
+      hjust = 0
+    ) +
+    geom_boxplot(
+      #alpha = .1,
+      #fill = sample.type,
       outlier.shape = NA,
-      position = position_dodge(width = 1)
-      ) +
-      #scale_color_brewer(palette="Dark2") +
-      #scale_fill_brewer(palette = "Set2") +
-      #scale_color_manual(
-      #  values = c(
-      #    "EIF4EBP1" = "#B997C7",
-      #    "EIF4E3" = "#824D99",
-      #    "EIF4E2" = "#4E78C4",
-      #    "EIF4E" = "#57A2AC", 
-      #    "EIF4G3" = "#7EB875",
-      #    "EIF4G2" = "#D0B541",
-      #    "EIF4G1" = "#E67F33",
-      #    "EIF4A2" = "#CE2220", 
-      #    "EIF4A1" = "#521A13"
-      #  ),
-      #  breaks = rev(c("EIF4EBP1","EIF4E3","EIF4E2","EIF4E",
-      #                 "EIF4G3", "EIF4G2","EIF4G1","EIF4A2","EIF4A1"))
-      #) +
+      #size = .75,
+      #width = 1,
+      position = "dodge"
+    ) +
+    scale_color_manual(values = c("Tumor" = "#CC79A7", 
+                                  "Normal" = "#0072B2"),
+                       breaks = c("Tumor", "Normal"),
+                       labels = c("Tumor\n", "Normal\n")
+    ) +
     labs(
       x = "primary disease",
-      y = paste("Normalized expression (RNA-Seq counts)")
+      y = paste(df[[2]], "expression (RNA-Seq counts)")
     ) +
-      #coord_flip() +
-      theme_bw() +
-      theme(
-        plot.title = black_bold_12(),
-        axis.title.x = element_blank(),
-        axis.title.y = black_bold_12(),
-        axis.text.x = black_bold_12_45(),
-        axis.text.y = black_bold_12(),
-        panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.text = black_bold_12(),
-        legend.position = c(0, 0.95),
-        legend.direction = "horizontal",
-        legend.justification = c(0, 1),
-        legend.box = "horizontal",
-        strip.text = black_bold_12()
-      )
-    print(p1)
-    
-    ggplot2::ggsave(
-      path = file.path(output.directory, "Expression"),
-      filename = "tumorexpression.pdf",
-      plot = p1,
-      width = 16.5,
-      height = 8,
-      useDingbats = FALSE)
-  }
-  make.box.plot.2()
+    coord_flip() +
+    theme_bw() +
+    theme(
+      plot.title = black_bold_12(),
+      axis.title.x = black_bold_12(),
+      axis.title.y = element_blank(),
+      axis.text.x = black_bold_12(),
+      axis.text.y = black_bold_12(),
+      panel.grid = element_blank(),
+      legend.title = element_blank(),
+      legend.text = black_bold_12(),
+      legend.position = "top",
+      legend.justification = "left",
+      legend.box = "horizontal",
+      strip.text = black_bold_12()
+    )
+  #geom_signif(comparisons=list(c("Tumor", "Normal")))
+  print(p1)
+  ggplot2::ggsave(
+    path = file.path(output.directory, "Expression"),
+    filename = paste0(df[[2]], "tumorvsnormal.pdf"),
+    plot = p1,
+    width = 7.5,
+    height = 9,
+    useDingbats = FALSE
+  )
 }
 
-##################################################################
-## violin plot for EIF expression in tumors vs adjacent normals ##
-##################################################################
-plot.violingraph.RNAseq.TCGA <- function(EIF) {
+
+RNAseq.tumortype <- function (x){
   TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
-    select(all_of(EIF),       
+  select(all_of(x),       
+         "sample.type",
+         "primary.disease",
+         "primary.site",
+         "study") %>% 
+  as.data.frame(.) %>% 
+  melt(.,id = c("sample.type",
+                "primary.disease", 
+                "primary.site", 
+                "study")) %>% 
+  na.omit(.$primary.site) %>%
+  filter(value != 0 & study == "TCGA") %>% 
+  mutate_if(is.character, as.factor) %>% 
+  filter(sample.type %in% c(
+    "Metastatic",
+    "Primary Tumor",
+    "Solid Tissue Normal"
+  ))}
+RNAratio.tumortype <- function(df, x){
+  RNAratio.data <- df %>% 
+    filter(sample.type %in% c("Metastatic",
+                              "Primary Tumor",
+                              "Solid Tissue Normal")) %>% 
+    droplevels() %>% 
+    select(all_of(x),
            "sample.type",
            "primary.disease",
            "primary.site",
            "study") %>% 
-    as.data.frame(.) %>% 
     melt(.,id = c("sample.type",
-                  "primary.disease", 
-                  "primary.site", 
-                  "study"), 
-         value.name = "RNAseq") %>% 
-    na.omit(.$primary.site) %>%
-    filter(RNAseq != 0 & study == "TCGA") %>% 
-    mutate_if(is.character, as.factor) %>% 
-    filter(sample.type %in% c(
-      "Metastatic",
-      "Primary Tumor",
-      "Solid Tissue Normal"
-    ))
-  
-  make.plot <- function() {
-    #EIF.TCGA.RNAseq.anno.subset.long1 <- EIF.TCGA.RNAseq.anno.subset.long[
-    #  EIF.TCGA.RNAseq.anno.subset.long$variable %in% c(EIF),]
-    #EIF.TCGA.RNAseq.anno.subset.long1$variable <- factor(
-    #  EIF.TCGA.RNAseq.anno.subset.long1$variable,
-    #  levels = c("EIF4G1", "EIF4G2","EIF4G3","EIF4A1","EIF4A2", "PABPC1","PAIP1","PAIP2",
-    #             "EIF4E", "EIF4E2", "EIF4E3", "EIF4EBP1" ,"EIF4EBP2", "EIF3D")
-    #)
-    p1 <- ggplot(
-      data = TCGA.GTEX.RNAseq.sampletype.subset,
-      #data = EIF.TCGA.RNAseq.anno.subset.long,
-      aes(
-        x = sample.type,
-        y = 2**RNAseq,
-        color = sample.type,
-        fill = sample.type
-      )
-    ) +
-      stat_n_text(size = 6, 
-                  fontface = "bold", 
-                  angle = 90, 
-                  hjust = 0) +
-      ggplot2::facet_grid(. ~ variable,
-                          scales = "free",
-                          space  = "free"
-      ) +
-      # facet_wrap(~ variable, ncol = 6) +
-      geom_violin(trim = TRUE) +
-      geom_boxplot(
-        alpha = .01,
-        width = .25,
-        color = "black",
-        position = position_dodge(width = .9)
-      ) +
-      labs(
-        x = "sample type",
-        y = "normalized RNA counts"
-      ) +
-      scale_x_discrete(labels = c(
-        "Metastatic Tumor",
-        "Primary Tumor",
-        # "Normal Tissue",
-        "Adjacent Normal"
-      )) +
-      scale_y_continuous(
-        trans = log2_trans(),
-        labels = label_comma(),
-        breaks = c(1, 128, 2048, 32768),
-        # labels = c("1","8","64","512"),
-        position = "left"
-      ) +
-      scale_color_manual(values = c("#56B4E9", "#009E73", "#D55E00")) + # for color-blind palettes
-      scale_fill_manual(values = c("#56B4E9", "#009E73", "#D55E00")) + # for color-blind palettes
-      theme_bw() +
-      theme(
-        plot.title = black_bold_16(),
-        axis.title.x = element_blank(),
-        axis.title.y.right = black_bold_16_right(),
-        axis.text.x = black_bold_16_90(),
-        axis.text.y = black_bold_16_90(),
-        axis.line.x = element_line(color = "black"),
-        axis.line.y = element_line(color = "black"),
-        panel.grid = element_blank(),
-        legend.position = "none",
-        strip.text = black_bold_16()
-      ) +
-      stat_compare_means(
-        comparisons = list(
-          c("Metastatic", "Solid Tissue Normal"),
-          c("Primary Tumor", "Solid Tissue Normal"),
-          c("Metastatic", "Primary Tumor")
-        ),
-        method = "t.test",
-        label = "p.signif",
-        size = 6
-      )
-    print(p1)
-    ggplot2::ggsave(
-      path = file.path(output.directory, "Expression"),
-      filename = "EIFexpressionviolin.pdf",
-      plot = p1,
-      width = 18,
-      height = 9,
-      useDingbats = FALSE
+                  "primary.disease",
+                  "primary.site",
+                  "study")) %>%
+    mutate_if(is.character, as.factor)  %>%
+    mutate(primary.disease = forcats::fct_rev(primary.disease))
+}
+violinplot <- function(df) {
+  p1 <- ggplot(
+    data = df,
+    #data = EIF.TCGA.RNAseq.anno.subset.long,
+    aes(
+      x = sample.type,
+      y = 2**value,
+      color = sample.type,
+      fill = sample.type
     )
-  }
-  make.plot()
+  ) +
+    stat_n_text(size = 6, 
+                fontface = "bold", 
+                angle = 90, 
+                hjust = 0) +
+    ggplot2::facet_grid(. ~ variable,
+                        scales = "free",
+                        space  = "free"
+    ) +
+    # facet_wrap(~ variable, ncol = 6) +
+    geom_violin(trim = TRUE) +
+    geom_boxplot(
+      alpha = .01,
+      width = .25,
+      color = "black",
+      position = position_dodge(width = .9)
+    ) +
+    labs(
+      x = "sample type",
+      y = "normalized RNA counts"
+    ) +
+    scale_x_discrete(labels = c(
+      "Metastatic Tumor",
+      "Primary Tumor",
+      # "Normal Tissue",
+      "Adjacent Normal"
+    )) +
+    scale_y_continuous(
+      trans = log2_trans(),
+      labels = label_comma(),
+      breaks = c(1, 128, 2048, 32768),
+      # labels = c("1","8","64","512"),
+      position = "left"
+    ) +
+    scale_color_manual(values = c("#56B4E9", "#009E73", "#D55E00")) + # for color-blind palettes
+    scale_fill_manual(values = c("#56B4E9", "#009E73", "#D55E00")) + # for color-blind palettes
+    theme_bw() +
+    theme(
+      plot.title = black_bold_16(),
+      axis.title.x = element_blank(),
+      axis.title.y.right = black_bold_16_right(),
+      axis.text.x = black_bold_16_90(),
+      axis.text.y = black_bold_16_90(),
+      axis.line.x = element_line(color = "black"),
+      axis.line.y = element_line(color = "black"),
+      panel.grid = element_blank(),
+      legend.position = "none",
+      strip.text = black_bold_16()
+    ) +
+    stat_compare_means(
+      comparisons = list(
+        c("Metastatic", "Solid Tissue Normal"),
+        c("Primary Tumor", "Solid Tissue Normal"),
+        c("Metastatic", "Primary Tumor")
+      ),
+      method = "t.test",
+      label = "p.signif",
+      size = 6
+    )
+  print(p1)
+  ggplot2::ggsave(
+    path = file.path(output.directory, "Expression"),
+    filename = "EIFexpressionviolin.pdf",
+    plot = p1,
+    width = 18,
+    height = 9,
+    useDingbats = FALSE
+  )
 }
 
 
-########################################################
-## boxplot and violin plots for RNA ratios across tumors ##
-########################################################
-plot.RNAratio.TCGA <- function(EIF) {
-  ## 
+RNAratio.EIF.gene <- function(x){
   TCGA.RNAratio.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
-    select(all_of(EIF),       
+    select(all_of(x),       
            "sample.type",
            "primary.disease",
            "primary.site",
@@ -381,10 +346,7 @@ plot.RNAratio.TCGA <- function(EIF) {
            `EIF4G1:\nEIF4G3` = EIF4G1 - EIF4G3,
            `EIF4A1:\nEIF4A2` = EIF4A1 - EIF4A2,
            `EIF4G1:\nEIF4E+EIF4EBP1` = EIF4G1 - sum,
-           `EIF4A1:\nEIF4E+EIF4EBP1` = EIF4G1 - sum#,
-           #`EIF4G1:\nEIF4E-EIF4EBP1` = EIF4G1 - minus,
-           #`EIF4A1:\nEIF4E-EIF4EBP1` = EIF4A1 - minus
-    )  %>% 
+           `EIF4A1:\nEIF4E+EIF4EBP1` = EIF4G1 - sum)  %>% 
     select("EIF4A1:\nEIF4E", "EIF4A1:\nEIF4E2", 
            "EIF4A2:\nEIF4E", "EIF4A2:\nEIF4E2",          
            "EIF4G1:\nEIF4E", "EIF4G1:\nEIF4E2", 
@@ -402,335 +364,167 @@ plot.RNAratio.TCGA <- function(EIF) {
            "study") %>%        
     mutate_if(is.character, as.factor)%>% 
     na.omit(.)
-  
-  make.boxplot <- function() {
-    TCGA.RNAratio.subset <- TCGA.RNAratio.sampletype.subset %>% 
-      filter(study == "TCGA") %>% 
-      droplevels() %>% 
-      mutate(sample.type = case_when(sample.type != "Solid Tissue Normal" ~ "Tumor", 
-                                     sample.type == "Solid Tissue Normal" ~ "NAT"))
-    
-    p1 <- TCGA.RNAratio.subset %>%
-      select("EIF4G1:\nEIF4E","EIF4A1:\nEIF4E","EIF4A2:\nEIF4E",
-             "EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2" ,"EIF4G1:\nEIF4G3",
-             "sample.type",
-             "primary.disease",
-             "primary.site",
-             "study") %>% 
-      melt(.,id = c("sample.type",
-                    "primary.disease",
-                    "primary.site",
-                    "study")) %>%
-      mutate_if(is.character, as.factor)  %>%
-      mutate(primary.disease = forcats::fct_rev(primary.disease)) %>%
-      # wrap the plotting code in {...}
-      {ggplot(
-        data = .,
-        aes(
-          x = primary.disease,
-          #x = f.ordered1,
-          y = 2**value,
-          # fill  = variable,
-          color = sample.type
-          )
-        ) +
-          geom_boxplot(
-          #alpha = .1,
-          #fill = sample.type,
-        outlier.shape = NA,
-          #size = .75,
-          #width = 1,
-        position = "dodge"
-        ) +
-        scale_color_manual(values = c("Tumor" = "#CC79A7", "NAT" = "#0072B2"),
-                           breaks = c("Tumor", "NAT")) +
-        # for color-blind palettes
-        facet_wrap(~variable, scales = "free_x") +
-        ggplot2::facet_grid(~variable, scales = "free_x", space = "free") +
-        guides(colour = guide_legend(nrow = 1)) +
-        labs(x = "primary disease",
-             y = "Ratio of RNA counts") +
-        coord_flip(ylim = c(0,25)) +
-        theme_bw() +
-        theme(
-          plot.title = black_bold_12(),
-          axis.title.x = black_bold_12(),
-          axis.title.y = element_blank(),
-          axis.text.x = black_bold_12(),
-          axis.text.y = black_bold_12(),
-          panel.grid = element_blank(),
-          legend.title = element_blank(),
-          legend.position = "top",
-          legend.justification = "left",
-          legend.box = "horizontal",
-          legend.text = black_bold_12(),
-            #strip.background = element_blank(),
-          strip.text.x = black_bold_12()
-          )}
-    print(p1)
-    ggplot2::ggsave(
-        path = file.path(output.directory, "Expression"),
-        filename = "tumorratio.pdf",
-        plot = p1,
-        width = 18,
-        height = 8,
-        useDingbats = FALSE)
-    
-    p2 <- TCGA.RNAratio.subset %>%
-      select("EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
-             "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
-             "EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1",
-             "sample.type",
-             "primary.disease",
-             "primary.site",
-             "study") %>% 
-      melt(.,id = c("sample.type",
-                    "primary.disease",
-                    "primary.site",
-                    "study")) %>%
-      mutate_if(is.character, as.factor)  %>%
-      mutate(primary.disease = forcats::fct_rev(primary.disease)) %>%
-      {ggplot(
-      data = .,
-      aes(
-          x = primary.disease,
-          y = 2**value,
-          # fill  = variable,
-          color = sample.type
-        )
-      ) +
-      geom_boxplot(
-          #alpha = .1,
-          #fill = sample.type,
-        outlier.shape = NA,
-          #size = .75,
-          #width = 1,
-        position = "dodge"
-        ) +
-      geom_hline(
-        data = .,
-        aes(yintercept = 4),
-        linetype = "dashed"
-        ) +
-        # geom_text(data = pancancer.TCGA.EIF.ratio.long1, aes(f.ordered1, hline, label = hline), vjust = 2, hjust = -0.2) +
-      scale_color_manual(values = c("Tumor" = "#CC79A7", "NAT" = "#0072B2"),
-                         breaks = c("Tumor", "NAT")) +
-        # for color-blind palettes
-      facet_wrap(~variable, scales = "free_x") +
-      ggplot2::facet_grid(~variable, scales = "free_x", space = "free") +
-        # ggplot2::facet_grid_sc(cols = vars(label), shrink = TRUE,
-        #              scales = list(y = scales_y),
-        #              space = "free") +
-      guides(colour = guide_legend(nrow = 1)) +
-      labs(x = "primary disease",
-           y = "Ratio of RNA counts"
-           ) +
-      coord_flip(ylim = c(0,25)) +
-      theme_bw() +
-      theme(
-        plot.title = black_bold_12(),
-        axis.title.x = black_bold_12(),
-        axis.title.y = element_blank(),
-        axis.text.x = black_bold_12(),
-        axis.text.y = black_bold_12(),
-        panel.grid = element_blank(),
-        legend.title = element_blank(),
-        legend.position = "top",
-        legend.justification = "left",
-        legend.box = "horizontal",
-        legend.text = black_bold_12(),
-        strip.text.x = black_bold_12()
-        )}
-      print(p2)
-      
-      ggplot2::ggsave(
-        path = file.path(output.directory, "Expression"),
-        filename = "tumorratio2.pdf",
-        plot = p2,
-        width = 18,
-        height = 8,
-        useDingbats = FALSE)
-      
-      p3 <- TCGA.RNAratio.subset %>%
-        select("EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2",
-               "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
-               "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
-               "sample.type",
-               "primary.disease",
-               "primary.site",
-               "study") %>% 
-        melt(.,id = c("sample.type",
-                      "primary.disease",
-                      "primary.site",
-                      "study")) %>%
-        mutate_if(is.character, as.factor) %>%
-        mutate(primary.disease = forcats::fct_rev(primary.disease)) %>%
-        {ggplot(
-        data = .,
-        aes(
-          x = primary.disease,
-          y = 2**value,
-          # fill  = variable,
-          color = sample.type
-        )
-      ) +
-        geom_boxplot(
-          #alpha = .1,
-          #fill = sample.type,
-          outlier.shape = NA,
-          #size = .75,
-          #width = 1,
-          position = "dodge"
-        ) +
-        geom_hline(
-          data = .,
-          aes(yintercept = 1),
-          linetype = "dashed"
-        ) +
-        # geom_text(data = pancancer.TCGA.EIF.ratio.long1, aes(f.ordered1, hline, label = hline), vjust = 2, hjust = -0.2) +
-        scale_color_manual(values = c("Tumor" = "#CC79A7", 
-                                      "NAT" = "#0072B2"),
-                           breaks = c("Tumor", "NAT")) +
-        # for color-blind palettes
-        facet_wrap(~variable, scales = "free_x") +
-        ggplot2::facet_grid(~variable, scales = "free_x", space = "free") +
-        # ggplot2::facet_grid_sc(cols = vars(label), shrink = TRUE,
-        #              scales = list(y = scales_y),
-        #              space = "free") +
-        guides(colour = guide_legend(nrow = 1)) +
-        labs(x = "primary disease",
-             y = "Ratio of RNA counts"
-        ) +
-        coord_flip(ylim = c(0,5)) +
-        theme_bw() +
-        theme(
-          plot.title = black_bold_12(),
-          axis.title.x = black_bold_12(),
-          axis.title.y = element_blank(),
-          axis.text.x = black_bold_12(),
-          axis.text.y = black_bold_12(),
-          #axis.line.x = element_line(color = "black"),
-          #axis.line.y = element_line(color = "black"),
-          panel.grid = element_blank(),
-          legend.title = element_blank(),
-          legend.position = "top",
-          legend.justification = "left",
-          legend.box = "horizontal",
-          legend.text = black_bold_12(),
-          #strip.background = element_blank(),
-          strip.text.x = black_bold_12()
-        )}
-      print(p3)
-      ggplot2::ggsave(
-        path = file.path(output.directory, "Expression"),
-        filename = "tumorratio3.pdf",
-        plot = p3,
-        width = 18,
-        height = 8,
-        useDingbats = FALSE)
-    }
-  make.boxplot()
-  
-  make.violinplot <- function() {
-    p1 <- TCGA.RNAratio.sampletype.subset %>% 
-      filter(sample.type %in% c("Metastatic",
-                                "Primary Tumor",
-                                "Solid Tissue Normal")) %>% 
-      droplevels() %>% 
-      select("EIF4G1:\nEIF4E","EIF4A1:\nEIF4E", "EIF4A2:\nEIF4E", 
-             "EIF4G3:\nEIF4E","EIF4G3:\nEIF4E2","EIF4G1:\nEIF4G3",
-             "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", "EIF4A1:\nEIF4A2",
-             "EIF4E:\nEIF4EBP1","EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1",
-             "sample.type",
-             "primary.disease",
-             "primary.site",
-             "study") %>% 
-      melt(.,id = c("sample.type",
-                    "primary.disease",
-                    "primary.site",
-                    "study")) %>%
-      mutate_if(is.character, as.factor)  %>%
-      mutate(primary.disease = forcats::fct_rev(primary.disease)) %>%
-      ggplot(
-        data = .,
-      aes(
-        x = sample.type,
-        y = 2**value,
-        color = sample.type,
-        fill = sample.type
-        )
-      ) +
-      geom_violin(trim = FALSE) +
-      geom_boxplot(
-        alpha = 0.01,
-        width = 0.25,
-        color = "black",
-        outlier.colour = NA
-      ) +
-      stat_n_text(size = 6, fontface = "bold", angle = 90, hjust = 0) +
-      ggplot2::facet_grid(~variable,
-                          scales = "free",
-                          space  = "free"
-      ) +
-      #facet_wrap(~variable,
-      #  labeller = labeller(variable = as_labeller(new.label))
-      #) +
-      scale_color_manual(values = c("#56B4E9", "#009E73", "#D55E00")) + # for color-blind palettes
-      scale_fill_manual(values = c("#56B4E9", "#009E73", "#D55E00")) + # for color-blind palettes
-      labs(
-        x = "sample type",
-        y = "ratio of RNA counts"
-      ) +
-      scale_x_discrete(labels = c(
-        "Metastatic Tumor",
-        "Primary Tumor",
-        "Adjacent Normal"
-      )) +
-      scale_y_continuous(
-        trans = log2_trans(),
-        # labels = label_comma(),
-        breaks = c(0.125, 1, 4, 8, 64, 512),
-        labels = c("0.125", "1", "4", "8", "64", "512"),
-        position = "left"
-      ) +
-      geom_hline(yintercept = c(1, 4), linetype = "dashed") +
-      theme_bw() +
-      theme(
-        plot.title = black_bold_16(),
-        axis.title.x = element_blank(),
-        axis.title.y = black_bold_16(),
-        axis.text.x = black_bold_16_90(),
-        axis.text.y = black_bold_16_90(),
-        #axis.line.x = element_line(color = "black"),
-        #axis.line.y = element_line(color = "black"),
-        panel.grid = element_blank(),
-        legend.position = "none",
-        strip.text = black_bold_16()
-      ) +
-      stat_compare_means(
-        comparisons = list(
-          c("Metastatic", "Solid Tissue Normal"),
-          c("Primary Tumor", "Solid Tissue Normal"),
-          c("Metastatic", "Primary Tumor")
-        ),
-        method = "t.test",
-        label = "p.signif",
-        size = 6,
-        hjust = 0
-      )
+}
+RNAratio.selected <- function(df, x){
+  RNAratio.data <- df %>% 
+    filter(study == "TCGA") %>% 
+    droplevels() %>% 
+    mutate(sample.type = case_when(sample.type != "Solid Tissue Normal" ~ "Tumor", 
+                                   sample.type == "Solid Tissue Normal" ~ "NAT")) %>% 
+    select(all_of(x),
+           "sample.type",
+           "primary.disease",
+           "primary.site",
+           "study") %>% 
+    melt(.,id = c("sample.type",
+                  "primary.disease",
+                  "primary.site",
+                  "study")) %>%
+    mutate_if(is.character, as.factor)  %>%
+    mutate(primary.disease = forcats::fct_rev(primary.disease))
+}
+RNAratio.boxplot <- function(df, dashline, ylimit, filename) {        
+  p1 <- ggplot(
+    data = df,
+    aes(
+      x = primary.disease,
+      #x = f.ordered1,
+      y = 2**value,
+      # fill  = variable,
+      color = sample.type
+    )
+  ) +
+    geom_boxplot(
+      #alpha = .1,
+      #fill = sample.type,
+      outlier.shape = NA,
+      #size = .75,
+      #width = 1,
+      position = "dodge"
+    ) +
+    geom_hline(
+      #data = df,
+      aes(yintercept = dashline),
+      linetype = "dashed"
+    ) +
+    scale_color_manual(values = c("Tumor" = "#CC79A7", "NAT" = "#0072B2"),
+                       breaks = c("Tumor", "NAT")) +
+    # for color-blind palettes
+    facet_wrap(~variable, scales = "free_x") +
+    ggplot2::facet_grid(~variable, scales = "free_x", space = "free") +
+    guides(colour = guide_legend(nrow = 1)) +
+    labs(x = "primary disease",
+         y = "Ratio of RNA counts") +
+    coord_flip(ylim = ylimit) +
+    theme_bw() +
+    theme(
+      plot.title = black_bold_12(),
+      axis.title.x = black_bold_12(),
+      axis.title.y = element_blank(),
+      axis.text.x = black_bold_12(),
+      axis.text.y = black_bold_12(),
+      panel.grid = element_blank(),
+      legend.title = element_blank(),
+      legend.position = "top",
+      legend.justification = "left",
+      legend.box = "horizontal",
+      legend.text = black_bold_12(),
+      #strip.background = element_blank(),
+      strip.text.x = black_bold_12()
+    )
   print(p1)
   ggplot2::ggsave(
     path = file.path(output.directory, "Expression"),
-    filename = "EIFratioviolin.pdf",
+    filename = filename,
     plot = p1,
     width = 18,
     height = 8,
-    useDingbats = FALSE
-  )
-  }
-  make.violinplot()
+    useDingbats = FALSE)}
+
+###########################################################
+## boxplot for RNA-seq in TCGA tumors vs adjacent normal ##
+###########################################################
+plot.boxgraph.RNAseq.TCGA <- function(EIF) {
+  TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
+    select(all_of(EIF),       
+           "sample.type",
+           "primary.disease",
+           "primary.site",
+           "study") %>% 
+    as.data.frame(.) %>% 
+    melt(.,id = c("sample.type",
+                  "primary.disease", 
+                  "primary.site", 
+                  "study"), 
+         value.name = "RNAseq") %>% 
+    na.omit(.$primary.site) %>%
+    filter(RNAseq != 0) %>% 
+    mutate_if(is.character, as.factor)
+
+  # boxplot to compare relative abundance of genes across tumors
+  RNAseq.all.gene <- RNAseq.all.gene(TCGA.GTEX.RNAseq.sampletype.subset)
+  RNAseq.grouped.boxplot (RNAseq.all.gene)
+  
+  # boxplot to compare RNA-seq of one gene in tumor vs adjacent normal
+  RNAseq.ind.gene.df <- lapply(EIF, 
+                               RNAseq.ind.gene, 
+                               df = TCGA.GTEX.RNAseq.sampletype.subset)
+  lapply(RNAseq.ind.gene.df, RNAseq.boxplot)
 }
 
+##################################################################
+## violin plot for EIF expression in tumors vs adjacent normals ##
+##################################################################
+plot.violingraph.RNAseq.TCGA <- function(EIF) {
+  TCGA.GTEX.RNAseq.sampletype.subset <- RNAseq.tumortype (EIF)
+  violinplot(TCGA.GTEX.RNAseq.sampletype.subset)
+}
+
+########################################################
+## boxplot and violin plots for RNA ratios across tumors ##
+########################################################
+plot.RNAratio.TCGA <- function(EIF) {
+  RNAratio.data <- RNAratio.EIF.gene(EIF)
+  
+  RNAratio.subset1 <- RNAratio.selected(RNAratio.data,
+                                        c("EIF4G1:\nEIF4E", "EIF4A1:\nEIF4E",
+                                          "EIF4A2:\nEIF4E", "EIF4G3:\nEIF4E", 
+                                          "EIF4G3:\nEIF4E2", "EIF4G1:\nEIF4G3"))
+  RNAratio.boxplot(df = RNAratio.subset1, 
+                   dashline = 1, 
+                   ylimit = c(0,25),
+                   filename = "RNAratio1.pdf")
+  
+  RNAratio.subset2 <- RNAratio.selected(RNAratio.data, 
+                                        c("EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
+                                          "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
+                                          "EIF4G1:\nEIF4E+EIF4EBP1", 
+                                          "EIF4A1:\nEIF4E+EIF4EBP1"))
+  RNAratio.boxplot(df = RNAratio.subset2, 
+                   dashline = 4, 
+                   ylimit = c(0,25),
+                   filename = "RNAratio2.pdf") 
+  
+  
+  RNAratio.subset3 <- RNAratio.selected(RNAratio.data,
+                                        c("EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2",
+                                          "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
+                                          "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1"))
+  RNAratio.boxplot(df = RNAratio.subset3, 
+                   dashline = 1, 
+                   ylimit = c(0,5),
+                   filename = "RNAratio3.pdf") 
+  
+  RNAratio.tumortype.data <- RNAratio.tumortype (RNAratio.data,
+                                                 c("EIF4G1:\nEIF4E", "EIF4A1:\nEIF4E", 
+                                                   "EIF4A2:\nEIF4E", "EIF4G3:\nEIF4E",
+                                                   "EIF4G3:\nEIF4E2", "EIF4G1:\nEIF4G3",
+                                                   "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
+                                                   "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
+                                                   "EIF4G1:\nEIF4E+EIF4EBP1", 
+                                                   "EIF4A1:\nEIF4E+EIF4EBP1"))
+  violinplot(RNAratio.tumortype.data)
+}
 
 plot.cormatrix.RNAseq <- function (EIF) {
   TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
@@ -774,6 +568,7 @@ plot.cormatrix.RNAseq <- function (EIF) {
   plot.cor("GTEX")
   plot.cor("TCGA")
 }
+
 
 
 
