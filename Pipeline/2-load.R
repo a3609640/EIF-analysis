@@ -1,3 +1,4 @@
+#### Library Preparation ####
 library(AnnotationDbi)
 library(car)
 library(clusterProfiler)
@@ -22,7 +23,6 @@ library(ggplot2)
 library(ggpubr)
 library(ggsignif)
 library(ggthemes) ## color-blind options
-#library(glmnet)
 library(gplots)
 library(gridExtra)
 library(igraph)
@@ -33,7 +33,6 @@ library(missMDA)
 library(nortest) # test for normal distribution
 library(org.Hs.eg.db)
 library(pca3d)
-#library(pheatmap)
 library(RColorBrewer)
 library(ReactomePA)
 library(readr)
@@ -43,16 +42,15 @@ library(rgl)
 library(scales) # Log scaling of the y axis
 library(survival)
 library(survivalAnalysis)
-#library(survMisc)
-#library(survminer)
 library(tidyverse)
 library(vcd)
 library(vip)
 
+
+#### Directory Preparation ####
 data.file.directory <- "~/Downloads/Test"
 output.directory <- "~/Documents/EIF_output"
 
-# p <-NCmisc::list.functions.in.file("EIFanalysisv2.R", alphabetic = TRUE)
 
 # TODO: Make all uses of 'stringsAsFactors' explicit.
 #
@@ -72,6 +70,7 @@ output.directory <- "~/Documents/EIF_output"
 # to restore the old default behavior.  Note that this option
 # is deprecated and will no longer work in R 4.1.
 options(stringsAsFactors = TRUE)
+
 
 
 #### Format Preparation ####
@@ -117,7 +116,8 @@ black_bold_16 <- function() {
 }
 
 black_bold_16_right <- function() {
-  return(element_text(
+  return(
+    element_text(
     color = "black",
     face = "bold",
     size = 16,

@@ -23,39 +23,34 @@ TCGA.RNAseq <- function() {
 TCGA.RNAseq <- TCGA.RNAseq()   
 
 ## get OS data ##
-TCGA.OS <- fread(
+TCGA.OS <- data.table::fread(
   file.path(data.file.directory, 
             "Survival_SupplementalTable_S1_20171025_xena_sp"),
-  data.table = FALSE
-  ) %>% 
+  data.table = FALSE) %>% {
   distinct(., sample, .keep_all = TRUE)  %>%
   #remove_rownames() %>%
   #column_to_rownames(var = 'sample') %>%
   select("sample","OS", "OS.time") %>% 
-  rename(rn = sample)
+  rename(rn = sample)}
 
 
   ## get sample type data ##
 TCGA.sampletype <- readr::read_tsv(
   file.path(data.file.directory, 
-            "TCGA_phenotype_denseDataOnlyDownload.tsv")
-  ) %>% 
+            "TCGA_phenotype_denseDataOnlyDownload.tsv")) %>% {
   as.data.frame(.) %>% 
   distinct(., sample, .keep_all = TRUE) %>% 
-  #na.omit(.) %>%
-  #remove_rownames() %>%
-  #column_to_rownames(var = 'sample') %>%
   select("sample",
          "sample_type",
          "_primary_disease") %>%
   rename(rn = sample,
          sample.type = sample_type, 
-         primary.disease = `_primary_disease`)
+         primary.disease = `_primary_disease`)}
 
 ## combine OS, sample type and RNAseq data ##    
 TCGA.RNAseq.OS.sampletype <- list(TCGA.RNAseq,TCGA.OS, TCGA.sampletype) %>% 
   reduce(full_join, by = "rn") %>%  
-  remove_rownames() %>%
+  remove_rownames(.) %>%
   column_to_rownames(var = 'rn')
 
 
@@ -387,6 +382,10 @@ lapply(c("EIF4G1","EIF4G2", "EIF4G3",
 plot.km.EIF.tumor(EIF = "EIF4E", 
                   cutoff =  0.3, 
                   tumor = "lung adenocarcinoma")
+
+plot.km.EIF.tumor(EIF = "EIF4E", 
+                  cutoff =  0.2, 
+                  tumor = "skin cutaneous melanoma")
 
 plot.km.EIF.tumor(EIF = "EIF4E", 
                   cutoff =  0.3, 

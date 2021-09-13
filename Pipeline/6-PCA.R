@@ -1,13 +1,14 @@
-## prepare RNA-seq related dataset
-TCGA.GTEX.RNAseq <- function() {
-  TCGA.pancancer <- fread(
+# prepare RNA-seq related dataset from TCGA and GTEx----------------------------
+get.TCGA.GTEX.RNAseq <- function() {
+  TCGA.pancancer <- data.table::fread(
     file.path(data.file.directory, 
               "TcgaTargetGtex_RSEM_Hugo_norm_count"),
-    data.table = FALSE) %>% 
+    data.table = FALSE
+  )  %>% 
     as.data.frame(.) %>% 
     distinct(., sample, .keep_all = TRUE) %>% 
     na.omit(.) %>%
-    remove_rownames() %>%
+    remove_rownames(.) %>%
     column_to_rownames(var = 'sample')
   
   # transpose function from the data.table library keeps numeric values as numeric.
@@ -17,32 +18,31 @@ TCGA.GTEX.RNAseq <- function() {
   colnames(TCGA.pancancer_transpose) <- rownames(TCGA.pancancer)
   return (TCGA.pancancer_transpose)
 }
-TCGA.GTEX.RNAseq <- TCGA.GTEX.RNAseq()   
+TCGA.GTEX.RNAseq <- get.TCGA.GTEX.RNAseq()   
 
 TCGA.GTEX.sampletype <- readr::read_tsv(
   file.path(data.file.directory, 
-            "TcgaTargetGTEX_phenotype.txt")) %>% 
-  as.data.frame(.) %>% 
-  distinct(., sample, .keep_all = TRUE) %>% 
-  #na.omit(.) %>%
-  remove_rownames() %>%
-  column_to_rownames(var = 'sample') %>%
-  select("_sample_type",
-         "primary disease or tissue",
-         "_primary_site",
-         "_study") %>%
-  rename("sample.type" = "_sample_type", 
-         "primary.disease" = "primary disease or tissue",
-         "primary.site" = "_primary_site",
-         "study" = "_study")
+            "TcgaTargetGTEX_phenotype.txt")) %>% {
+              as.data.frame(.) %>% 
+                distinct(., sample, .keep_all = TRUE) %>% 
+                #na.omit(.) %>%
+                remove_rownames() %>%
+                column_to_rownames(var = 'sample') %>%
+                select("_sample_type",
+                       "primary disease or tissue",
+                       "_primary_site",
+                       "_study") %>%
+                rename("sample.type" = "_sample_type", 
+                       "primary.disease" = "primary disease or tissue",
+                       "primary.site" = "_primary_site",
+                       "study" = "_study")}
 
 TCGA.GTEX.RNAseq.sampletype <- merge(TCGA.GTEX.RNAseq,
                                      TCGA.GTEX.sampletype,
                                      by    = "row.names",
-                                     all.x = TRUE) %>% 
-  remove_rownames() %>%
-  column_to_rownames(var = 'Row.names')
-
+                                     all.x = TRUE) %>% {
+                                       remove_rownames(.) %>%
+                                         column_to_rownames(var = 'Row.names')}
 
 
 ### CPTAC data
