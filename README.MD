@@ -107,7 +107,7 @@ BiocManager::install(c("clusterProfiler",
                        "data.table",
                        "dendextend",
                        "descr",
-                       "devtools"
+                       "devtools",
                        "dplyr",
                        "EnvStats",
                        "eulerr",
