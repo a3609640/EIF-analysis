@@ -164,7 +164,7 @@ forest.graph <- function (data, output.file, plot.title, x.tics, x.range){
   )
   
   # print the forest plot on screen
-  forestplot(
+  p <- forestplot::forestplot(
     labeltext = tabletext1,
     graph.pos = 3, graphwidth = unit(12, "cm"),
     hrzl_lines = list(
@@ -196,7 +196,7 @@ forest.graph <- function (data, output.file, plot.title, x.tics, x.range){
     ci.vertices.height = 0.02,
     new_page = getOption("forestplot_new_page", TRUE)
   )
-  
+  print(p)
   # print the forest plot as a pdf file
   pdf(
     file = output.file,
@@ -204,7 +204,7 @@ forest.graph <- function (data, output.file, plot.title, x.tics, x.range){
     height = 12,
     onefile = F
   )
-  forestplot(
+  p <- forestplot::forestplot(
     labeltext = tabletext1,
     graph.pos = 3, graphwidth = unit(12, "cm"),
     hrzl_lines = list(
@@ -235,6 +235,7 @@ forest.graph <- function (data, output.file, plot.title, x.tics, x.range){
     ci.vertices.height = 0.02,
     new_page = getOption("forestplot_new_page", TRUE)
   )
+  print(p)
   dev.off()
   }
 
