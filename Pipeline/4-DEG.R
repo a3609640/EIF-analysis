@@ -441,9 +441,8 @@ RNAratio.boxplot <- function(df, dashline, ylimit, filename) {
     height = 8,
     useDingbats = FALSE)}
 
-###########################################################
-## boxplot for RNA-seq in TCGA tumors vs adjacent normal ##
-###########################################################
+
+# master functions to call DEG gene analysis and plotting ----------------------
 plot.boxgraph.RNAseq.TCGA <- function(EIF) {
   TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
     select(all_of(EIF),       
@@ -472,17 +471,11 @@ plot.boxgraph.RNAseq.TCGA <- function(EIF) {
   lapply(RNAseq.ind.gene.df, RNAseq.boxplot)
 }
 
-##################################################################
-## violin plot for EIF expression in tumors vs adjacent normals ##
-##################################################################
 plot.violingraph.RNAseq.TCGA <- function(EIF) {
   TCGA.GTEX.RNAseq.sampletype.subset <- RNAseq.tumortype (EIF)
   violinplot(TCGA.GTEX.RNAseq.sampletype.subset)
 }
 
-########################################################
-## boxplot and violin plots for RNA ratios across tumors ##
-########################################################
 plot.RNAratio.TCGA <- function(EIF) {
   RNAratio.data <- RNAratio.EIF.gene(EIF)
   
@@ -540,9 +533,9 @@ plot.cormatrix.RNAseq <- function (EIF) {
       filter(sample.type != "Solid Tissue Normal" & study == x) %>%
       select(all_of(EIF))
     
-    cor_5 <- rcorr(as.matrix(EIF.TCGA.RNAseq.subset), type = "pearson")
-    M <- cor_5$r
-    p_mat <- cor_5$P
+    M = cor(EIF.TCGA.RNAseq.subset)
+    testRes = corrplot::cor.mtest(EIF.TCGA.RNAseq.subset, conf.level = 0.95)
+    
     #pdf(file.path(output.directory, "CNV", "EIFCNVcormatrix.pdf"),
     #    width = 9,
     #    height = 9,
@@ -561,7 +554,7 @@ plot.cormatrix.RNAseq <- function (EIF) {
       order       = "FPC", 
       #order = 'hclust', 
       tl.srt = 45,
-      p.mat       = p_mat,
+      p.mat       = testRes$p,
       sig.level   = 0.05, # insig = "blank"
     )
   }
@@ -571,6 +564,7 @@ plot.cormatrix.RNAseq <- function (EIF) {
 
 
 
+# Run master functions ---------------------------------------------------------
 
 plot.boxgraph.RNAseq.TCGA(c("EIF4E","EIF4E2","EIF4E3","EIF4EBP1",
                             "EIF4G1","EIF4G2","EIF4G3","PABPC1",
