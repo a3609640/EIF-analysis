@@ -202,8 +202,8 @@ biplot <- function(res.pca, df, x, y, color, folder) {
     )
 
   corrtitle <-  function (x) {
-    if(x == "All") title = "Matrix plot (Healthy Tissues + Tumors)" 
-    else title = paste0("Matrix plot (", x, ")")
+    if(x == "All") title = "PC (Healthy Tissues + Tumors)" 
+    else title = paste0("PC (", x, ")")
     return (title)
   }
   
@@ -216,22 +216,22 @@ biplot <- function(res.pca, df, x, y, color, folder) {
     width = 9,
     height = 9,
     useDingbats = FALSE)
-  corrplot(var$cos2, # cos2 is better than contribute
+  corrplot::corrplot(var$cos2, # cos2 is better than contribute
            #title = paste("PCA (", x, ")"),
-           title = title,
-           is.corr = FALSE,
-           tl.cex = 1.5,
-           number.cex = 1.5,
-           method = "color",
+           method     = "color",
+           title       = title,
+           #is.corr     = FALSE,
+           tl.cex      = 1.5,
+           number.cex  = 1.5,
            addgrid.col = "gray",
            addCoef.col = "black",
-           tl.col = "black"
+           tl.col      = "black"
            )
   dev.off()
   corrplot(var$cos2, # cos2 is better than contribute
            #title = paste("PCA (", x, ")"),
            title = title,
-           is.corr = FALSE,
+           #is.corr = FALSE,
            tl.cex = 1.5,
            number.cex = 1.5,
            method = "color",
@@ -513,7 +513,7 @@ plot.PCA.TCGA.GTEX(c("EIF4G1", "EIF4G2","EIF4G3",
 
 plot.PCA.TCGA.GTEX.tumor(c("EIF4G1", "EIF4A1", "EIF4E", "EIF4EBP1",
                            "PABPC1", "MKNK1", "MKNK2"), 
-                         "Brain")
+                         "Lung")
 
 plot.PCA.CPTAC.LUAD(c("EIF4E", "EIF4G1", "EIF4A1", "PABPC1", 
                       "MKNK1", "MKNK2", "EIF4EBP1"))
