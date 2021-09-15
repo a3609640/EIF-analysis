@@ -238,11 +238,10 @@ CNV.barplot <- function(df) {
 
 matrix.plot <- function(df) {
   # correlation plot
-  cor_5 <- Hmisc::rcorr(as.matrix(df), 
-                        type = "pearson")
-  M <- cor_5$r
-  p_mat <- cor_5$P
-  p1 <-corrplot(
+  M = cor(df)
+  testRes = corrplot::cor.mtest(df, conf.level = 0.95)
+  
+  p1 <-corrplot::corrplot(
     M,
     method      = "color",  
     cl.pos      = "n", # remove color legend
@@ -254,7 +253,7 @@ matrix.plot <- function(df) {
     type        = "lower",
     order       = "FPC", 
     tl.srt      = 45,
-    p.mat       = p_mat,
+    p.mat       = testRes$p,
     sig.level   = 0.05, # insig = "blank"
   )
   print(p1) # print correlation matrix on the screen
@@ -264,7 +263,7 @@ matrix.plot <- function(df) {
       height = 9,
       useDingbats = FALSE
   )
-  corrplot(
+  corrplot::corrplot(
     M,
     method      = "color",  
     cl.pos      = "n", # remove color legend
@@ -275,7 +274,7 @@ matrix.plot <- function(df) {
     tl.col      = "black",
     type        = "lower",
     order       = "FPC", tl.srt = 45,
-    p.mat       = p_mat,
+    p.mat       = testRes$p,
     sig.level   = 0.05, # insig = "blank"
   )
   dev.off()
@@ -345,6 +344,7 @@ CNVratio.boxplot <- function(df) {
   )
 }
 
+
 # master function to call CNV data analysis and plotting -----------------------
 # stacked bar plots for grouped CNV status in TCGA tumors 
 plot.bargraph.CNV.TCGA <- function(EIF) {
@@ -367,7 +367,7 @@ plot.bargraph.CNV.TCGA <- function(EIF) {
 
 # correlation matrix for CNV values in combined TCGA tumors
 plot.matrix.CNVcorr.TCGA <- function(EIF) {
-  TCGA.CNV.sampletype.subset <- TCGA.CNV.sampletype %>%
+  TCGA.CNVvalue.subset <- TCGA.CNV.value %>%
     select(all_of(EIF)) %>%
     matrix.plot()
 }
@@ -387,6 +387,7 @@ plot.boxgraph.CNVratio.TCGA <- function(EIF) {
   }
 
 
+
 # run master functions  --------------------------------------------------------
 plot.bargraph.CNV.TCGA(c("TP53", "EIF4A1","EIF4A2", 
                          "EIF4E", "EIF4E2", "EIF4E3", 
@@ -399,6 +400,7 @@ plot.matrix.CNVcorr.TCGA(c("TP53", "EIF4A1","EIF4A2",
                            "MYC", "EIF3D", "EIF4EBP1", 
                            "EIF4G1", "EIF4G2", "EIF4G3",
                            "PABPC1", "MKNK1", "MKNK2"))
+
 
 plot.boxgraph.CNVratio.TCGA(c("TP53", "EIF4A1","EIF4A2", 
                               "EIF4E", "EIF4E2", "EIF4E3", 
