@@ -26,7 +26,7 @@ library(ggthemes) ## color-blind options
 library(gplots)
 library(gridExtra)
 library(igraph)
-library(KEGG.db)
+#library(KEGG.db)
 library(lemon) ## coord_capped_cart(bottom='both', left='both')
 library(limma)
 library(missMDA)
@@ -50,27 +50,6 @@ library(vip)
 #### Directory Preparation ####
 data.file.directory <- "~/Downloads/Test"
 output.directory <- "~/Documents/EIF_output"
-
-
-# TODO: Make all uses of 'stringsAsFactors' explicit.
-#
-# This code was originally developed with R 3.6.3, then later
-# evaluated against R 4.0.x.  From the R 4.0.0 release notes:
-#
-# https://cran.r-project.org/doc/manuals/r-devel/NEWS.html
-# -----
-# R now uses a stringsAsFactors = FALSE default, and hence by
-# default no longer converts strings to factors in calls to
-# data.frame() and read.table().  A large number of packages
-# relied on the previous behaviour and so have needed/will
-# need updating.
-# -----
-#
-# Therefore, for the time being, here we set a global option
-# to restore the old default behavior.  Note that this option
-# is deprecated and will no longer work in R 4.1.
-options(stringsAsFactors = TRUE)
-
 
 
 #### Format Preparation ####
