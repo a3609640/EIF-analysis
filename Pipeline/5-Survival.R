@@ -1,5 +1,6 @@
+# prepare RNA-seq related dataset from TCGA and GTEx----------------------------
 ## prepare TCGA RNA-seq dataset
-TCGA.RNAseq <- function() {
+get.TCGA.RNAseq <- function() {
   TCGA.pancancer <- fread(
     file.path(data.file.directory, 
               "EB++AdjustPANCAN_IlluminaHiSeq_RNASeqV2.geneExp.xena"),
@@ -20,7 +21,7 @@ TCGA.RNAseq <- function() {
   TCGA.RNAseq_transpose$rn <- colnames(TCGA.RNAseq)
   return (TCGA.RNAseq_transpose)
 }
-TCGA.RNAseq <- TCGA.RNAseq()   
+TCGA.RNAseq <- get.TCGA.RNAseq()   
 
 ## get OS data ##
 TCGA.OS <- data.table::fread(
@@ -33,8 +34,7 @@ TCGA.OS <- data.table::fread(
   select("sample","OS", "OS.time") %>% 
   rename(rn = sample)}
 
-
-  ## get sample type data ##
+## get sample type data ##
 TCGA.sampletype <- readr::read_tsv(
   file.path(data.file.directory, 
             "TCGA_phenotype_denseDataOnlyDownload.tsv")) %>% {
@@ -48,15 +48,14 @@ TCGA.sampletype <- readr::read_tsv(
          primary.disease = `_primary_disease`)}
 
 ## combine OS, sample type and RNAseq data ##    
-TCGA.RNAseq.OS.sampletype <- list(TCGA.RNAseq,TCGA.OS, TCGA.sampletype) %>% 
+TCGA.RNAseq.OS.sampletype <- list(TCGA.RNAseq, TCGA.OS, TCGA.sampletype) %>% 
   reduce(full_join, by = "rn") %>%  
   remove_rownames(.) %>%
   column_to_rownames(var = 'rn')
 
 
-###########################
-##  KM survival analyses ##
-###########################
+# Survival analysis and plotting -----------------------------------------------
+##  KM survival analyses 
 KM.curve <- function(gene, data, cutoff, tumor) {
   # df <- subset(df, OS.time <= 4000)
   #number <- nrow(df)
@@ -98,7 +97,7 @@ KM.curve <- function(gene, data, cutoff, tumor) {
       legend.position = c(0.9, 0.98),
       legend.justification = c(1, 1)
     ) +
-    guides(fill = FALSE) +
+    guides(fill = "none") +
     scale_color_manual(
       values = c("red", "blue"),
       name = paste(gene, "mRNA expression"),
@@ -129,31 +128,7 @@ KM.curve <- function(gene, data, cutoff, tumor) {
   )
 }
 
-plot.km.EIF.tumor <- function(EIF, cutoff, tumor) {
-  df <- TCGA.RNAseq.OS.sampletype %>%
-    filter(sample.type != "Solid Tissue Normal") %>% 
-    select(all_of(EIF),
-           "OS", 
-           "OS.time",       
-           "sample.type",
-           "primary.disease") %>% 
-    #drop_na(EIF) %>% 
-    filter(if (tumor != "All") primary.disease == tumor else TRUE) %>%  
-    drop_na() %>% 
-    #na.omit(.) %>%
-    as.data.frame(.) %>%
-    rename(RNAseq = EIF) %>%
-    mutate(Group = case_when(
-      RNAseq < quantile(RNAseq, cutoff) ~ "Bottom %", 
-      RNAseq > quantile(RNAseq, (1-cutoff)) ~ "Top %")) %>%
-    mutate(SurvObj = Surv(OS.time, OS == 1)) 
-  
-  KM.curve(gene = EIF, data = df, cutoff = cutoff, tumor = tumor) 
-}
-
-##########################
-## Cox regression model ##
-##########################
+## Cox regression model and forest plot
 forest.graph <- function (data, output.file, plot.title, x.tics, x.range){
   tabletext1 <- cbind(
     c("Gene", data$factor.id),
@@ -315,19 +290,43 @@ multivariable.analysis <- function(df, covariate_names) {
   return(data1)
 }
 
-plot.coxph.EIF.tumor <- function(EIF, tumor) {
-  df1 <- TCGA.RNAseq.OS.sampletype %>%
-    filter(sample.type != "Solid Tissue Normal") %>% 
+
+# master functions to call Survival analysis and plotting ----------------------
+plot.km.EIF.tumor <- function(EIF, cutoff, tumor) {
+  df <- TCGA.RNAseq.OS.sampletype %>%
+    filter(sample.type != "Solid Tissue Normal") %>%
     select(all_of(EIF),
            "OS", 
            "OS.time",       
            "sample.type",
            "primary.disease") %>% 
+    #drop_na(EIF) %>% 
     filter(if (tumor != "All") primary.disease == tumor else TRUE) %>%  
-    drop_na() %>% 
+    drop_na(.) %>% 
     #na.omit(.) %>%
-    as.data.frame(.) 
+    as.data.frame(.) %>% 
+    rename(RNAseq = EIF) %>%
+    mutate(Group = case_when(
+      RNAseq < quantile(RNAseq, cutoff) ~ "Bottom %", 
+      RNAseq > quantile(RNAseq, (1-cutoff)) ~ "Top %")) %>%
+    mutate(SurvObj = Surv(OS.time, OS == 1)) 
+  KM.curve(gene = EIF, data = df, cutoff = cutoff, tumor = tumor) 
+}
 
+plot.coxph.EIF.tumor <- function(EIF, tumor) {
+  df1 <- TCGA.RNAseq.OS.sampletype %>%
+    filter(sample.type != "Solid Tissue Normal") %>%
+    select(all_of(EIF),
+           "OS", 
+           "OS.time",       
+           "sample.type",
+           "primary.disease") %>% 
+    #drop_na(EIF) %>% 
+    filter(if (tumor != "All") primary.disease == tumor else TRUE) %>%  
+    drop_na(.) %>% 
+    #na.omit(.) %>%
+    as.data.frame(.)  
+  
   univariable.result <- univariable.analysis(df = df1,
                                            covariate_names = EIF)
   forest.graph (data = univariable.result, 
@@ -359,8 +358,7 @@ plot.coxph.EIF.tumor <- function(EIF, tumor) {
 }
 
 
-
-
+# Run master functions ---------------------------------------------------------
 lapply(c("EIF4G1","EIF4G2", "EIF4G3",
          "EIF4A1","EIF4A2", 
          "EIF4E", "EIF4E2", "EIF4E3", 
