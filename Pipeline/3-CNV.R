@@ -106,7 +106,8 @@ CNV.all.cancer <- function (df) {
   Freq.sum <- dcast(CNV.sum, variable~CNV, mean)
   CNV.sum$variable <- factor(CNV.sum$variable, 
                              levels = Freq.sum[order(Freq.sum$`1`),]$variable)
-  return (CNV.sum)} 
+  return (CNV.sum)
+}
 CNV.sum.barplot <- function(data) {
   p1 <- ggplot(data, 
                aes(fill = CNV,
