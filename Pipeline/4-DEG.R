@@ -25,7 +25,6 @@ TCGA.GTEX.sampletype <- readr::read_tsv(
             "TcgaTargetGTEX_phenotype.txt")) %>% {
               as.data.frame(.) %>% 
                 distinct(., sample, .keep_all = TRUE) %>% 
-                #na.omit(.) %>%
                 remove_rownames() %>%
                 column_to_rownames(var = 'sample') %>%
                 select("_sample_type",
@@ -48,8 +47,7 @@ TCGA.GTEX.RNAseq.sampletype <- merge(TCGA.GTEX.RNAseq,
 # Differential expression analysis and plotting --------------------------------
 RNAseq.all.gene <- function (df){
   df <- df %>% 
-    filter(study == "TCGA" & sample.type != "Solid Tissue Normal") #%>% 
-  
+    filter(study == "TCGA" & sample.type != "Solid Tissue Normal") 
   #order the EIF genes according to the order of the expression means
   order <- df %>%
     #filter out category equal to 'Lung Adenocarcinoma'
@@ -89,11 +87,10 @@ RNAseq.grouped.boxplot <- function(df) {
     outlier.shape = NA,
     position = position_dodge(width = 1)
     ) +
-
-  labs(
-    x = "primary disease",
-    y = paste("Normalized expression (RNA-Seq counts)")
-  ) +
+    labs(
+      x = "primary disease",
+      y = paste("Normalized expression (RNA-Seq counts)")
+      ) +
     theme_bw() +
     theme(
       plot.title = black_bold_12(),
@@ -198,26 +195,15 @@ RNAseq.boxplot <- function(df) {
 }
 
 
-RNAseq.tumortype <- function (x){
-  TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
-  select(all_of(x),       
-         "sample.type",
-         "primary.disease",
-         "primary.site",
-         "study") %>% 
-  as.data.frame(.) %>% 
-  melt(.,id = c("sample.type",
-                "primary.disease", 
-                "primary.site", 
-                "study")) %>% 
-  na.omit(.$primary.site) %>%
-  filter(value != 0 & study == "TCGA") %>% 
-  mutate_if(is.character, as.factor) %>% 
-  filter(sample.type %in% c(
-    "Metastatic",
-    "Primary Tumor",
-    "Solid Tissue Normal"
-  ))}
+RNAseq.tumortype <- function (df) {
+  TCGA.GTEX.RNAseq.sampletype.subset <- df %>%
+    filter(study == "TCGA") %>% 
+    mutate_if(is.character, as.factor) %>% 
+    filter(sample.type %in% c(
+      "Metastatic",
+      "Primary Tumor",
+      "Solid Tissue Normal"))
+}
 RNAratio.tumortype <- function(df, x){
   RNAratio.data <- df %>% 
     filter(sample.type %in% c("Metastatic",
@@ -232,7 +218,8 @@ RNAratio.tumortype <- function(df, x){
     melt(.,id = c("sample.type",
                   "primary.disease",
                   "primary.site",
-                  "study")) %>%
+                  "study"), 
+         value.name = "RNAseq") %>%
     mutate_if(is.character, as.factor)  %>%
     mutate(primary.disease = forcats::fct_rev(primary.disease))
 }
@@ -242,7 +229,7 @@ violinplot <- function(df) {
     #data = EIF.TCGA.RNAseq.anno.subset.long,
     aes(
       x = sample.type,
-      y = 2**value,
+      y = 2**RNAseq,
       color = sample.type,
       fill = sample.type
     )
@@ -357,7 +344,6 @@ RNAratio.EIF.gene <- function(x){
            "EIF4G2:\nEIF4G1", "EIF4G1:\nEIF4G3", 
            "EIF4A1:\nEIF4A2",          
            "EIF4G1:\nEIF4E+EIF4EBP1", "EIF4A1:\nEIF4E+EIF4EBP1",
-           #"EIF4G1:\nEIF4E-EIF4EBP1", "EIF4A1:\nEIF4E-EIF4EBP1",
            "sample.type",
            "primary.disease",
            "primary.site",
@@ -379,7 +365,8 @@ RNAratio.selected <- function(df, x){
     melt(.,id = c("sample.type",
                   "primary.disease",
                   "primary.site",
-                  "study")) %>%
+                  "study"), 
+         value.name = "RNAseq") %>%
     mutate_if(is.character, as.factor)  %>%
     mutate(primary.disease = forcats::fct_rev(primary.disease))
 }
@@ -389,7 +376,7 @@ RNAratio.boxplot <- function(df, dashline, ylimit, filename) {
     aes(
       x = primary.disease,
       #x = f.ordered1,
-      y = 2**value,
+      y = 2**RNAseq,
       # fill  = variable,
       color = sample.type
     )
@@ -457,68 +444,63 @@ plot.boxgraph.RNAseq.TCGA <- function(EIF) {
                   "study"), 
          value.name = "RNAseq") %>% 
     na.omit(.$primary.site) %>%
-    filter(RNAseq != 0) %>% 
+    #filter(RNAseq != 0) %>% 
     mutate_if(is.character, as.factor)
 
   # boxplot to compare relative abundance of genes across tumors
-  RNAseq.all.gene <- RNAseq.all.gene(TCGA.GTEX.RNAseq.sampletype.subset)
-  RNAseq.grouped.boxplot (RNAseq.all.gene)
+  RNAseq.all.gene(TCGA.GTEX.RNAseq.sampletype.subset) %>% 
+    RNAseq.grouped.boxplot ()
   
   # boxplot to compare RNA-seq of one gene in tumor vs adjacent normal
   RNAseq.ind.gene.df <- lapply(EIF, 
                                RNAseq.ind.gene, 
                                df = TCGA.GTEX.RNAseq.sampletype.subset)
   lapply(RNAseq.ind.gene.df, RNAseq.boxplot)
-}
-
-plot.violingraph.RNAseq.TCGA <- function(EIF) {
-  TCGA.GTEX.RNAseq.sampletype.subset <- RNAseq.tumortype (EIF)
-  violinplot(TCGA.GTEX.RNAseq.sampletype.subset)
+  
+  # violin plot to compare  expression in primary, metastatic tumors vs NATs
+  RNAseq.tumortype (TCGA.GTEX.RNAseq.sampletype.subset) %>% violinplot()
 }
 
 plot.RNAratio.TCGA <- function(EIF) {
   RNAratio.data <- RNAratio.EIF.gene(EIF)
   
-  RNAratio.subset1 <- RNAratio.selected(RNAratio.data,
-                                        c("EIF4G1:\nEIF4E", "EIF4A1:\nEIF4E",
-                                          "EIF4A2:\nEIF4E", "EIF4G3:\nEIF4E", 
-                                          "EIF4G3:\nEIF4E2", "EIF4G1:\nEIF4G3"))
-  RNAratio.boxplot(df = RNAratio.subset1, 
-                   dashline = 1, 
-                   ylimit = c(0,25),
-                   filename = "RNAratio1.pdf")
+  RNAratio.selected(RNAratio.data, c("EIF4G1:\nEIF4E", "EIF4A1:\nEIF4E",
+                                     "EIF4A2:\nEIF4E", "EIF4G3:\nEIF4E", 
+                                     "EIF4G3:\nEIF4E2", "EIF4G1:\nEIF4G3")) %>%
+    RNAratio.boxplot(df = ., 
+                     dashline = 1, 
+                     ylimit = c(0,25),
+                     filename = "RNAratio1.pdf")
   
-  RNAratio.subset2 <- RNAratio.selected(RNAratio.data, 
-                                        c("EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
-                                          "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
-                                          "EIF4G1:\nEIF4E+EIF4EBP1", 
-                                          "EIF4A1:\nEIF4E+EIF4EBP1"))
-  RNAratio.boxplot(df = RNAratio.subset2, 
-                   dashline = 4, 
-                   ylimit = c(0,25),
-                   filename = "RNAratio2.pdf") 
+  RNAratio.selected(RNAratio.data, c("EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
+                                     "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
+                                     "EIF4G1:\nEIF4E+EIF4EBP1", 
+                                     "EIF4A1:\nEIF4E+EIF4EBP1")) %>%
+    RNAratio.boxplot(df = ., 
+                     dashline = 4, 
+                     ylimit = c(0,25),
+                     filename = "RNAratio2.pdf") 
   
   
-  RNAratio.subset3 <- RNAratio.selected(RNAratio.data,
-                                        c("EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2",
-                                          "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
-                                          "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1"))
-  RNAratio.boxplot(df = RNAratio.subset3, 
-                   dashline = 1, 
-                   ylimit = c(0,5),
-                   filename = "RNAratio3.pdf") 
+  RNAratio.selected(RNAratio.data, c("EIF4G3:\nEIF4E", "EIF4G3:\nEIF4E2",
+                                     "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
+                                     "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1")) %>%
+    RNAratio.boxplot(df = ., 
+                     dashline = 1, 
+                     ylimit = c(0,5),
+                     filename = "RNAratio3.pdf") 
   
-  RNAratio.tumortype.data <- RNAratio.tumortype (RNAratio.data,
-                                                 c("EIF4G1:\nEIF4E", "EIF4A1:\nEIF4E", 
-                                                   "EIF4A2:\nEIF4E", "EIF4G3:\nEIF4E",
-                                                   "EIF4G3:\nEIF4E2", "EIF4G1:\nEIF4G3",
-                                                   "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
-                                                   "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
-                                                   "EIF4G1:\nEIF4E+EIF4EBP1", 
-                                                   "EIF4A1:\nEIF4E+EIF4EBP1"))
-  violinplot(RNAratio.tumortype.data)
+  RNAratio.tumortype (RNAratio.data, c("EIF4G1:\nEIF4E", "EIF4A1:\nEIF4E", 
+                                       "EIF4A2:\nEIF4E", "EIF4G3:\nEIF4E",
+                                       "EIF4G3:\nEIF4E2", "EIF4G1:\nEIF4G3",
+                                       "EIF4G2:\nEIF4G1", "EIF4E2:\nEIF4E", 
+                                       "EIF4A1:\nEIF4A2", "EIF4E:\nEIF4EBP1",
+                                       "EIF4G1:\nEIF4E+EIF4EBP1", 
+                                       "EIF4A1:\nEIF4E+EIF4EBP1")) %>% 
+    violinplot()
 }
 
+## this function was not reported in the paper.
 plot.cormatrix.RNAseq <- function (EIF) {
   TCGA.GTEX.RNAseq.sampletype.subset <- TCGA.GTEX.RNAseq.sampletype %>%
     select(all_of(EIF),       
@@ -565,22 +547,13 @@ plot.cormatrix.RNAseq <- function (EIF) {
 
 
 # Run master functions ---------------------------------------------------------
-
-plot.boxgraph.RNAseq.TCGA(c("EIF4E","EIF4E2","EIF4E3","EIF4EBP1",
-                            "EIF4G1","EIF4G2","EIF4G3","PABPC1",
-                            #"MKNK1", "MKNK2",
-                            "EIF4A1","EIF4A2"#,
-                            #"EIF3D","TP53","MYC"
-                            ))
-
-plot.violingraph.RNAseq.TCGA(c("EIF4G1", "EIF4G2","EIF4G3",
-                               "EIF4A1","EIF4A2", 
-                               "EIF4E", "EIF4E2", "EIF4E3", 
-                               "EIF4EBP1", "EIF3D",
-                               "PABPC1", "MKNK1", "MKNK2"))
+plot.boxgraph.RNAseq.TCGA(c("EIF4G1","EIF4G2","EIF4G3","PABPC1",
+                            "EIF4A1","EIF4A2","EIF4B","EIF4H",
+                            "EIF4E","EIF4E2","EIF4E3",
+                            "EIF4EBP1","EIF3D"))
 
 plot.RNAratio.TCGA(c("EIF4E","EIF4E2","EIF4E3","EIF4EBP1",
-                     "EIF4G1","EIF4G2","EIF4G3","EIF3D",#"PABPC1",
+                     "EIF4G1","EIF4G2","EIF4G3","EIF3D",#
                      "EIF4A1","EIF4A2"))
 
 plot.cormatrix.RNAseq(c("EIF4G1", "EIF4G2","EIF4G3",
