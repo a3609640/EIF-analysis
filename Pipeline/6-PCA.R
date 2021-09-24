@@ -51,7 +51,6 @@ CPTAC.LUAD.Proteomics <- function() {
     file.path(data.file.directory, 
               "CPTAC3_Lung_Adeno_Carcinoma_Proteome.tmt10.tsv"),
     data.table = FALSE) %>%
-    #filter(Gene %in% EIF.list) %>% 
     remove_rownames() %>%
     column_to_rownames(var = 'Gene') %>%
     select(-contains("Unshared")) %>%
@@ -70,7 +69,7 @@ CPTAC.LUAD.Proteomics <- CPTAC.LUAD.Proteomics()
 CPTAC.LUAD.sampletype <- read_excel(
   file.path(data.file.directory, 
             "S046_BI_CPTAC3_LUAD_Discovery_Cohort_Samples_r1_May2019.xlsx")
-) %>%
+) %>% {
   as.data.frame(.) %>% 
   select("Aliquot (Specimen Label)", "Type") %>%
   distinct(., `Aliquot (Specimen Label)`, .keep_all = TRUE) %>% 
@@ -81,6 +80,7 @@ CPTAC.LUAD.sampletype <- read_excel(
                                   "Tumor"),
                        labels = c("Adjacent Normal Tissue (CPTAC)", 
                                   "Primary Tumor (CPTAC)")))
+  }
 
 
 CPTAC.LUAD.Proteomics.sampletype <- merge(CPTAC.LUAD.Proteomics,
@@ -132,8 +132,12 @@ biplot <- function(res.pca, df, x, y, color, folder) {
                             col.var = "black",
                             repel = TRUE
                             ) +
-    {if(x == "All") labs(title = "PCA - Biplot (Healthy Tissues + Tumors)") 
-      else labs(title = paste0("PCA - Biplot (", x, ")"))
+    {
+      if(x == "All") {
+        labs(title = "PCA - Biplot (Healthy Tissues + Tumors)")
+      } else {
+        labs(title = paste0("PCA - Biplot (", x, ")"))
+      }
     } +
     #xlim(-7, 8) + 
     #ylim(-6, 7.5) + # for EIF 8
@@ -160,7 +164,6 @@ biplot <- function(res.pca, df, x, y, color, folder) {
   ggplot2::ggsave(
     path = file.path(output.directory, "PCA", folder),
     filename = paste("PCA", x, ".pdf"),
-      #filename = "EIFPCAprimary.pdf",
     plot = biplot,
     width = 8,
     height = 8,
