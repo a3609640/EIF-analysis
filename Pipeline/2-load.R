@@ -46,7 +46,6 @@ library(tidyverse)
 library(vcd)
 library(vip)
 
-
 #### Directory Preparation ####
 data.file.directory <- "~/Downloads/Test"
 output.directory <- "~/Documents/EIF_output"
@@ -138,9 +137,7 @@ black_bold_18 <- function() {
 }
 
 color <- function() {
-  n <- 32  # TODO: this variable is not used
   qual_col_pals <- brewer.pal.info[brewer.pal.info$category == "qual", ]
-  # TODO: col_vector, as defined in this scope, is not used
   col_vector <- unlist(mapply(
     brewer.pal,
     qual_col_pals$maxcolors,
