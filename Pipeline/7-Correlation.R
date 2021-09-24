@@ -1,239 +1,145 @@
+CCLE.RNAseq <- fread(
+  file.path(data.file.directory, 
+            "CCLE_expression_full.csv"),
+  data.table = FALSE)
+
+CCLE.Anno <- fread(
+  file.path(data.file.directory, 
+            "sample_info.csv"),
+  data.table = FALSE) %>% select(1, 2)
+
+CCLE.EIF.Proteomics <- fread(
+  file.path(data.file.directory, 
+            "protein_quant_current_normalized.csv"),
+  data.table = FALSE)
+
+
+get.CCLE.EIF.RNAseq <- function (EIF) {
+  CCLE.RNAseq <- CCLE.RNAseq %>% 
+    rename("DepMap_ID" = "V1") %>% 
+    select("DepMap_ID", starts_with((!!paste(EIF,"(ENSG")) ))
+  }
+
+get.CCLE.EIF.Proteomics <- function (EIF) {
+  CCLE.EIF.Proteomics <- CCLE.EIF.Proteomics %>%
+    filter(Gene_Symbol == EIF) 
+  if (nrow(CCLE.EIF.Proteomics) > 1) {
+    df <- CCLE.EIF.Proteomics %>% 
+      select(contains("_Peptides")) %>%
+      mutate(sum = rowSums(., na.rm = T))
+    name <- rownames(df[df$sum == max(df$sum),]) # for the maximum value
+    CCLE.EIF.Proteomics <- CCLE.EIF.Proteomics  %>% 
+      filter(row.names(CCLE.EIF.Proteomics) == name)
+  }
+  else TRUE
+  CCLE.EIF.Proteomics <- CCLE.EIF.Proteomics  %>% 
+    column_to_rownames(var = 'Gene_Symbol') %>%
+    select(contains("TenPx"), -contains("_Peptides")) %>%
+    t(.) %>%
+    as.data.frame(.) %>%
+    mutate(Celline = sub("\\_.*", "", row.names(.)),
+           Type = sub(".*_ *(.*?) *_.*", "\\1", row.names(.)))%>%
+    mutate_if(is.character, as.factor) %>% 
+    #select(!!paste0(EIF,".pro") := EIF)
+    rename(!!paste0(EIF,".pro") := EIF) # rename with dynamic variables
+  }
+
+Scatter.plot <- function(df, x, y){
+  p1 <- ggscatter(df, 
+                  x = paste0(x, ".pro"), 
+                  y = paste0(x, ".rna"), #color = "Type",
+                  add = "reg.line", #conf.int = TRUE, 
+                  cor.coef = TRUE, 
+                  cor.method = "pearson", 
+                  title = x,
+                  xlab = "Protein expresion", 
+                  ylab = "RNA expression")+
+    theme_bw() +
+    theme(
+      plot.title = black_bold_12(),
+      axis.title.x = black_bold_12(),
+      axis.title.y = black_bold_12(),
+      axis.text.x = black_bold_12(),
+      axis.text.y = black_bold_12(),
+      panel.grid = element_blank(),
+      legend.position = "none",
+      strip.text = black_bold_12(),
+      strip.background = element_rect(fill = "white")
+    ) 
+  print(p1)
+  ggplot2::ggsave(
+    path = file.path(output.directory, "LUAD"),
+    filename = paste(y, x ,"cor",".pdf"),
+    plot = p1,
+    width = 3,
+    height = 3,
+    useDingbats = FALSE
+  )
+}
+
 ## Figure 5 ##
 ######################################
 #### RNA protein correlation CCLE ####
 ######################################
-plot.EIF.cor.CCLE <- function(x, y) {
-  get_EIF_CCLE_RNA <- function(x, y){
-    CCLE_RNA <- fread(
-      file.path(data.file.directory, 
-                "CCLE_expression_full.csv"),
-      data.table = FALSE
-      )
-    
-    # find column names contain EIF gene names
-    # colnames(CCLE_RNA[grepl('PABPC1', colnames(CCLE_RNA))])
-    
-    
-    EIF_CCLE_RNA <- CCLE_RNA[c(y,
-                               #'EIF4G1 (ENSG00000114867)', 
-                               #'EIF4A1 (ENSG00000161960)',
-                               #'EIF4E (ENSG00000151247)',
-                               #'EIF4EBP1 (ENSG00000187840)', 
-                               #'PABPC1 (ENSG00000070756)',
-                               "V1")]
-    
-    CCLE_Anno <- fread(
-      file.path(data.file.directory, 
-                "sample_info.csv"),
-      data.table = FALSE
-      )
-    CCLE_Anno <- CCLE_Anno[, 1:2]
-    CCLE_RNA_Anno <- merge(EIF_CCLE_RNA, CCLE_Anno, 
-                           by.x = "V1", by.y = "DepMap_ID", 
-                           all = T)
-    CCLE_RNA_Anno <- na.omit(CCLE_RNA_Anno)
-    CCLE_RNA_Anno$V1 <- NULL
-    colnames(CCLE_RNA_Anno) <- c(x, #"EIF4G1", "EIF4A1", "EIF4E", 
-                                 #"EIF4EBP1", #"PABPC1",
-                                 "Celline")
-    return(CCLE_RNA_Anno)
-    
-  }
-  EIF_CCLE_RNA <- get_EIF_CCLE_RNA(x, y)
-  
-  get_EIF_CCLE_Pro <- function(x){
-    CCLE_PRO <- fread(
-      file.path(data.file.directory, "protein_quant_current_normalized.csv"),
-      data.table = FALSE
-    )
-    EIF_CCLE_PRO <- CCLE_PRO[CCLE_PRO$Gene_Symbol %in% c(#"EIF4E", 
-                                                         #"EIF4G1"#, 
-                                                         #"EIF4A1", 
-                                                         #"EIF4EBP1"#,
-                                                         #"PABPC1"
-                                                         x), ]
-    EIF_CCLE_PRO <- EIF_CCLE_PRO[, -grep("_Peptides", colnames(EIF_CCLE_PRO))]
-    EIF_CCLE_PRO <-  EIF_CCLE_PRO[-2, , drop = FALSE]
-    row.names(EIF_CCLE_PRO) <- EIF_CCLE_PRO$Gene_Symbol
-    EIF_CCLE_PRO$Gene_Symbol <- NULL
-    EIF_CCLE_PRO <-  EIF_CCLE_PRO[ , -(1:5) , drop = FALSE]
-    EIF_CCLE_PRO.T <- t(EIF_CCLE_PRO)
-    EIF_CCLE_PRO.T <- as.data.frame(EIF_CCLE_PRO.T)
-    EIF_CCLE_PRO.T$Celline <- sub("\\_.*", "", row.names(EIF_CCLE_PRO.T))
-    EIF_CCLE_PRO.T$Type <- sub(".*_ *(.*?) *_.*", "\\1", row.names(EIF_CCLE_PRO.T))
-    EIF_CCLE_PRO.T$Type <- as.factor(EIF_CCLE_PRO.T$Type)
-    return(EIF_CCLE_PRO.T)
-  }
-  EIF_CCLE_Pro <- get_EIF_CCLE_Pro(x)
-  
-  CCLE_RNA_Pro <- merge(EIF_CCLE_RNA, 
-                        EIF_CCLE_Pro, 
-                        by = "Celline",  
-                        suffixes = c("RNA","Pro"),
-                        all = T)
-  CCLE_RNA_Pro <- na.omit(CCLE_RNA_Pro)
-  
-  Scatter.plot <- function(x){
-    p1 <- ggscatter(CCLE_RNA_Pro, 
-                    x = paste0(x, "Pro"), 
-                    y = paste0(x, "RNA"), #color = "Type", 
-                    add = "reg.line", #conf.int = TRUE, 
-                    cor.coef = TRUE, 
-                    cor.method = "pearson", 
-                    title = x,
-                    xlab = "Protein expresion", 
-                    ylab = "RNA expression")+
-      stat_cor(aes(color = Type),     
-               label.x.npc = 0.5, 
-               label.y.npc = 0.5, 
-               hjust = 0
-      )+           # Add correlation coefficient
-      theme_bw() +
-      theme(
-        plot.title = black_bold_12(),
-        axis.title.x = black_bold_12(),
-        axis.title.y = black_bold_12(),
-        axis.text.x = black_bold_12(),
-        axis.text.y = black_bold_12(),
-        panel.grid = element_blank(),
-        legend.position = "none",
-        strip.text = black_bold_12(),
-        strip.background = element_rect(fill = "white")
-      ) 
-    print(p1)
-    ggplot2::ggsave(
-      path = file.path(output.directory, "LUAD"),
-      filename = paste(x, "corCCLE.pdf"),
-      plot = p1,
-      width = 3,
-      height = 3,
-      useDingbats = FALSE
-    )
-    
-    p2 <- ggscatter(CCLE_RNA_Pro, 
-                    x = paste0(x, "Pro"), 
-                    y = paste0(x, "RNA"), 
-                    color = "Type", 
-                    add = "reg.line", #conf.int = TRUE, 
-                    cor.coef = TRUE, 
-                    cor.method = "pearson", #title = x,
-                    #xlab = "Protein expresion", 
-                    #ylab = "RNA expression"
-    )+
-      stat_cor(aes(color = Type),     
-               label.x.npc = 0.5, 
-               label.y.npc = 0.5, 
-               hjust = 0
-      )+           # Add correlation coefficient
-      theme_bw() +
-      theme(
-        plot.title = black_bold_12(),
-        axis.title.x = black_bold_12(),
-        axis.title.y = black_bold_12(),
-        axis.text.x = black_bold_12(),
-        axis.text.y = black_bold_12(),
-        panel.grid = element_blank(),
-        #legend.position = c(0.8, 0.2),
-        strip.text = black_bold_12(),
-        strip.background = element_rect(fill = "white")
-      ) 
-    print(p2)
-    ggplot2::ggsave(
-      path = file.path(output.directory, "LUAD"),
-      filename = paste(x, "pro corCCLE.pdf"),
-      plot = p2,
-      width = 6,
-      height = 3,
-      useDingbats = FALSE
-    )
-  }
-  Scatter.plot(x)
+
+plot.EIF.cor.CCLE <- function (EIF){
+  get.CCLE.EIF.RNAseq(EIF) %>% 
+    full_join(CCLE.Anno, 
+              by = "DepMap_ID") %>% 
+    na.omit(.) %>%
+    select(-DepMap_ID) %>% 
+    rename("Celline" = "stripped_cell_line_name",
+           !!paste0(EIF,".rna") := contains(EIF)) %>% 
+    full_join(get.CCLE.EIF.Proteomics(EIF), 
+              by = "Celline") %>% 
+    na.omit(.) %>% 
+    Scatter.plot(df = ., x = EIF, y = "CCLE")
 }
+plot.EIF.cor.CCLE("EIF4A1")
+
+lapply(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1","PABPC1"), plot.EIF.cor.CCLE)
+
 
 ######################################
 #### RNA protein correlation LUAD ####
 ######################################
-plot.EIF.cor.LUAD <- function(EIF) {
-  get.proteomics.data <- function(EIF_list) {
-    LUAD.Proteomics <- read_excel(
-      file.path(data.file.directory, "Protein.xlsx"), 
-      col_names = FALSE
-    )
-    #EIF_list <- c("EIF4G1", "EIF4A1", "EIF4E", "EIF4EBP1","Type","Sample")
-    EIF.LUAD.Proteomics <- LUAD.Proteomics[LUAD.Proteomics$...1 %in% c(EIF_list, 
-                                                                       "Type","Sample"), ]
-    EIF.LUAD.Proteomics.T <- t(EIF.LUAD.Proteomics)
-    colnames(EIF.LUAD.Proteomics.T) <- EIF.LUAD.Proteomics.T[1, ]
-    EIF.LUAD.Proteomics.T <- EIF.LUAD.Proteomics.T[-1, ] 
-    EIF.LUAD.Proteomics.T <- as.data.frame(EIF.LUAD.Proteomics.T, 
-                                           stringsAsFactors = FALSE)
-    EIF.LUAD.Proteomics.T[EIF_list] <- sapply(EIF.LUAD.Proteomics.T[EIF_list], 
-                                              as.numeric)
-    return(EIF.LUAD.Proteomics.T)
-  }
-  EIF.LUAD.Proteomics <- get.proteomics.data(EIF)
-  
-  get.rna.data <- function(EIF_list) {
-    LUAD.RNA <- read_excel(
-      file.path(data.file.directory, "RNA.xlsx"), col_names = FALSE
-    )
-    #EIF_list <- c("EIF4G1", "EIF4A1", "EIF4E", "EIF4EBP1","Type","Sample")
-    EIF.LUAD.RNA <- LUAD.RNA[LUAD.RNA$...1 %in% c(EIF_list, "Type","Sample"), ]
-    EIF.LUAD.RNA.T <- t(EIF.LUAD.RNA)
-    colnames(EIF.LUAD.RNA.T) <- EIF.LUAD.RNA.T[1, ]
-    EIF.LUAD.RNA.T <- EIF.LUAD.RNA.T[-1, ] 
-    EIF.LUAD.RNA.T <- as.data.frame(EIF.LUAD.RNA.T, stringsAsFactors = FALSE)
-    EIF.LUAD.RNA.T[EIF_list] <- sapply(EIF.LUAD.RNA.T[EIF_list], as.numeric)
-    
-    return(EIF.LUAD.RNA.T)
-  }
-  EIF.LUAD.RNA <- get.rna.data(EIF)
-  
+LUAD.Proteomics <- read_excel(
+  file.path(data.file.directory, "Protein.xlsx"), 
+  col_names = FALSE) %>% 
+  as.data.frame(.) %>% 
+  mutate(...1 = make.unique(...1)) %>% # relabel the duplicates
+  column_to_rownames(var = '...1') %>%
+  t(.) %>%
+  as.data.frame(.) %>%
+  mutate_at(vars(-Type, -Sample),funs(as.numeric)) # exclude two columns convert character to number
 
-    #EIF.LUAD.Proteomics <- get.proteomics.data(c("EIF4G1", "EIF4A1", "EIF4E", "EIF4EBP1"))
-  EIF.LUAD.Proteomics.Tumor <- EIF.LUAD.Proteomics[EIF.LUAD.Proteomics$Type == "Tumor", ] 
-  EIF.LUAD.Proteomics.NAT <- EIF.LUAD.Proteomics[EIF.LUAD.Proteomics$Type == "NAT", ] 
-  EIF.LUAD.RNA.Tumor <- EIF.LUAD.RNA[EIF.LUAD.RNA$Type == "Tumor", ] 
-  #EIF.LUAD.RNA.NAT <- EIF.LUAD.RNA[EIF.LUAD.RNA$Type == "NAT", ] 
-  tumor.total <- merge(EIF.LUAD.Proteomics.Tumor, 
-                       EIF.LUAD.RNA.Tumor, 
-                       by = c("Sample","Type"), 
-                       suffixes = c(".pro",".rna"))
-  #NAT.total <- merge(EIF.LUAD.Proteomics.NAT, 
-  #                   EIF.LUAD.RNA.NAT, 
-  #                   by = c("Sample","Type"), 
-  #                   suffixes = c(".pro",".rna"))
-    
-  Scatter.plot <- function(x){
-      p1 <- ggscatter(tumor.total, 
-                      x = paste0(x, ".pro"), 
-                      y = paste0(x, ".rna"), #color = "Type",
-                      add = "reg.line", #conf.int = TRUE, 
-                      cor.coef = TRUE, cor.method = "pearson", title = x,
-                      xlab = "Protein expresion", ylab = "RNA expression")+
-        theme_bw() +
-        theme(
-          plot.title = black_bold_12(),
-          axis.title.x = black_bold_12(),
-          axis.title.y = black_bold_12(),
-          axis.text.x = black_bold_12(),
-          axis.text.y = black_bold_12(),
-          panel.grid = element_blank(),
-          legend.position = "none",
-          strip.text = black_bold_12(),
-          strip.background = element_rect(fill = "white")
-        ) 
-      print(p1)
-      ggplot2::ggsave(
-        path = file.path(output.directory, "LUAD"),
-        filename = paste(x, "corLUAD.pdf"),
-        plot = p1,
-        width = 3,
-        height = 3,
-        useDingbats = FALSE
-      )
-    }
-  lapply(EIF, Scatter.plot)
+
+LUAD.RNAseq <- read_excel(
+  file.path(data.file.directory, "RNA.xlsx"), 
+  col_names = FALSE) %>% 
+  as.data.frame(.) %>% 
+  mutate(...1 = make.unique(...1)) %>% # relabel the duplicates
+  column_to_rownames(var = '...1') %>%
+  t(.) %>%
+  as.data.frame(.) %>%
+  mutate_at(vars(-Type, -Sample),funs(as.numeric)) # exclude two columns convert character to number
+
+
+plot.EIF.cor.LUAD <- function(EIF) {
+  EIF.LUAD.Proteomics <- LUAD.Proteomics %>% 
+    select(all_of(EIF),"Type","Sample") %>% 
+    filter(Type == "Tumor")
+
+  EIF.LUAD.RNAseq <- LUAD.RNAseq %>% 
+    select(all_of(EIF),"Type","Sample")%>% 
+    filter(Type == "Tumor")
+  
+  df <-  merge(EIF.LUAD.Proteomics, 
+               EIF.LUAD.RNAseq, 
+               by = c("Sample","Type"), 
+               suffixes = c(".pro",".rna"))
+
+  Scatter.plot(df = df, x = EIF, y = "LUAD")
   }
 
 #####################################
@@ -1983,13 +1889,8 @@ plot.heatmap.lung <- function(x) {
 
 
 # Figure 5
-plot.EIF.cor.CCLE("EIF4G1", 'EIF4G1 (ENSG00000114867)')
-plot.EIF.cor.CCLE("EIF4A1", 'EIF4A1 (ENSG00000161960)')
-plot.EIF.cor.CCLE("EIF4E", 'EIF4E (ENSG00000151247)')
-plot.EIF.cor.CCLE("EIF4EBP1", 'EIF4EBP1 (ENSG00000187840)')
-plot.EIF.cor.CCLE("PABPC1", 'PABPC1 (ENSG00000070756)')
 
-plot.EIF.cor.LUAD(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1","PABPC1"))
+lapply(c("EIF4G1","EIF4A1","EIF4E","EIF4EBP1","PABPC1"), plot.EIF.cor.LUAD)
 
 
 plot.Venn.all(x = "All")
